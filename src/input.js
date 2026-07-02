@@ -36,9 +36,9 @@ function handleTap(x,y){
   if(UI.mode==='evolve'){ if(UI.evoT>2600) UI.mode='main'; return; }
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }
   if(UI.mode==='battle'){ battleTap(); return; }
-  if(UI.mode==='album'){ UI.mode='main'; SFX.tap(); return; }
-  if(UI.mode==='ach'){ UI.mode='main'; SFX.tap(); return; }
-  if(UI.mode==='relics'){ UI.mode='main'; SFX.tap(); return; }
+  if(UI.mode==='album'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='ach'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='relics'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='ascendConfirm'){
     if(y>150 && y<175){
       if(x<80){ doAscend(); } else { UI.mode='stats'; SFX.tap(); }

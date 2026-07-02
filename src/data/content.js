@@ -52,9 +52,9 @@ const RELICS = [
 const FOODS = [
  {id:'racion', name:'RACION',    cost:5,  spr:'meal',   hunger:35, happy:0,  energy:0,  weight:1, desc:'+HAMBRE'},
  {id:'chuche', name:'CHUCHE',    cost:8,  spr:'snack',  hunger:8,  happy:18, energy:0,  weight:2, desc:'+ANIMO', snack:true},
- {id:'fruta',  name:'FRUTA',     cost:7,  spr:'fruta',  hunger:20, happy:4,  energy:10, weight:0, desc:'LIGERA +PILAS'},
+ {id:'fruta',  name:'FRUTA',     cost:7,  spr:'fruta',  hunger:20, happy:4,  energy:10, weight:0, desc:'SUAVE +PILAS'},
  {id:'pescado',name:'PESCADO',   cost:12, spr:'pescado',hunger:30, happy:0,  energy:0,  weight:1, desc:'+1 FUERZA', str:1},
- {id:'picante',name:'PICANTE',   cost:10, spr:'picante',hunger:5,  happy:6,  energy:30, weight:0, desc:'+PILAS ¡PICA!', spicy:true},
+ {id:'picante',name:'PICANTE',   cost:10, spr:'picante',hunger:5,  happy:6,  energy:30, weight:0, desc:'PICA: +PILAS', spicy:true},
  {id:'pastel', name:'PASTEL',    cost:25, spr:'pastel', hunger:50, happy:25, energy:0,  weight:4, desc:'FIESTA TOTAL'},
  {id:'seta',   name:'SETA RARA', cost:15, spr:'setita', hunger:0,  happy:0,  energy:0,  weight:0, desc:'¿¿¿???', gamble:true},
  {id:'sopa',   name:'SOPA ASTRAL',cost:40,spr:'sopa',   hunger:15, happy:15, energy:15, weight:0, desc:'+TODO +XP', xp:10}

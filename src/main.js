@@ -3,6 +3,28 @@
    BITXO — main: bucle principal y arranque
    ========================================================= */
 /* ---------------- BUCLE ---------------- */
+/* pantallas modales sobre el prado: fondo atenuado + deslizamiento al abrir */
+const MENU_DRAW = {
+  stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
+  exped:drawExped, ascendConfirm:drawAscendConfirm,
+  shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu
+};
+function drawModals(now){
+  const menuFn = MENU_DRAW[UI.mode] || null;
+  const repFn = offlineReport ? drawOfflineReport : (UI.expReport ? drawExpReport : null);
+  if(!menuFn && !repFn){ UI.menuKey = null; return; }
+  const key = UI.mode + (repFn ? '+rep' : '');
+  if(UI.menuKey !== key){ UI.menuKey = key; UI.menuAt = now; }
+  const pr = Math.min(1, (now - UI.menuAt)/150);
+  const e = 1 - Math.pow(1-pr, 3);
+  ctx.fillStyle = 'rgba(8,9,28,' + (0.45*e).toFixed(3) + ')';
+  ctx.fillRect(0, 0, LW, LH);
+  ctx.save();
+  ctx.translate(0, Math.round((1-e)*8));
+  if(menuFn) menuFn();
+  if(repFn) repFn();
+  ctx.restore();
+}
 function frame(now){
   const dt = Math.min(100, now - lastT);
   lastT = now;
@@ -40,17 +62,7 @@ function frame(now){
     if(AP().sleeping) px(0,0,160,200,'rgba(10,8,30,0.35)');
     drawParticles(dt);
     drawHUD(now);
-    if(UI.mode==='stats') drawStats();
-    if(UI.mode==='album') drawAlbum();
-    if(UI.mode==='ach') drawAch();
-    if(UI.mode==='relics') drawRelics();
-    if(UI.mode==='exped') drawExped();
-    if(UI.mode==='ascendConfirm') drawAscendConfirm();
-    if(UI.mode==='shop') drawShop();
-    if(UI.mode==='feed') drawFeedMenu();
-    if(UI.mode==='play') drawPlayMenu();
-    if(offlineReport) drawOfflineReport();
-    else if(UI.expReport) drawExpReport();
+    drawModals(now);
     if(UI.pendingEvoNote){ UI.pendingEvoNote=false; toast('¡ALGUIEN EVOLUCIONO!', 3000); }
   }
   requestAnimationFrame(frame);

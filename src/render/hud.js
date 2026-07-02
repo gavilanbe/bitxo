@@ -203,7 +203,7 @@ function drawFeedMenu(){
     drawText(F.desc, cx+17, cy+22, 'rgba(26,20,40,0.55)');
     if(FAVES[AP().line]===F.id) drawText('♥', cx+58, cy+3, '#f2a2b8');
   }
-  drawTextC('FUERA PARA CANCELAR', 80, 220, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 220, 'rgba(26,20,40,0.5)');
 }
 function drawPlayMenu(){
   panel(8,88,144,102);
@@ -213,7 +213,7 @@ function drawPlayMenu(){
   card(106,102,42,38); drawTextC('?', 127, 107, '#6db1ff'); drawTextC('SIMON', 127, 118, K); drawTextC('MEMORIA', 127, 128, 'rgba(26,20,40,0.55)');
   card(14,146,62,30); drawTextC('ENTRENO', 45, 152, K); drawTextC('+FUERZA', 45, 163, 'rgba(26,20,40,0.55)');
   card(84,146,62,30); drawTextC('VIAJE >>', 115, 152, K); drawTextC('TESOROS', 115, 163, 'rgba(26,20,40,0.55)');
-  drawTextC('FUERA PARA CANCELAR', 80, 181, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 181, 'rgba(26,20,40,0.5)');
 }
 function drawExped(){
   panel(8,44,144,168);
@@ -230,7 +230,7 @@ function drawExped(){
     if(E.egg) drawText('HUEVO '+LINES[E.egg].name+' '+Math.round(E.eggP*100)+'%', 18, y+21, '#a03030');
     else drawText('VIAJE TRANQUILO', 18, y+21, 'rgba(26,20,40,0.4)');
   }
-  drawTextC('FUERA PARA VOLVER', 80, 204, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 204, 'rgba(26,20,40,0.5)');
 }
 function drawRelics(){
   panel(4,26,152,196);
@@ -310,7 +310,7 @@ function drawAch(){
   drawTextC('- LOGROS '+done+'/'+ACH.length+' -', 80, 31, K);
   for(let i=0;i<ACH.length;i++){
     const a = ACH[i], got = !!G.ach[a.id];
-    const y = 41 + i*12;
+    const y = 40 + i*11;
     px(10,y,7,7, got?'#7ac74f':'rgba(26,20,40,0.12)');
     px(10,y,7,1,K); px(10,y+6,7,1,K); px(10,y,1,7,K); px(16,y,1,7,K);
     drawText(a.name, 21, y+1, got? K : 'rgba(26,20,40,0.55)');
