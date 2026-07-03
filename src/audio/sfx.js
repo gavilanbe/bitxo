@@ -129,6 +129,11 @@ function petVoice(p){
       tone({f:f*0.42, slide:f*0.34, d:0.13, type:'triangle', vol:0.05});
       kick(sfxAt(0), 0.028);
       break;
+    case 'voltio':
+      tone({f:f*1.4, slide:f*0.9, d:0.05, type:'square', vol:0.04});
+      tone({f:f*1.8, slide:f*1.1, d:0.05, type:'square', vol:0.03, at:sfxAt(0.07)});
+      nz(sfxAt(0.02), 0.03, 0.015, 6000, 3);
+      break;
     case 'astro':
       tone({f:f*1.25, d:0.13, type:'p125', vol:0.03, vib:true, send:0.5});
       tone({f:f*1.87, at:sfxAt(0.07), d:0.11, type:'p125', vol:0.02, send:0.5});

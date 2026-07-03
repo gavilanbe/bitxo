@@ -93,6 +93,33 @@ blink:[[2,".kskksssssskksk."]]},
 petrea_adultB:{pal:{k:K,s:'#9a9aa4',p:'#b88ae8'},rows:[
 ".kk...kk...kk...",".kppk.kppk.kppk.",".kppppkppkppppk.","kppppppppppppppk","kssppssssssppssk",".kssssssssssssk.",".kskpsssssspksk.","kssssskkkksssssk","kssppssssssppssk","kssssssssssssssk",".kssssssssssssk.",".kksssssssssskk.","..kk.kkkkkk.kk.."],
 blink:[[6,".kskksssssskksk."]]},
+voltio_babyA:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+"...kkkkk...","..kyyyyyk..",".kyybyybyk.",".kykyyykyk.","kyyyyyyyyyk","kybykkkybyk",".kyywwwyyk.","..kyyyyyk..","...kkkkk..."],
+blink:[[3,".kyyyyyyyk."]]},
+voltio_babyB:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+"...kbbk....","..kkkkkk...",".kyyyyyyk..",".kykyykyk..",".kyyyyyyk..",".kywwyywk..",".kyywwyyk..",".kyyyyyyk..","..kkkkkk..."],
+blink:[[3,".kyyyyyyk.."]]},
+voltio_childA:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+".....kk......","....kyyk.....","...kyyk......","..kkyyykk....",".kyyyyyyyk...","kyykyyyykyyk.","kyyyyyyyyyyk.","kybyykkyybyk.",".kyywwwwyyk..",".kyyyyyyyyk..","..kkyyyykk...","....kkkk....."],
+blink:[[5,"kyykkyyykkyyk"]]},
+voltio_childB:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+"..kk....kk...",".kbyk..kybk..",".kyyykkyyyk..","kyyyyyyyyyyk.","kykyyyyyykyk.","kyyyyyyyyyyk.","kyybwwwwbyyk.","kyyyywwyyyyk.",".kyyyyyyyyk..","..kkkyykkk...","....kyyk.....",".....kk......"],
+blink:[[4,"kykkyyyyykyk."]]},
+voltio_adultA:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+"......kk........",".....kyyk.......","....kyyk........","...kkyyykk......","..kyyyyyyyk.....",".kyykyyyykyk....",".kyyyyyyyyyk....","kkybyykkyybyk...","kyyyywwwwyyyk...","kyyywwwwwwyyk...",".kyyywwwwyyk....",".kkyyyyyyykk....","..kyyk..kyyk....","..kk......kk...."],
+blink:[[5,".kyykkyyykkk...."]]},
+voltio_adultB:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8',n:'#c9a227'},rows:[
+"....kkkkkkkk....","..kknnnnnnnnkk..",".knnyyyyyyyynnk.",".kykyyyyyyyykyk.","kyyyyyyyyyyyyyyk","kybyykkkkkkyybyk","kyyywwwwwwwwyyyk","kyywwyywwyywwyyk",".kyyyywwwwyyyyk.",".kkyyyyyyyyyykk.","..kkkyyyyyykkk..","....kkkkkkkk...."],
+blink:[[3,".kykkyyyyyykkyk."]]},
+voltio_adultC:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+"kk...........kk.","kbk.........kbk.","kbbk.kkkkk.kbbk.",".kbkyyyyyyykbk..",".kyyyyyyyyyyyk..","kyykyyyyyykyyk..","kyyyyyyyyyyyyk..","kybyykkkkyybyk..",".kyywwwwwwyyk...","..kyyywwyyyk....","...kyyyyyyk.....","...kyk..kyk.....","...kk....kk....."],
+blink:[[5,"kyykkyyyykkyyk.."]]},
+voltio_adultD:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',n:'#c9a227'},rows:[
+"....kkkkkkkk....","..kkyyyyyyyykk..",".kyyyyyyyyyyyyk.",".kykyyyyyyyykyk.","kyyyyyyyyyyyyyyk","kynyykkkkkkyynyk","kyyyyyyyyyyyyyyk","kyywwyyyyyywwyyk","kyyywwwwwwwwyyyk",".kyyyyywwyyyyyk.",".kkyyyyyyyyyykk.","..kk.kkkkkk.kk.."],
+blink:[[3,".kykkyyyyyykkyk."]]},
+voltio_adultS:{pal:{k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},rows:[
+"b......kk......b",".b....kyyk....b.","..kk.kyyk..kk...",".kbbkkyyykkbbk..",".kbyyyyyyyyybk..","kyykyyyyyyykyyk.","kyyyyykkyyyyyyk.","kybyyywwyyyybyk.","kyyywwwwwwwyyyk.",".kyywwwwwwyyk...","..kyyywwyyyk....",".kkyyyyyyyykk...","..kyyk..kyyk....","..kk......kk...."],
+blink:[[5,"kyykkyyyyykkyyk."]]},
 astro_babyA:{pal:{k:K,v:'#8a6ae8',n:'#4a3a9a',y:'#ffd94a'},rows:[
 "...kkkkkk...","..kvvvvvvk..",".kvvnvvvnvk.",".kvkvvvvkvk.","kvvvvvvvvvvk","kvnvkkkkvnvk","kvvvvvvvvvvk",".kvvnvvnvvk.","..kvvvvvvk..","...kkkkkk...",".y........y."],
 blink:[[3,".kvkkvvkkvk."]]},
@@ -234,6 +261,14 @@ function buildAllSprites(){
 "k.k.k.k","kykykyk","kyyryyk","kkkkkkk"]);
   SPR.hat_buho = mkSprite({k:K,u:'#9d7bd8',y:'#ffd94a'},[
 "...k...","..kuk..",".kuuuk.","kuyuyuk",".kkkkk."]);
+  SPR.hat_gafas = mkSprite({k:K,n:'#20243c'},[
+"kkkkkkkkk","knnkkknnk",".kk...kk."]);
+  SPR.hat_pajarita = mkSprite({k:K,r:'#e2574c',d:'#a03030'},[
+"kk...kk","krrkrrk","krdkdrk","kk...kk"]);
+  SPR.hat_halo = mkSprite({k:'#c9a227',y:'#ffd94a'},[
+".kkkkkkk.","kyyyyyyyk",".kkkkkkk."]);
+  SPR.hat_vikingo = mkSprite({k:K,w:'#f6efe0',n:'#8a6a3a'},[
+"kk.......kk","kwk.....kwk","kwwk...kwwk",".kkwkkkwkk.","..kknnnkk.."]);
 }
 
 const IC = {};
@@ -276,6 +311,12 @@ function buildEnemySprites(){
 "..kk......kk..",".kmmk....kmmk.",".kmmmkkkkmmmk.","kmmmmmmmmmmmmk","kddddddddddddk","kdwkddddddkwdk","kmmmmmmmmmmmmk",".kmmkwwwwkmmk.",".kmmmmmmmmmmk.","..kmmkmmkmmk..","..kk.k..k.kk..",".............."]);
   ESPR.reyseto = mkSprite({k:K,r:'#d8574c',w:'#f6efe0',c:'#f0e0c0',y:'#ffd94a'},[
 "...y..y..y......","...k..k..k......","..kykkykkyk.....",".kkkkkkkkkkkk...",".krrwrrrrwrrrk..","krrrrrwrrrrrrrk.","krwrrrrrrrwrrrk.","kkkkkkkkkkkkkkk.",".kccccccccccck..",".kckcccccckck...",".kcccccccccck...",".kcckkkkkkck....","..kkk....kkk...."]);
+  ESPR.setazo = mkSprite({k:K,g:'#57a05e',w:'#f6efe0',c:'#e8d8b8'},[
+"...kkkkkkkk...","..kggwggggwk..",".kgggggwgggk..","kwggwgggggwgk.","kkkkkkkkkkkkk.",".kcckcckcck...",".kcckcckcck...",".kcccccccck...","..kkcccckk....","...kkkkkk....."]);
+  ESPR.cuervillo = mkSprite({k:K,n:'#2a2a38',w:'#f6efe0',o:'#f0a04b'},[
+"kk.........kk.","knnk.......knn",".knnk..kk.knnk",".knnnkknnknnk.","..knnnnnnnnk..","..knkwnnwknk..","..knnnnnnnnk..","...knnoonnk...","....knnnnk....","...kk.oo.kk...","......kk......"]);
+  ESPR.relampin = mkSprite({k:K,y:'#ffd94a',w:'#fff8d0',b:'#5ec8d8'},[
+".....kkk......","....kyyyk.....","...kyyyk......","..kyyyykkk....",".kyyyyyyyk....","kyykyyykyyk...","kyyyyyyyyyk...","kyybkkkbyyk...",".kyywwwyyk....","..kyyyyk......","...kyyk.......","....kk........"]);
   ESPR.sombrio = mkSprite({k:K,s:'#4a4460',r:'#e8574c',w:'#c8c0e0'},[
 "....kkkkkk....","..kksssssskk..",".kssssssssssk.",".kskrssssrksk.","kssssssssssssk","ksskwkwkwkwssk","kssssssssssssk",".kssssssssssk.","..kssksskssk..","..ks..ks..sk..","..k....k....k."]);
 }

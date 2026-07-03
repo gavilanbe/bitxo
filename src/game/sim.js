@@ -61,7 +61,7 @@ function liveUpdate(dtMs){
       }
     }
     /* paseo */
-    if(!p.sleeping && !p.eatT && !p.trainT && !(p.swingT>0) && UI.mode==='main'){
+    if(!p.sleeping && !p.eatT && !p.trainT && !(p.swingT>0) && !(p.batheT>0) && !(p.drinkT>0) && UI.mode==='main'){
       if(now > p.nextWalk){
         if(G.pets.length>1 && Math.random()<0.25){
           const others = G.pets.filter(o=>o!==p && o.stage>STAGES.EGG);
@@ -154,6 +154,43 @@ function liveUpdate(dtMs){
           for(const q of G.pets) if(q!==p && q.stage>STAGES.EGG) q.happy = Math.min(100, q.happy+3);
           p.happy = Math.min(100, p.happy+4);
         }
+      }
+    }
+    if(G.toys.fuente){
+      for(const p of G.pets){
+        if((p.drinkT||0)>0){
+          p.drinkT -= dtMs;
+          if(p.drinkT<=0){ p.drinkT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
+        } else if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) && !(p.batheT>0) &&
+                  p.energy<45 && now>(p.drinkCd||0) && Math.random() < dtMs*0.00005){
+          p.tx = 12;
+        }
+        if(!(p.drinkT>0) && p.tx===12 && Math.abs(p.rx-12)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
+          p.drinkT = 2200; p.drinkCd = now + 120000;
+          p.energy = Math.min(100, p.energy+10);
+          p.joyAt = performance.now();
+          for(let j=0;j<3;j++) UI.particles.push({x:8+Math.random()*10, y:146, vy:-0.02, life:600, ch:'.', col:'#9adcf0'});
+        }
+      }
+    }
+    if(G.toys.robot && UI.mode==='main'){
+      if(UI.robotX===undefined) UI.robotX = 60;
+      if(!UI.robotAt) UI.robotAt = 0;
+      if(G.poops.length>0 && now>UI.robotAt){
+        const target = G.poops[0].x;
+        const d = target - UI.robotX;
+        if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*dtMs*0.012; }
+        else {
+          G.poops.shift();
+          UI.robotAt = now + 6*60*1000;
+          for(let j=0;j<5;j++) UI.particles.push({x:UI.robotX-4+Math.random()*8, y:152, vy:-0.02, life:600, ch:'.', col:'#bdf0f5'});
+          SFX.clean();
+          for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
+        }
+      } else {
+        /* patrulla tranquila */
+        if(!UI.robotTx || Math.abs(UI.robotX-UI.robotTx)<2){ UI.robotTx = 35+Math.random()*95; }
+        UI.robotX += Math.sign(UI.robotTx-UI.robotX)*dtMs*0.004;
       }
     }
     if(G.toys.columpio){

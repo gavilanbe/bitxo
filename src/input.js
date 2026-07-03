@@ -41,8 +41,8 @@ function handleTap(x,y){
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }
   if(UI.mode==='battle'){ battleTap(); return; }
   if(UI.mode==='album'){
-    const r = Math.floor((y-35)/31);
-    if(r>=0 && r<LINE_KEYS.length && y>=35 && y<221){
+    const r = Math.floor((y-33)/27);
+    if(r>=0 && r<LINE_KEYS.length && y>=33 && y<222){
       UI.evoLine = r; UI.evoSel = 0; UI.mode='evotree'; SFX.tap(); return;
     }
     UI.mode='stats'; SFX.tap(); return;
@@ -95,11 +95,13 @@ function handleTap(x,y){
       const i = Math.floor((y-64)/19);
       if(i>=0 && i<SHOP.length) buyUpgrade(i);
     } else if(tab===1){
-      const i = Math.floor((y-64)/24);
+      const i = Math.floor((y-64)/16);
       if(i>=0 && i<TOYS.length) buyToy(i);
     } else {
-      const i = Math.floor((y-64)/24);
-      if(i>=0 && i<HATS.length) tapHat(i);
+      const col = x<80 ? 0 : 1;
+      const row = Math.floor((y-64)/28);
+      const i = row*2 + col;
+      if(row>=0 && i>=0 && i<HATS.length) tapHat(i);
     }
     return;
   }
@@ -186,8 +188,8 @@ function handleTap(x,y){
   if(UI.mode==='mgTopo'){ topoTap(x, y); return; }
   if(UI.mode==='mgPesca'){ pescaTap(); return; }
   if(UI.mode==='exped'){
-    if(x>14 && x<146 && y>68 && y<196){
-      const i = Math.floor((y-68)/32);
+    if(x>14 && x<146 && y>66 && y<206){
+      const i = Math.floor((y-66)/28);
       if(i>=0 && i<EXPEDS.length){ sendExpedition(i); return; }
     }
     UI.mode='play'; SFX.tap(); return;
@@ -307,7 +309,7 @@ function handleTap(x,y){
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
     if(Math.abs(x-s.x)<11 && Math.abs(y-s.y)<11){
-      gainMotas(tapYield(), s.x, s.y);
+      gainMotas(tapYield() * (AP().line==='voltio' && AP().stage>STAGES.EGG ? 2 : 1), s.x, s.y);
       gainXP(AP().trait==='CURIOSO'?4:2); SFX.coin(); vibrate(10);
       questProg('chispas', 1);
       UI.sparkles.splice(i,1);

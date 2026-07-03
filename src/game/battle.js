@@ -11,6 +11,7 @@ const SUPERS = {
   marea:  {name:'OLA GIGANTE',       col:'#4a90d8', col2:'#9adcf0', style:'wave'},
   petrea: {name:'ROCA VIVA',         col:'#8a8a94', col2:'#6a6a78', style:'boulder'},
   astro:  {name:'LLUVIA ESTELAR',    col:'#ffd94a', col2:'#8a6ae8', style:'rain'},
+  voltio: {name:'TORMENTA ELECTRICA',col:'#ffd94a', col2:'#5ec8d8', style:'bolt'},
   grimo:  {name:'ZARPA SOMBRIA',     col:'#9d7bd8', col2:'#4a3a9a', style:'rise'}
 };
 function superOf(p){ return SUPERS[p.form==='grimo' ? 'grimo' : p.line]; }
@@ -101,7 +102,7 @@ function resolveEnemyHit(b){
     return;
   }
   let raw = b.eatk * (0.7+Math.random()*0.6) * (b.bigAtk ? 1.9 : 1);
-  if(b.blocked){ raw *= 0.4; b.blockFxT = performance.now(); SFX.block(); }
+  if(b.blocked){ raw *= (b.quirk==='fly' ? 0.62 : 0.4); b.blockFxT = performance.now(); SFX.block(); }
   const dmg = Math.max(1, Math.round(raw - (p.def||0)*0.6));
   b.php = Math.max(0, b.php - dmg);
   b.phurtT = performance.now();
@@ -114,6 +115,10 @@ function resolveEnemyHit(b){
       b.burnT = 2;
       UI.floats.push({x:46, y:108, s:'¡TE QUEMA!', col:'#f8a04b', life:900, vy:-0.03});
     }
+    if(b.quirk==='paralyze' && Math.random()<0.3){
+      b.paraT = 1;
+      UI.floats.push({x:46, y:108, s:'¡PARALIZADO!', col:'#f0c030', life:900, vy:-0.03});
+    }
     if(b.quirk==='steal' && G.motas>0){
       const st = Math.min(G.motas, Math.max(3, Math.round(G.motas*0.06)));
       G.motas -= st; b.stolen += st;
@@ -123,6 +128,11 @@ function resolveEnemyHit(b){
 }
 function teleDur(b){ return (b.bigAtk ? 950 : 620) + (b.quirk==='armor' ? 160 : 0); }
 function toEnemyTurn(b){
+  if(b.quirk==='regen' && b.ehp>0 && b.ehp<b.emx){
+    const heal = 2 + Math.round(b.nv*0.06);
+    b.ehp = Math.min(b.emx, b.ehp+heal);
+    UI.floats.push({x:112, y:96, s:'+'+heal, col:'#7ac74f', life:800, vy:-0.03});
+  }
   b.resolved = false;
   b.phase = 'eTele'; b.t = 0; b.blocked = false;
   b.bigAtk = b.quirk==='charge' && (++b.eCharge % 3 === 0);
@@ -139,6 +149,7 @@ function battleTap(){
       b.super = 0;
       const atk = (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
       b.dmg = Math.max(2, Math.round(atk*2.2*b.mult));
+      if(b.paraT){ b.dmg = Math.max(1, Math.round(b.dmg*0.7)); b.paraT = 0; }
       b.crit = true;
       b.phase = 'superAnim'; b.t = 0; b.resolved = false; b.boulderDone = false;
       SFX.superCharge(); vibrate([30,30,80]);
@@ -148,6 +159,8 @@ function battleTap(){
     const mult = 0.6 + 1.7*(1-dist);
     const atk = (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
     b.dmg = Math.max(1, Math.round(atk*mult*b.mult));
+    if(b.paraT){ b.dmg = Math.max(1, Math.round(b.dmg*0.7)); b.paraT = 0;
+      UI.floats.push({x:46, y:104, s:'LENTO...', col:'#f0c030', life:700, vy:-0.03}); }
     b.crit = dist<0.18;
     b.phase='panim'; b.t=0; b.resolved=false;
     /* polvo al arrancar */
@@ -246,6 +259,14 @@ function spawnSuperFx(b){
   } else if(S.style==='spiral'){
     const a = t*0.02;
     b.fx.push({x:52+t*0.068, y:122+Math.sin(a)*14, vx:0.02, vy:0, life:500, col:Math.random()<0.6?S.col:S.col2, size:2});
+  } else if(S.style==='bolt'){
+    /* rayos que caen sobre el rival */
+    if(Math.random()<0.5){
+      const bx2 = 102+Math.random()*20;
+      for(let sy2=18; sy2<128; sy2+=6){
+        b.fx.push({x:bx2+((sy2/6)%2? 2:-2), y:sy2, vx:0, vy:0, life:120+Math.random()*80, col:Math.random()<0.6?S.col:S.col2, size:2});
+      }
+    }
   } else { /* rise: sombras desde el suelo */
     b.fx.push({x:100+Math.random()*26, y:150, vx:0, vy:-0.07-Math.random()*0.04, life:600, col:Math.random()<0.6?S.col:S.col2, size:2});
   }

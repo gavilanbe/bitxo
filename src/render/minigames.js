@@ -58,7 +58,8 @@ function drawBattle(t, dt){
   ctx.drawImage(pHurt ? silhouette(pspr) : pspr, -pspr.width/2, -pspr.height);
   if(p.hat && SPR['hat_'+p.hat]){
     const hs = SPR['hat_'+p.hat];
-    ctx.drawImage(hs, -Math.floor(hs.width/2), -pspr.height - hs.height + 2);
+    const hdy = (HAT_BY_ID[p.hat] && HAT_BY_ID[p.hat].dy) || 0;
+    ctx.drawImage(hs, -Math.floor(hs.width/2), -pspr.height - hs.height + 2 + hdy);
   }
   ctx.restore();
   /* escudo del bloqueo */

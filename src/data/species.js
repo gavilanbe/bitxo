@@ -18,6 +18,9 @@ const LINES = {
  petrea:{name:'PETREA', eggShell:'#e4e4e8', eggSpot:'#6a6a78', bonus:'-CACAS', hint:'4 ASCENSOS',
    unlock:k=>k.ascensions>=4,
    w:15, names:{babyA:'ROCLI',babyB:'GUIJA',childA:'GRAVIO',childB:'MUSGO',adultA:'GOLEM',adultB:'GEODO',adultC:'OBSIDIO',adultD:'PEDRON',adultS:'TITANO'}},
+ voltio:{name:'VOLTIO', eggShell:'#fdf6d8', eggSpot:'#f0c030', bonus:'CHISPAS X2', hint:'5 ASCENSOS',
+   unlock:k=>k.ascensions>=5,
+   w:12, names:{babyA:'VATIO',babyB:'PILIN',childA:'RAYIN',childB:'TRUENIN',adultA:'VOLTAR',adultB:'AMPERON',adultC:'RELAMPO',adultD:'TRONIO',adultS:'GIGAVATIO'}},
  astro:{name:'ASTRO', eggShell:'#e6e0f8', eggSpot:'#ffd94a', bonus:'+1 ESTRELLA', hint:'6 ASCENSOS',
    unlock:k=>k.ascensions>=6||k.stars>=8,
    w:10, names:{babyA:'LUNI',babyB:'TILIN',childA:'COMETIN',childB:'NEBLIN',adultA:'ASTRAL',adultB:'ECLIPSO',adultC:'FUGAZ',adultD:'PLANETON',adultS:'COSMO'}}

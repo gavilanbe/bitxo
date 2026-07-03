@@ -246,22 +246,23 @@ function drawShop(){
       const T = TOYS[i];
       const owned = !!G.toys[T.id];
       const afford = G.motas>=T.cost && !owned;
-      const y = 64 + i*24;
+      const y = 64 + i*16;
       const flash = UI.shopFlash[T.id] && performance.now()-UI.shopFlash[T.id]<250;
-      px(10,y,140,21, flash ? '#ffd94a' : (owned? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba')));
-      px(10,y,140,1,K); px(10,y+20,140,1,K); px(10,y,1,21,K); px(149,y,1,21,K);
-      let icon = null;
-      if(T.id==='pelota') icon = SPR.pelota;
-      else if(T.id==='caja') icon = SPR.caja;
-      else if(T.id==='banera') icon = SPR.banera;
-      else if(T.id==='tambor') icon = SPR.tambor;
-      if(icon) ctx.drawImage(icon, 14, y+Math.floor((21-icon.height)/2));
-      else if(T.id==='columpio'){ px(15,y+4,1,12,'#5a4632'); px(24,y+4,1,12,'#5a4632'); px(13,y+3,14,2,'#8a6a3a'); px(17,y+13,6,2,'#8a6a3a'); }
-      else { px(13,y+13,15,4,'#5a4632'); px(19,y+7,2,6,'#57a05e'); px(17,y+9,2,2,'#57a05e'); ctx.drawImage(SPR.fruta, 20, y+2); }
-      drawText(T.name, 30, y+3, K);
-      drawText(T.desc, 30, y+11, 'rgba(26,20,40,0.55)');
-      if(owned) drawText('TUYO', 124, y+7, '#3a7048');
-      else drawText('✦'+fmt(T.cost), 118, y+7, afford?'#8a6a10':'#a03030');
+      px(10,y,140,14, flash ? '#ffd94a' : (owned? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba')));
+      px(10,y,140,1,K); px(10,y+13,140,1,K); px(10,y,1,14,K); px(149,y,1,14,K);
+      if(T.id==='pelota') ctx.drawImage(SPR.pelota, 14, y+3);
+      else if(T.id==='caja') ctx.drawImage(SPR.caja, 13, y+3);
+      else if(T.id==='banera') ctx.drawImage(SPR.banera, 12, y+4);
+      else if(T.id==='tambor') ctx.drawImage(SPR.tambor, 13, y+3);
+      else if(T.id==='columpio'){ px(14,y+3,1,8,'#5a4632'); px(23,y+3,1,8,'#5a4632'); px(12,y+2,13,2,'#8a6a3a'); px(16,y+9,6,2,'#8a6a3a'); }
+      else if(T.id==='huerto'){ px(12,y+9,14,3,'#5a4632'); px(17,y+4,2,5,'#57a05e'); px(20,y+5,3,3,'#e2574c'); }
+      else if(T.id==='cometa'){ px(17,y+2,3,3,'#e2574c'); px(15,y+4,3,3,'#e2574c'); px(19,y+4,3,3,'#ffd94a'); px(17,y+6,3,3,'#e2574c'); px(15,y+9,2,2,'#f0a04b'); px(19,y+10,2,2,'#f0a04b'); }
+      else if(T.id==='fuente'){ px(13,y+9,13,3,'#9a9aa4'); px(17,y+4,4,5,'#8a8a94'); px(16,y+2,6,2,'#5e9be0'); px(14,y+5,2,3,'#9adcf0'); px(23,y+5,2,3,'#9adcf0'); }
+      else if(T.id==='robot'){ px(15,y+3,8,7,'#8a8a94'); px(17,y+5,2,2,'#5ec8d8'); px(20,y+5,1,2,'#5ec8d8'); px(14,y+10,10,2,'#3a3448'); }
+      drawText(T.name, 30, y+2, K);
+      drawText(T.desc, 30, y+8, 'rgba(26,20,40,0.55)');
+      if(owned) drawText('TUYO', 124, y+4, '#3a7048');
+      else drawText('✦'+fmt(T.cost), 118, y+4, afford?'#8a6a10':'#a03030');
     }
   }
   if(tab===2){
@@ -270,18 +271,18 @@ function drawShop(){
       const owned = !!G.hats[H.id];
       const worn = AP().hat===H.id;
       const afford = G.motas>=H.cost && !owned && !H.buhoOnly;
-      const y = 64 + i*24;
+      const x = 10 + (i%2)*71, y = 64 + Math.floor(i/2)*28;
       const flash = UI.shopFlash[H.id] && performance.now()-UI.shopFlash[H.id]<250;
-      px(10,y,140,21, flash ? '#ffd94a' : (worn ? '#ffe9a8' : (owned ? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba'))));
-      px(10,y,140,1,K); px(10,y+20,140,1,K); px(10,y,1,21,K); px(149,y,1,21,K);
+      px(x,y,69,25, flash ? '#ffd94a' : (worn ? '#ffe9a8' : (owned ? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba'))));
+      px(x,y,69,1,K); px(x,y+24,69,1,K); px(x,y,1,25,K); px(x+68,y,1,25,K);
       const hs = SPR['hat_'+H.id];
-      if(owned || !H.buhoOnly) ctx.drawImage(hs, 17-Math.floor(hs.width/2), y+Math.round((21-hs.height)/2));
-      else drawText('?', 15, y+7, 'rgba(26,20,40,0.45)');
-      drawText(owned || !H.buhoOnly ? H.name : '?????', 28, y+3, K);
-      drawText(H.desc, 28, y+12, 'rgba(26,20,40,0.55)');
-      if(worn) drawText('PUESTO', 116, y+7, '#8a6a10');
-      else if(owned) drawText('TUYO', 124, y+7, '#3a7048');
-      else if(!H.buhoOnly) drawText('✦'+fmt(H.cost), 118, y+7, afford?'#8a6a10':'#a03030');
+      if(owned || !H.buhoOnly) ctx.drawImage(hs, x+9-Math.floor(hs.width/2), y+Math.round((25-hs.height)/2));
+      else drawText('?', x+7, y+9, 'rgba(26,20,40,0.45)');
+      drawText(owned || !H.buhoOnly ? H.name : '?????', x+19, y+4, K);
+      if(worn) drawText('PUESTO', x+19, y+14, '#8a6a10');
+      else if(owned) drawText('TUYO', x+19, y+14, '#3a7048');
+      else if(!H.buhoOnly) drawText('✦'+fmt(H.cost), x+19, y+14, afford?'#8a6a10':'#a03030');
+      else drawText('BUHONERO', x+19, y+14, 'rgba(26,20,40,0.45)');
     }
     drawTextC('TOCA PARA PONER O QUITAR', 80, 209, 'rgba(26,20,40,0.45)');
   }
@@ -367,14 +368,14 @@ function drawExped(){
   drawTextC('DESTINO PARA '+currentNameOf(AP()), 80, 58, 'rgba(26,20,40,0.6)');
   const mult = (1+0.3*G.ascensions)*legacyMult();
   for(let i=0;i<EXPEDS.length;i++){
-    const E = EXPEDS[i], y = 68+i*32;
-    px(14,y,132,29,'#f6efe0');
-    px(14,y,132,1,K); px(14,y+28,132,1,K); px(14,y,1,29,K); px(145,y,1,29,K);
-    drawText(E.name, 18, y+3, K);
-    drawText(E.mins>=60? (E.mins/60)+'H' : E.mins+'M', 126, y+3, '#8a6a10');
-    drawText('~'+fmt(Math.round(E.motas*mult))+'✦ RELIQ '+Math.round(E.relic*100)+'%', 18, y+12, 'rgba(26,20,40,0.6)');
-    if(E.egg) drawText('HUEVO '+LINES[E.egg].name+' '+Math.round(E.eggP*100)+'%', 18, y+21, '#a03030');
-    else drawText('VIAJE TRANQUILO', 18, y+21, 'rgba(26,20,40,0.4)');
+    const E = EXPEDS[i], y = 66+i*28;
+    px(14,y,132,25,'#f6efe0');
+    px(14,y,132,1,K); px(14,y+24,132,1,K); px(14,y,1,25,K); px(145,y,1,25,K);
+    drawText(E.name, 18, y+2, K);
+    drawText(E.mins>=60? (E.mins/60)+'H' : E.mins+'M', 126, y+2, '#8a6a10');
+    drawText('~'+fmt(Math.round(E.motas*mult))+'✦ RELIQ '+Math.round(E.relic*100)+'%', 18, y+10, 'rgba(26,20,40,0.6)');
+    if(E.egg) drawText('HUEVO '+LINES[E.egg].name+' '+Math.round(E.eggP*100)+'%', 18, y+18, '#a03030');
+    else drawText('VIAJE TRANQUILO', 18, y+18, 'rgba(26,20,40,0.4)');
   }
   drawTextC('TOCA FUERA PARA SALIR', 80, 204, 'rgba(26,20,40,0.5)');
 }
@@ -407,16 +408,16 @@ function drawExpReport(){
 }
 
 function drawAlbum(){
-  panel(4,24,152,232);
+  panel(4,24,152,230);
   titleChip(80, 29, 'ALBUM '+dexCount()+'/'+DEX_TOTAL);
   for(let r=0;r<LINE_KEYS.length;r++){
     const ln = LINE_KEYS[r];
-    const y0 = 37 + r*31;
+    const y0 = 35 + r*27;
     drawText(LINES[ln].name, 10, y0, 'rgba(26,20,40,0.5)');
     for(let c=0;c<SLOT_KEYS.length;c++){
       const key = ln+'_'+SLOT_KEYS[c];
       const spr = SPR[key][0];
-      const cx = 14+c*16, cy = y0+16;
+      const cx = 14+c*16, cy = y0+15;
       if(G.dex[key]){
         ctx.drawImage(spr, Math.round(cx-spr.width/2), Math.round(cy-spr.height/2));
       } else {
@@ -426,51 +427,52 @@ function drawAlbum(){
     }
   }
   const gs = SPR.grimo[0];
-  const gy = 224;
-  drawText('¿?', 10, 226, 'rgba(26,20,40,0.5)');
+  const gy = 226;
+  drawText('¿?', 10, 229, 'rgba(26,20,40,0.5)');
   if(G.dex.grimo){
     ctx.drawImage(gs, Math.round(80-gs.width/2), gy);
   } else {
     ctx.drawImage(darkSilhouette(gs), Math.round(80-gs.width/2), gy);
     drawTextC('?', 80, gy+5, 'rgba(246,239,224,0.85)');
   }
-  drawTextC('TOCA UNA LINEA: SU ARBOL', 80, 246, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA UNA LINEA: SU ARBOL', 80, 244, 'rgba(26,20,40,0.5)');
 }
 
 /* ---------------- BESTIARIO ---------------- */
 function drawBeast(){
-  panel(4,24,152,224);
+  panel(4,22,152,234);
   G.beast = G.beast || {};
   let n=0; for(const k of BEAST_ORDER) if(G.beast[k] && G.beast[k].seen>0) n++;
-  titleChip(80, 29, 'BESTIARIO '+n+'/'+BEAST_ORDER.length);
+  titleChip(80, 27, 'BESTIARIO '+n+'/'+BEAST_ORDER.length);
   for(let i=0;i<BEAST_ORDER.length;i++){
     const k = BEAST_ORDER[i];
     const E = ENEMIES[k];
     const info = G.beast[k];
     const seen = info && info.seen>0;
-    const y = 38 + i*19;
-    px(9,y,142,17, seen ? '#f6efe0' : '#d8d0ba');
-    px(9,y,142,1,K); px(9,y+16,142,1,K); px(9,y,1,17,K); px(150,y,1,17,K);
+    const y = 35 + i*14;
+    px(9,y,142,12, seen ? '#f6efe0' : '#d8d0ba');
+    px(9,y,142,1,K); px(9,y+11,142,1,K); px(9,y,1,12,K); px(150,y,1,12,K);
     const spr = ESPR[k];
     if(seen){
-      const sc = Math.min(1, 14/Math.max(spr.width,spr.height));
+      const sc = Math.min(1, 10/Math.max(spr.width,spr.height));
       ctx.save();
-      ctx.translate(18, y+9);
+      ctx.translate(16, y+6);
       ctx.scale(sc, sc);
       ctx.drawImage(spr, -spr.width/2, -spr.height/2);
       ctx.restore();
     } else {
-      drawTextC('?', 18, y+6, 'rgba(26,20,40,0.4)');
+      drawTextC('?', 16, y+4, 'rgba(26,20,40,0.4)');
     }
-    px(28, y+3, 4, 4, seen ? (ELEM_COLS[E.elem]||'#c8c0b0') : 'rgba(26,20,40,0.2)');
-    drawText(seen ? E.name : '?????', 35, y+2, seen ? K : 'rgba(26,20,40,0.45)');
+    px(24, y+4, 4, 4, seen ? (ELEM_COLS[E.elem]||'#c8c0b0') : 'rgba(26,20,40,0.2)');
+    drawText(seen ? E.name : '?????', 31, y+1, seen ? K : 'rgba(26,20,40,0.45)');
     if(seen){
-      drawText(E.desc, 35, y+9, 'rgba(26,20,40,0.55)');
-      drawText('X'+info.wins, 132, y+2, '#3a7048');
+      drawText(E.desc.length>26 ? E.desc.slice(0,26) : E.desc, 31, y+7, 'rgba(26,20,40,0.5)');
+      drawText('X'+info.wins, 136, y+1, '#3a7048');
     }
   }
-  drawTextC('BRASA>PRADERA>MAREA>BRASA', 80, 231, 'rgba(26,20,40,0.55)');
-  drawTextC('ASTRO>PETREA>FUNGO>ASTRO', 80, 240, 'rgba(26,20,40,0.55)');
+  drawTextC('BRASA>PRADERA>MAREA>BRASA', 80, 221, 'rgba(26,20,40,0.55)');
+  drawTextC('ASTRO>PETREA>FUNGO>ASTRO', 80, 230, 'rgba(26,20,40,0.55)');
+  drawTextC('VOLTIO>MAREA · PETREA>VOLTIO', 80, 239, 'rgba(26,20,40,0.55)');
 }
 function drawOfflineReport(){
   const r = offlineReport;

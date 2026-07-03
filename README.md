@@ -34,9 +34,9 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
 
 ## ✨ Qué tiene dentro
 
-- 🧬 **6 líneas** (PRADERA, BRASA, MAREA, FUNGO, PETREA, ASTRO) × 9 formas + 1
-  forma oculta = **55 bitxos** para el álbum. Cómo lo cuides decide en qué
-  evoluciona.
+- 🧬 **7 líneas** (PRADERA, BRASA, MAREA, FUNGO, PETREA, VOLTIO ⚡, ASTRO) × 9
+  formas + 1 forma oculta = **64 bitxos** para el álbum. Cómo lo cuides decide
+  en qué evoluciona.
 - 💪 **Entrenamiento con 3 stats**: FUERZA, DEFENSA y VELOCIDAD (pesas, muro y
   carrera). Pegan más, encajan mejor y esquivan en combate — y **deciden la
   evolución**: el guerrero, el tanque o el ágil según lo que entrenes.
@@ -63,25 +63,30 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
 - 🏋️ **Parque de entreno visual**: tu bitxo camina hasta las PESAS, el MURO o
   la CARRERA y entrena delante de ti — cada sesión cuesta pilas y una **cuota
   en motas que sube con la stat** (el gimnasio no es gratis).
-- 🧸 **6 juguetes vivos**: pelota, caja sorpresa, columpio, BAÑERA (se bañan
-  solos y recuperan limpieza), TAMBOR (conciertos que animan al prado) y
-  HUERTO (fruta gratis cada 2 h que ves crecer).
+- 🧸 **9 juguetes vivos**: pelota, caja sorpresa, columpio, BAÑERA (se bañan
+  solos), TAMBOR (conciertos de prado), HUERTO (fruta gratis cada 2 h),
+  COMETA (vuela con el viento y consuela el mal tiempo), FUENTE (beben y
+  recuperan pilas) y ROBOT AMIGO (limpia cacas él solo).
+- 👒 **10 gorros con posición**: en la coronilla, sobre los ojos (GAFAS), al
+  cuello (PAJARITA) o flotando (HALO).
 - ⚔️ **Combate de verdad**: golpea con timing, **bloquea** el ataque enemigo en
   el momento justo y carga el medidor de **SUPER** para soltar el ataque único
   de tu línea (llamarada, ola gigante, lluvia estelar...). Con hit-stop, zoom
   en críticos y el cielo del prado de fondo.
-- 👹 **10 enemigos con nivel visible**: cada salvaje aparece con su **NV**
+- 👹 **13 enemigos con nivel visible**: cada salvaje aparece con su **NV**
   medido contra tu poder real (verde = fácil, rojo = huye) y su elemento. Los
   **ELITE ★** pagan doble y sueltan reliquias. Cada uno tiene su truco: el
   chispín quema, el burbujón se escuda, el roquijo va acorazado, el polillux
-  golpea dos veces, el ladronzuelo te roba (véncele y recuperas el doble) y
-  dos jefes se turnan para arruinarte la tarde.
+  golpea dos veces, el setazo se regenera, el cuervillo vuela sobre tu escudo,
+  el relampín te paraliza, el ladronzuelo te roba (véncele y recuperas el
+  doble) y dos jefes se turnan para arruinarte la tarde.
 - 🌀 **Rueda elemental**: brasa quema pradera, pradera bebe marea, marea apaga
   brasa — y astro, petrea y fungo giran su propio triángulo. El combate te lo
   dice claro: VENTAJA +30% o TE RESISTE −25%.
 - 📖 **Bestiario**: ficha de cada enemigo visto — elemento, truco y victorias.
-- 🗺️ **Expediciones** de hasta 8 horas que traen motas, XP, **10 reliquias** con
-  bonus pasivos y huevos de otras líneas.
+- 🗺️ **5 expediciones** de hasta 8 horas que traen motas, XP, **10 reliquias**
+  con bonus pasivos y huevos de otras líneas.
+- 🗺 **[Roadmap público](ROADMAP.md)**: todo lo que está por venir, priorizado.
 - 🏪 **Economía idle completa**: 8 mejoras, 8 comidas (cada línea tiene su
   favorita), 3 juguetes que viven en el prado, 15 logros y regalo diario con racha.
 - 📜 **Misiones del día**: el cartel del prado trae 3 encargos que rotan cada

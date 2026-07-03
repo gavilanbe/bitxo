@@ -11,7 +11,7 @@ function energyRate(p){ return R_ENERGY * (p.line==='marea'?0.8:1) * (p.trait===
 function hungerRate(p){ return R_HUNGER * (p.trait==='GLOTON'?1.25:1); }
 function poopEvery(p){ return POOP_EVERY * (p.line==='petrea'?1.6:1); }
 function hygMult(p){ return p.line==='petrea'?0.7:1; }
-function happyDecayRate(p){ return ratePerMs(6) * (1 - 0.1*G.up.juguete) * (p.trait==='JUGUETON'?0.8:1) * weatherHappyMult(p) * (G.relics && G.relics.corona?0.9:1); }
+function happyDecayRate(p){ return ratePerMs(6) * (1 - 0.1*G.up.juguete) * (p.trait==='JUGUETON'?0.8:1) * weatherHappyMult(p) * (G.relics && G.relics.corona?0.9:1) * (G.toys && G.toys.cometa && WEATHER.kind==='wind' ? 0.65 : 1); }
 function sleepRegen(p){ return R_SLEEPREGEN * (1 + 0.15*G.up.cama) * (p.trait==='DORMILON'?1.3:1); }
 function gardenMult(){ return 1 + 0.25*G.up.jardin + (G.relics && G.relics.seta ? 0.1 : 0); }
 function legacyMult(){ return 1 + 0.1*G.stars; }
@@ -146,7 +146,7 @@ function playerPower(p){
 }
 function playerElem(p){ return p.form==='grimo' ? 'sombra' : p.line; }
 function elemMult(pe, ee){
-  if(ELEM_BEATS[pe]===ee || (pe==='astro' && ee==='sombra')) return 1.3;
-  if(ELEM_BEATS[ee]===pe) return 0.75;
+  if((ELEM_BEATS[pe]||[]).includes(ee) || (pe==='astro' && ee==='sombra')) return 1.3;
+  if((ELEM_BEATS[ee]||[]).includes(pe)) return 0.75;
   return 1;
 }

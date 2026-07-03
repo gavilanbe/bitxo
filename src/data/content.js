@@ -36,7 +36,8 @@ const EXPEDS = [
  {id:'prado', name:'PRADO ALTO',    mins:20,  motas:30,  xp:10,  relic:0.10, egg:'fungo', eggP:0.15},
  {id:'pico',  name:'PICO ARDIENTE', mins:60,  motas:90,  xp:25,  relic:0.20, egg:'brasa', eggP:0.25},
  {id:'costa', name:'COSTA SALADA',  mins:180, motas:250, xp:60,  relic:0.35, egg:'marea', eggP:0.30},
- {id:'cima',  name:'CIMA ESTELAR',  mins:480, motas:700, xp:150, relic:0.55, egg:'astro', eggP:0.25}
+ {id:'cima',  name:'CIMA ESTELAR',  mins:480, motas:700, xp:150, relic:0.55, egg:'astro', eggP:0.25},
+ {id:'trueno',name:'PICO DEL TRUENO',mins:300, motas:420, xp:95,  relic:0.45, egg:'voltio', eggP:0.25}
 ];
 const RELICS = [
  {id:'trebol',    name:'TREBOL DORADO',   desc:'+5% MOTAS'},
@@ -67,27 +68,37 @@ const TOYS = [
  {id:'columpio',name:'COLUMPIO',      desc:'RELAX: ANIMO Y PILAS', cost:150},
  {id:'banera',  name:'BANERA',        desc:'CHAPUZONES: +LIMPIO', cost:180},
  {id:'tambor',  name:'TAMBOR',        desc:'CONCIERTOS DE PRADO', cost:220},
- {id:'huerto',  name:'HUERTO',        desc:'FRUTA GRATIS CADA 2H', cost:400}
+ {id:'huerto',  name:'HUERTO',        desc:'FRUTA GRATIS CADA 2H', cost:400},
+ {id:'cometa',  name:'COMETA',        desc:'VUELA CON EL VIENTO', cost:260},
+ {id:'fuente',  name:'FUENTE',        desc:'AGUA FRESCA: +PILAS', cost:350},
+ {id:'robot',   name:'ROBOT AMIGO',   desc:'LIMPIA CACAS EL SOLO', cost:500}
 ];
 
 const ENEMIES = {
   ratuco:     {name:'RATUCO',      elem:'neutral', quirk:null,     hpM:0.9,  atkM:0.9,  desc:'SIN TRUCOS, PURO DIENTE'},
-  pinchon:    {name:'PINCHON',     elem:'pradera', quirk:'thorns', hpM:1,    atkM:0.95, desc:'DEVUELVE PINCHOS SIN CRITICO'},
+  pinchon:    {name:'PINCHON',     elem:'pradera', quirk:'thorns', hpM:1,    atkM:0.95, desc:'PINCHOS SI NO ES CRITICO'},
   chispin:    {name:'CHISPIN',     elem:'brasa',   quirk:'burn',   hpM:0.95, atkM:1,    desc:'SU QUEMADURA DURA 2 TURNOS'},
-  burbujon:   {name:'BURBUJON',    elem:'marea',   quirk:'bubble', hpM:1.1,  atkM:0.9,  desc:'BURBUJA: ROMPELA CON CRITICO'},
-  sombrio:    {name:'SOMBRIO',     elem:'sombra',  quirk:'evade',  hpM:0.9,  atkM:1.05, desc:'SE ESFUMA ANTE GOLPES FLOJOS'},
+  burbujon:   {name:'BURBUJON',    elem:'marea',   quirk:'bubble', hpM:1.1,  atkM:0.9,  desc:'SU BURBUJA PIDE UN CRITICO'},
+  sombrio:    {name:'SOMBRIO',     elem:'sombra',  quirk:'evade',  hpM:0.9,  atkM:1.05, desc:'SE ESFUMA SIN UN CRITICO'},
   roquijo:    {name:'ROQUIJO',     elem:'petrea',  quirk:'armor',  hpM:1.25, atkM:0.9,  desc:'CORAZA -2 PERO ES LENTO'},
   polillux:   {name:'POLILLUX',    elem:'astro',   quirk:'double', hpM:0.9,  atkM:0.8,  desc:'PUEDE GOLPEAR DOS VECES'},
   ladronzuelo:{name:'LADRONZUELO', elem:'neutral', quirk:'steal',  hpM:0.95, atkM:0.95, desc:'ROBA MOTAS: VENCE Y DOBLAS'},
+  setazo:     {name:'SETAZO',      elem:'fungo',   quirk:'regen',  hpM:1.05, atkM:0.9,  desc:'SE REGENERA CADA TURNO'},
+  cuervillo:  {name:'CUERVILLO',   elem:'neutral', quirk:'fly',    hpM:0.9,  atkM:1.05, desc:'VUELA SOBRE EL ESCUDO'},
+  relampin:   {name:'RELAMPIN',    elem:'voltio',  quirk:'paralyze',hpM:0.95,atkM:1,    desc:'SU CHISPAZO TE RALENTIZA'},
   lobruno:    {name:'LOBRUNO',     elem:'neutral', quirk:'charge', hpM:1,    atkM:1,    desc:'JEFE: CARGA CADA 3 TURNOS', boss:true},
   reyseto:    {name:'REY SETO',    elem:'fungo',   quirk:'spore',  hpM:1.05, atkM:1,    desc:'JEFE: ESPORAS TE ACELERAN', boss:true}
 };
 /* orden del bestiario y desbloqueo del prado (victorias necesarias) */
-const BEAST_ORDER = ['ratuco','pinchon','chispin','burbujon','sombrio','roquijo','polillux','ladronzuelo','lobruno','reyseto'];
-const WILD_POOL = [['ratuco',0],['pinchon',3],['chispin',6],['burbujon',10],['sombrio',14],['roquijo',18],['polillux',24],['ladronzuelo',30]];
+const BEAST_ORDER = ['ratuco','pinchon','chispin','burbujon','sombrio','roquijo','setazo','polillux','cuervillo','ladronzuelo','relampin','lobruno','reyseto'];
+const WILD_POOL = [['ratuco',0],['pinchon',3],['chispin',6],['burbujon',10],['sombrio',14],['roquijo',18],['setazo',22],['polillux',26],['cuervillo',30],['ladronzuelo',34],['relampin',38]];
 /* la rueda elemental: dos triángulos (y la luz astral castiga a la sombra) */
-const ELEM_BEATS = {brasa:'pradera', pradera:'marea', marea:'brasa', astro:'petrea', petrea:'fungo', fungo:'astro'};
-const ELEM_COLS = {pradera:'#7ac74f', brasa:'#e8574c', marea:'#4a90d8', petrea:'#9a9aa4', astro:'#ffd94a', fungo:'#c9743a', sombra:'#9d7bd8', neutral:'#c8c0b0'};
+const ELEM_BEATS = {
+  brasa:['pradera'], pradera:['marea'], marea:['brasa'],
+  astro:['petrea'], petrea:['fungo','voltio'], fungo:['astro'],
+  voltio:['marea']
+};
+const ELEM_COLS = {pradera:'#7ac74f', brasa:'#e8574c', marea:'#4a90d8', petrea:'#9a9aa4', astro:'#ffd94a', fungo:'#c9743a', voltio:'#f0c030', sombra:'#9d7bd8', neutral:'#c8c0b0'};
 
 /* --- misiones del día: 3 rotan cada día en el cartel del prado --- */
 const QUESTS = [
@@ -101,14 +112,21 @@ const QUESTS = [
 ];
 
 /* --- gorros: cosmética que tu bitxo lleva puesta de verdad --- */
+/* dy: dónde se lleva puesto (0 = coronilla; + baja hacia la cara/cuello; - flota) */
 const HATS = [
- {id:'lazo',   name:'LAZO',       cost:100, desc:'UN TOQUE MONO'},
- {id:'flor',   name:'FLOR',       cost:120, desc:'HUELE A PRADO'},
- {id:'seta',   name:'SETA',       cost:150, desc:'MUY CAMPESTRE'},
- {id:'copa',   name:'COPA',       cost:250, desc:'ELEGANCIA PURA'},
- {id:'corona', name:'CORONA',     cost:400, desc:'PARA LEYENDAS'},
- {id:'buho',   name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true}
+ {id:'lazo',    name:'LAZO',       cost:100, desc:'UN TOQUE MONO'},
+ {id:'flor',    name:'FLOR',       cost:120, desc:'HUELE A PRADO'},
+ {id:'pajarita',name:'PAJARITA',   cost:150, desc:'ELEGANTE Y MONO', dy:9},
+ {id:'seta',    name:'SETA',       cost:150, desc:'MUY CAMPESTRE'},
+ {id:'gafas',   name:'GAFAS',      cost:180, desc:'PURO ESTILO', dy:4},
+ {id:'copa',    name:'COPA',       cost:250, desc:'ELEGANCIA PURA'},
+ {id:'vikingo', name:'VIKINGO',    cost:300, desc:'A LA CONQUISTA'},
+ {id:'corona',  name:'CORONA',     cost:400, desc:'PARA LEYENDAS'},
+ {id:'halo',    name:'HALO',       cost:500, desc:'BENDITO BICHO', dy:-4},
+ {id:'buho',    name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true}
 ];
+const HAT_BY_ID = {};
+for(const H of HATS) HAT_BY_ID[H.id] = H;
 
 /* --- discos para el BAILE: cada uno una canción distinta --- */
 const DISCOS = [

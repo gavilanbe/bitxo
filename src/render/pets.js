@@ -111,7 +111,8 @@ function drawOnePet(p, i, t){
   ctx.drawImage(spr, -w/2, p.sleeping ? -h+3 : -h);
   if(p.hat && SPR['hat_'+p.hat]){
     const hs = SPR['hat_'+p.hat];
-    ctx.drawImage(hs, -Math.floor(hs.width/2), (p.sleeping ? -h+3 : -h) - hs.height + 2);
+    const hdy = (HAT_BY_ID[p.hat] && HAT_BY_ID[p.hat].dy) || 0;
+    ctx.drawImage(hs, -Math.floor(hs.width/2), (p.sleeping ? -h+3 : -h) - hs.height + 2 + hdy);
   }
   ctx.restore();
 
@@ -177,6 +178,40 @@ function drawToys(t){
   if(G.toys.pelota && G.ballX!==undefined){
     px(Math.round(G.ballX)-3,160,7,2,'rgba(0,0,0,0.25)');
     ctx.drawImage(SPR.pelota, Math.round(G.ballX)-3, 153);
+  }
+  if(G.toys.cometa && WEATHER.kind==='wind'){
+    const kx = 118 + Math.sin(t/1200)*18;
+    const ky = 34 + Math.sin(t/700)*6;
+    /* estaca y cuerda */
+    px(139,154,2,8,'#5a4632');
+    for(let i2=0;i2<=8;i2++){
+      const lx = 140 + (kx-140)*i2/8;
+      const ly = 154 + (ky+8-154)*i2/8;
+      if(i2%2===0) px(lx, ly, 1, 1, 'rgba(240,240,255,0.45)');
+    }
+    /* la cometa con cola */
+    px(kx, ky-3, 3, 3, '#e2574c'); px(kx-3, ky, 3, 3, '#e2574c');
+    px(kx+3, ky, 3, 3, '#ffd94a'); px(kx, ky+3, 3, 3, '#e2574c');
+    px(kx-1+Math.sin(t/220)*3, ky+7, 2, 2, '#f0a04b');
+    px(kx+1+Math.sin(t/220+1)*3, ky+11, 2, 2, '#f0a04b');
+  }
+  if(G.toys.fuente){
+    px(2,151,14,4,'#9a9aa4'); px(2,151,14,1,K); px(2,154,14,1,K);
+    px(6,141,5,10,'#8a8a94'); px(6,141,1,10,K); px(10,141,1,10,K);
+    px(5,138,8,3,'#5e9be0');
+    const dp = Math.floor(t/160)%3;
+    px(3, 143+dp*3, 1, 2, '#9adcf0'); px(13, 145+((dp+1)%3)*3, 1, 2, '#9adcf0');
+  }
+  if(G.toys.robot){
+    if(UI.robotX===undefined) UI.robotX = 60;
+    const rx2 = Math.round(UI.robotX);
+    px(rx2-4,159,9,2,'rgba(0,0,0,0.25)');
+    px(rx2-4,150,9,8,'#8a8a94');
+    px(rx2-4,150,9,1,K); px(rx2-4,157,9,1,K); px(rx2-4,150,1,8,K); px(rx2+4,150,1,8,K);
+    const blink2 = Math.floor(t/900)%5===0;
+    px(rx2-2,152,2,2, blink2 ? '#20243c' : '#5ec8d8'); px(rx2+1,152,1,2, blink2 ? '#20243c' : '#5ec8d8');
+    px(rx2-5,158,11,2,'#3a3448');
+    px(rx2-1,148,1,2,'#5ec8d8');
   }
   if(G.toys.banera){
     px(51,159,16,2,'rgba(0,0,0,0.25)');
