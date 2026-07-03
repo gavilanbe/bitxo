@@ -18,3 +18,10 @@ stop: ## Mata cualquier servidor que haya quedado vivo en el puerto
 
 help: ## Muestra esta ayuda
 	@grep -E '^[a-z]+:.*## ' $(MAKEFILE_LIST) | sed 's/:.*## /\t→ /' | column -t -s $$'\t'
+
+ship: ## Estampa versión, commitea y publica (make ship MSG="mensaje")
+	@test -n "$(MSG)" || (echo "Falta MSG=\"mensaje\"" && exit 1)
+	@bash tools/stamp.sh
+	@git add -A && git commit -m "$(MSG)"
+	@gh auth switch --user gavilanbe && git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main; gh auth switch --user nahuelgavilan-toolshock
+	@echo "🥚 Publicado — GitHub Pages tarda ~1 min"

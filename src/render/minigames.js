@@ -6,76 +6,162 @@
 function drawBattle(t, dt){
   battleStep(dt);
   const b = UI.bt; if(!b) return;
-  px(0,0,160,272,'#1a1428');
-  for(let i=0;i<12;i++){ px((i*47+13)%160, (i*31+7)%80, 1,1,'#3a3458'); }
-  px(0,150,160,60,'#2a2440');
-  px(0,150,160,2,'#3a3458');
-  drawTextC('- COMBATE -', 80, 8, '#ffffff');
-
   const p = AP();
+  const ph = dayPhase(), S = SKY[ph];
+  const now = performance.now();
+
+  ctx.save();
+  /* zoom de crítico: golpe de cámara */
+  if(b.zoomT>0){
+    const z = 1 + 0.09*Math.min(1, b.zoomT/170);
+    ctx.translate(80, 120); ctx.scale(z, z); ctx.translate(-80, -120);
+  }
+  const shk = (now-b.shake<220) ? Math.sin(t/16)*(b.crit?3:2) : 0;
+  ctx.translate(Math.round(shk), 0);
+
+  /* ----- escenario: el prado al atardecer/noche/día ----- */
+  px(-8,0,176,58,S.bands[0]);
+  px(-8,58,176,46,S.bands[1]);
+  px(-8,104,176,36,S.bands[2]);
+  if(ph==='night'){ for(const st of stars) if(Math.sin(t/600+st.t)>0.2) px(st.x, st.y, 1,1,'#dfe8ff'); }
+  /* colinas en silueta */
+  for(let x=-8;x<168;x+=8){ const hh = 9+Math.round(6*Math.sin(x/17+2)); px(x,140-hh,8,hh,'rgba(18,22,38,0.75)'); }
+  px(-8,140,176,132, ph==='night' ? '#131b2c' : (ph==='day' ? '#2c4636' : '#26303a'));
+  px(-8,140,176,2,'rgba(0,0,0,0.35)');
+  /* plataformas de combate */
+  const plat = (cx,cy)=>{
+    px(cx-20,cy,40,3,'rgba(0,0,0,0.35)');
+    px(cx-16,cy+3,32,2,'rgba(0,0,0,0.22)');
+  };
+  plat(46,152); plat(112,152);
+  /* aviso rojo de carga del jefe */
+  if(b.phase==='eTele' && b.bigAtk && Math.floor(t/120)%2===0){
+    ctx.fillStyle='rgba(226,87,76,0.16)'; ctx.fillRect(-8,0,176,272);
+  }
+
+  /* ----- luchadores ----- */
   const pd = currentFormDef();
   const pspr = SPR[pd.spr][0];
   const espr = ESPR[b.kind];
+  const bob = Math.sin(t/300)*1.2;
 
-  let pox=0, eox=0;
-  if(b.phase==='panim'){ const pr=Math.min(1,b.t/450); pox = Math.sin(pr*Math.PI)*44; }
-  if(b.phase==='eanim'){ const pr=Math.min(1,b.t/450); eox = -Math.sin(pr*Math.PI)*44; }
-  const shk = (performance.now()-b.shake<200) ? Math.sin(t/20)*2 : 0;
+  let pox=0, eox=0, eleanX=0;
+  if(b.phase==='panim') pox = Math.sin(Math.min(1,b.t/600)*Math.PI)*50;
+  if(b.phase==='superAnim') pox = Math.sin(Math.min(1,b.t/1350)*Math.PI)*10;
+  if(b.phase==='eanim') eox = -Math.sin(Math.min(1,b.t/600)*Math.PI)*50;
+  if(b.phase==='eTele') eleanX = Math.sin(b.t/60)*(b.bigAtk?2.5:1.5);
 
-  /* jugador (izq) */
+  /* jugador */
+  const pHurt = now-b.phurtT<130;
   ctx.save();
-  ctx.translate(Math.round(46+pox+shk), 150);
-  ctx.drawImage(pspr, -pspr.width/2, -pspr.height);
+  ctx.translate(Math.round(46+pox), Math.round(150+(b.phase==='timing'?bob:0)));
+  ctx.drawImage(pHurt ? silhouette(pspr) : pspr, -pspr.width/2, -pspr.height);
   if(p.hat && SPR['hat_'+p.hat]){
     const hs = SPR['hat_'+p.hat];
     ctx.drawImage(hs, -Math.floor(hs.width/2), -pspr.height - hs.height + 2);
   }
   ctx.restore();
-  /* enemigo (der) mirando al jugador */
+  /* escudo del bloqueo */
+  const blockWin = (b.phase==='eanim' && b.t<320 ) || (b.phase==='eTele' && b.t > (b.bigAtk?950:620)-180);
+  if(b.blocked && (b.phase==='eTele'||b.phase==='eanim'||now-b.blockFxT<250)){
+    const bx=60, c = now-b.blockFxT<250 ? '#ffffff' : '#5ec8d8';
+    px(bx,118,2,26,c); px(bx+2,116,1,2,c); px(bx+2,144,1,2,c);
+  } else if(blockWin && !b.blocked && Math.floor(t/100)%2===0){
+    px(60,118,2,26,'rgba(94,200,216,0.45)');
+  }
+
+  /* enemigo */
+  const eHurt = now-b.ehurtT<130;
+  const dying = b.phase==='end' && b.win;
   ctx.save();
-  ctx.translate(Math.round(112+eox), 150);
+  ctx.translate(Math.round(112+eox+eleanX), Math.round(150+(b.phase==='timing'?-bob:0)));
   ctx.scale(-1,1);
-  const flash = (b.phase==='panim' && b.t>380);
-  ctx.drawImage(flash? silhouette(espr): espr, -espr.width/2, -espr.height);
+  if(dying){
+    const pr = Math.min(1, b.t/700);
+    ctx.globalAlpha = 1-pr;
+    ctx.translate(0, pr*6);
+    ctx.scale(1-pr*0.3, 1-pr*0.3);
+  }
+  ctx.drawImage(eHurt ? silhouette(espr) : espr, -espr.width/2, -espr.height);
   ctx.restore();
+  if(b.phase==='eTele' && Math.floor(t/150)%2===0){
+    drawTextC(b.bigAtk?'¡¡CARGA!!':'!', 112, 150-espr.height-12, '#e2574c');
+  }
 
-  drawTextC(pd.name, 46, 158, '#ffffff');
-  drawTextC((b.boss?'JEFE ':'')+b.name, 112, 158, '#e2574c');
-  /* barras HP */
-  const hpbar = (x,val,mx,col)=>{
-    px(x-24,168,48,6,'rgba(255,255,255,0.15)');
-    px(x-24,168,Math.round(48*val/mx),6,col);
+  /* partículas del combate */
+  for(const f of b.fx){
+    ctx.fillStyle = f.col;
+    ctx.fillRect(Math.round(f.x), Math.round(f.y), f.size, f.size);
+  }
+
+  ctx.restore(); /* fin zoom/shake */
+
+  /* ----- placas de nombre y vida ----- */
+  const plate = (x, name, hp, hpShow, mx, isPlayer)=>{
+    px(x,166,66,24,'rgba(14,16,40,0.72)');
+    px(x,166,66,1,'rgba(255,255,255,0.18)');
+    drawText(name, x+4, 169, '#ffffff');
+    const w = 58, pct = Math.max(0, hpShow/mx);
+    px(x+4,177,w,5,'rgba(255,255,255,0.14)');
+    const col = pct>0.5 ? '#7ac74f' : (pct>0.25 ? '#ffd94a' : ((Math.floor(t/200)%2===0)?'#e2574c':'#a03030'));
+    px(x+4,177,Math.round(w*pct),5,col);
+    drawText(fmt(Math.ceil(hp)), x+4, 184, 'rgba(255,255,255,0.75)');
+    if(isPlayer){
+      for(let i=0;i<b.superMax;i++){
+        const full = b.super>i;
+        px(x+30+i*8,184,6,5, full ? '#ffd94a' : 'rgba(255,255,255,0.18)');
+        if(full) px(x+31+i*8,185,4,3,'#fff3c0');
+      }
+    }
   };
-  hpbar(46, b.php, b.pmx, '#7ac74f');
-  hpbar(112, b.ehp, b.emx, '#e2574c');
-  drawTextC(fmt(b.php), 46, 176, 'rgba(255,255,255,0.6)');
-  drawTextC(fmt(b.ehp), 112, 176, 'rgba(255,255,255,0.6)');
+  plate(6, pd.name, b.php, b.phpShow, b.pmx, true);
+  plate(88, (b.boss?'JEFE ':'')+b.name, b.ehp, b.ehpShow, b.emx, false);
 
-  if(b.phase==='timing'){
-    drawTextC('¡TOCA EN EL CENTRO!', 80, 196, '#ffd94a');
-    px(20,208,120,10,'rgba(255,255,255,0.12)');
-    px(20,208,120,1,K); px(20,217,120,1,K);
-    px(74,206,12,14,'rgba(255,217,74,0.3)');
-    px(78,204,4,18,'rgba(255,217,74,0.5)');
+  /* ----- zona de mando (abajo) ----- */
+  px(0,196,160,76,'#12141f');
+  px(0,196,160,1,'rgba(255,255,255,0.14)');
+  if(b.phase==='intro'){
+    const pr = Math.min(1, b.t/500);
+    px(0,0,160,Math.round(60*(1-pr)),'#0a0b14');
+    px(0,272-Math.round(76*(1-pr)),160,Math.round(76*(1-pr))+1,'#0a0b14');
+    const bx = 160-(Math.min(1,b.t/450))*140;
+    drawTextC(b.boss ? '¡¡EL JEFE '+b.name+'!!' : '¡'+b.name+' SALVAJE!', Math.round(bx+60), 216, b.boss?'#e2574c':'#ffffff');
+    drawTextC('PREPARATE...', 80, 232, 'rgba(255,255,255,0.5)');
+  } else if(b.phase==='timing'){
+    if(b.super>=b.superMax){
+      if(Math.floor(t/220)%2===0) drawTextC('★ ¡SUPER LISTO! TOCA ★', 80, 204, '#ffd94a');
+      else drawTextC(superOf(p).name, 80, 204, superOf(p).col);
+    } else {
+      drawTextC('¡TOCA EN EL CENTRO!', 80, 204, '#ffd94a');
+    }
+    px(20,216,120,12,'rgba(255,255,255,0.10)');
+    px(20,216,120,1,K); px(20,227,120,1,K);
+    px(72,214,16,16,'rgba(255,217,74,0.25)');
+    px(78,212,4,20,'rgba(255,217,74,0.55)');
     const mx = 20 + b.mk*116;
-    px(mx,206,3,14,'#ffffff');
+    px(mx,214,3,16,'#ffffff');
+    px(mx+1,212,1,2,'#ffffff'); px(mx+1,230,1,2,'#ffffff');
+    drawTextC('CRITICO EN LA FRANJA DORADA', 80, 240, 'rgba(255,255,255,0.35)');
+  } else if(b.phase==='eTele' || b.phase==='eanim'){
+    if(b.blocked) drawTextC('ESCUDO ARRIBA', 80, 210, '#5ec8d8');
+    else if(blockWin && Math.floor(t/140)%2===0) drawTextC('¡¡BLOQUEA: TOCA YA!!', 80, 210, '#5ec8d8');
+    else drawTextC(b.bigAtk ? '¡ATAQUE CARGADO!' : 'AHI VIENE...', 80, 210, b.bigAtk?'#e2574c':'rgba(255,255,255,0.6)');
+    drawTextC('TOCA JUSTO ANTES DEL GOLPE', 80, 240, 'rgba(255,255,255,0.35)');
+  } else if(b.phase==='superAnim'){
+    if(Math.floor(t/150)%2===0) drawTextC('¡'+superOf(p).name+'!', 80, 214, superOf(p).col);
   } else if(b.phase==='end'){
     if(b.win){
-      drawTextC('¡VICTORIA!', 80, 196, '#ffd94a');
-      drawTextC('+'+b.reward+'✦  +15XP  +1 FUERZA', 80, 208, '#ffffff');
-      drawTextC('BOTIN ACTIVADO', 80, 218, '#7ac74f');
-      if(b.relicName) drawTextC('RELIQUIA: '+b.relicName, 80, 226, '#8a6a10');
+      drawTextC('¡VICTORIA!', 80, 202, '#ffd94a');
+      drawTextC('+'+b.reward+'✦   +15 XP   +1 FUE', 80, 214, '#ffffff');
+      drawTextC('BOTIN X1.5 ACTIVADO', 80, 224, '#7ac74f');
+      if(b.relicName) drawTextC('RELIQUIA: '+b.relicName, 80, 234, '#ffd94a');
     } else {
-      drawTextC('DERROTA...', 80, 196, '#e2574c');
-      drawTextC('ENTRENA MAS Y VUELVE', 80, 208, 'rgba(255,255,255,0.7)');
+      drawTextC('DERROTA...', 80, 204, '#e2574c');
+      drawTextC('ENTRENA MURO Y VUELVE', 80, 216, 'rgba(255,255,255,0.7)');
     }
-    if(b.t>800) drawTextC('TOCA PARA SEGUIR', 80, 234, 'rgba(255,255,255,0.5)');
-  } else {
-    drawTextC('...', 80, 200, 'rgba(255,255,255,0.5)');
+    if(b.t>800 && Math.floor(t/400)%2===0) drawTextC('TOCA PARA SEGUIR', 80, 252, 'rgba(255,255,255,0.5)');
   }
 }
-
-
 function drawMgEnd(){
   const m = UI.mg;
   panel(20,84,120,90);

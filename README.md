@@ -51,8 +51,12 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
 - 🎮 **4 minijuegos**: atrapa-motas, baile rítmico, simón floral y SALTA (la
   comba, se compra ✦250). Cada uno alimenta algo: el combate da FUERZA, el simón
   DEFENSA y la comba VELOCIDAD.
-- ⚔️ **Combate**: bichos salvajes que vienen a robarte motas y un jefe cada 10
-  victorias.
+- ⚔️ **Combate de verdad**: golpea con timing, **bloquea** el ataque enemigo en
+  el momento justo y carga el medidor de **SUPER** para soltar el ataque único
+  de tu línea (llamarada, ola gigante, lluvia estelar...). Cada enemigo tiene
+  su truco — el pinchón devuelve pinchos, el sombrío se esfuma y el jefe
+  telegrafía una carga demoledora. Con hit-stop, zoom en críticos y el cielo
+  del prado de fondo.
 - 🗺️ **Expediciones** de hasta 8 horas que traen motas, XP, **10 reliquias** con
   bonus pasivos y huevos de otras líneas.
 - 🏪 **Economía idle completa**: 8 mejoras, 8 comidas (cada línea tiene su

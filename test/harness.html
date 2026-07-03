@@ -22,6 +22,10 @@ function run(){
     evotree: `G.dex = {pradera_babyA:true, pradera_childA:true, pradera_adultA:true}; _p.str=5; _p.def=2; _p.spd=1; UI.evoLine = 0; UI.evoSel = 5; UI.mode = 'evotree';`,
     playmenu: `UI.mode = 'play';`,
     salta: `G.games.salta = true; startJump(); UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
+    btiming: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.42; UI.bt.super=3;`,
+    btele: `_p.energy=90; G.wild={kind:'lobruno',boss:true,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='eTele'; UI.bt.t=830; UI.bt.bigAtk=true;`,
+    bsuper: `_p.energy=90; _p.line='brasa'; _p.form='adultA'; G.wild={kind:'sombrio',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='superAnim'; UI.bt.t=400; for(let i=0;i<24;i++) spawnSuperFx(UI.bt), UI.bt.t+=18; UI.bt.t=430;`,
+    bend: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); endBattle(true); UI.bt.t=900;`,
     hat: `G.hats.corona = true; _p.hat = 'corona'; UI.mode = 'main';`,
     buhoprado: `G.buho = {until: Date.now()+120000, x: 120, tx: 122, dir: -1, offers: buhoOffers()}; UI.mode = 'main';`,
     quests: `ensureDaily(); G.daily.prog[QUESTS[G.daily.ids[0]].id] = 99; UI.mode = 'quests';`,
@@ -34,6 +38,7 @@ function run(){
     E(`(function(){ ${setup} ${visuals[m2]||''}
       const t = performance.now();
       if(UI.mode==='mgJump'){ drawJump(t, 16); }
+      else if(UI.mode==='battle'){ UI.bt.stop=0; drawBattle(t, 0); drawParticles(16); }
       else {
         UI.menuKey = null; UI.menuAt = t-999;
         drawScene(t); drawPoops(t); drawToys(t); drawSign(t); drawSparkles(t); drawPets(t); drawHUD(t);
@@ -132,6 +137,29 @@ function run(){
       R.saltaStarts = UI.mode === 'mgJump';
       if(UI.mode === 'mgJump'){ jumpTap(); R.saltaJumps = UI.mg.vy < 0; }
       // álbum → árbol evolutivo
+      // combate v2: intro, timing, golpe, bloqueo, super
+      _p.energy = 90; _p.str = 6;
+      G.wild = {kind:'ratuco', boss:false, x:120, tx:120, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      startBattle();
+      R.btIntro = UI.bt.phase === 'intro';
+      battleTap(); battleStep(100);
+      R.btTiming = UI.bt.phase === 'timing';
+      UI.bt.mk = 0.5; battleTap();
+      R.btAttack = UI.bt.phase === 'panim' && UI.bt.dmg > 0 && UI.bt.crit === true;
+      const ehp0 = UI.bt.ehp;
+      UI.bt.ehp = 999; UI.bt.emx = 999; // que sobreviva al golpe para probar su turno
+      for(let i=0;i<12;i++) battleStep(100);
+      R.btHitLanded = UI.bt.ehp < 999;
+      R.btEnemyTurn = ['eTele','eanim','timing'].includes(UI.bt.phase);
+      UI.bt.phase = 'eanim'; UI.bt.t = 100; UI.bt.blocked = false; battleTap();
+      R.btBlock = UI.bt.blocked === true;
+      UI.bt.phase = 'timing'; UI.bt.super = 4; battleTap();
+      R.btSuper = UI.bt.phase === 'superAnim' && UI.bt.dmg >= 10;
+      const ehp1 = UI.bt.ehp;
+      for(let i=0;i<16;i++) battleStep(100);
+      R.btSuperHit = UI.bt.ehp < ehp1 || UI.bt.phase === 'end';
+      UI.bt = null; G.wild = null; UI.mode = 'main';
+      R.versionCheck = typeof GAME_VERSION === 'string' && GAME_VERSION.length > 5;
       UI.mode = 'album'; handleTap(80, 50);
       R.albumToTree = UI.mode === 'evotree' && (UI.evoLine === 0);
       handleTap(150, 30);

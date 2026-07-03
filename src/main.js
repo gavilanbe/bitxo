@@ -118,6 +118,18 @@ function frame(now){
     saveGame();
   }
   checkDailyGift();
+  /* aviso de versión nueva: consulta version.json saltándose la caché */
+  async function checkUpdate(){
+    try{
+      const r = await fetch('version.json?t='+Date.now(), {cache:'no-store'});
+      if(!r.ok) return;
+      const j = await r.json();
+      if(j.v && String(j.v)!==GAME_VERSION) UPDATE_READY = true;
+    }catch(e){}
+  }
+  checkUpdate();
+  setInterval(checkUpdate, 5*60*1000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkUpdate(); });
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveGame(); });
   window.addEventListener('pagehide', ()=>{ saveGame(); });
   requestAnimationFrame(frame);

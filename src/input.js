@@ -203,6 +203,7 @@ function handleTap(x,y){
   }
 
   /* ---- modo principal ---- */
+  if(UPDATE_READY && y>=22 && y<=36 && x>26 && x<134){ saveGame(); location.reload(); return; }
   if(x>142 && y<16){ G.muted=!G.muted; toast(G.muted?'SILENCIO':'SONIDO ON'); saveGame(); return; }
 
   if(y>BTN_Y-4 && y<BTN_Y+BTN_S+8){

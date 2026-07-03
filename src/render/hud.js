@@ -42,6 +42,11 @@ function drawHUD(t){
   }
   px(0,19,160,2,'rgba(26,20,40,0.5)');
   px(0,19,Math.round(160*p.xp/xpNeed(p.level)),2,'#7ac74f');
+  if(UPDATE_READY && Math.floor(t/500)%4!==3){
+    px(28,23,104,12,'#ffd94a');
+    px(28,23,104,1,K); px(28,34,104,1,K); px(28,23,1,12,K); px(131,23,1,12,K);
+    drawTextC('VERSION NUEVA: TOCA', 80, 26, K);
+  }
 
   px(0,200,160,72,'#e8e0c8');
   px(0,200,160,1,K);

@@ -13,3 +13,7 @@ const POOP_EVERY = 4*60*1000;
 const OFFLINE_CAP = 14*60*60*1000;
 const RUNAWAY_AFTER = 14*60*60*1000;
 const COST_MEAL = 5, COST_SNACK = 8;
+
+/* versión desplegada: la estampa tools/stamp.sh en cada publicación */
+const GAME_VERSION = '20260703-1017';
+let UPDATE_READY = false;

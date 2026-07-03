@@ -187,3 +187,28 @@ SFX.creak = function(){
 SFX.starWhistle = function(){
   tone({f:2500, slide:850, d:1.6, type:'p125', vol:0.011, send:0.5});
 };
+/* ------ combate v2: telegrafía, bloqueo y SUPER ------ */
+SFX.telegraph = function(big){
+  tone({f:180, slide:140, d:0.18, type:'sawtooth', vol:0.045});
+  nz(sfxAt(0), 0.08, 0.02, 800, 1);
+  if(big){
+    tone({f:120, slide:78, d:0.32, type:'sawtooth', vol:0.05, at:sfxAt(0.16)});
+    kick(sfxAt(0.2), 0.08);
+  }
+};
+SFX.block = function(){
+  nz(sfxAt(0), 0.04, 0.06, 3000, 2);
+  tone({f:520, slide:390, d:0.12, type:'triangle', vol:0.055});
+  tone({f:1040, d:0.22, type:'p125', vol:0.03, at:sfxAt(0.05), send:0.4});
+};
+SFX.superCharge = function(){
+  tone({f:220, slide:880, d:0.5, type:'p25', vol:0.05, send:0.3});
+  nz(sfxAt(0.1), 0.4, 0.02, 2000, 1, 8000);
+  [440,554,659,880].forEach((f,i)=> tone({f, at:sfxAt(0.12*i), d:0.14, type:'p125', vol:0.035, send:0.4}));
+};
+SFX.superHit = function(){
+  kick(sfxAt(0), 0.12);
+  nz(sfxAt(0), 0.5, 0.06, 900, 0.8, 4000);
+  tone({f:200, slide:60, d:0.4, type:'sawtooth', vol:0.05});
+  [1319,1568,2093].forEach((f,i)=> tone({f, at:sfxAt(0.3+i*0.06), d:0.25, type:'p125', vol:0.035, send:0.5}));
+};

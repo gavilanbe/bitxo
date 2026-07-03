@@ -123,6 +123,16 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   del álbum es lo que debe ejecutar el código. Stats entrenables: `p.str`,
   `p.def`, `p.spd` (el antiguo `discipline` migra a `str` al cargar).
 
+## Publicar (y que a nadie le quede caché vieja)
+
+`make ship MSG="mensaje"` hace todo: ejecuta `tools/stamp.sh` (estampa una
+versión nueva en los `?v=` de `index.html`, en `GAME_VERSION` de
+`src/config.js` y en `version.json`), commitea y publica con la cuenta
+correcta. Los `?v=` nuevos invalidan la caché del navegador al instante; las
+partidas que ya estén abiertas consultan `version.json` cada 5 minutos (con
+`cache: no-store`) y muestran el banner "VERSION NUEVA: TOCA", que recarga.
+**No publiques a mano sin estampar** — los usuarios se quedarían con JS viejo.
+
 ## Pruebas
 
 `test/harness.html` carga el juego en un iframe y ejecuta una batería de
