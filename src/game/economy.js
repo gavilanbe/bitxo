@@ -6,7 +6,7 @@
 function ratePerMs(hoursToEmpty){ return 100/(hoursToEmpty*3600*1000); }
 const R_HUNGER = ratePerMs(5);
 const R_ENERGY = ratePerMs(16);
-const R_SLEEPREGEN = ratePerMs(8);
+const R_SLEEPREGEN = ratePerMs(6);
 function energyRate(p){ return R_ENERGY * (p.line==='marea'?0.8:1) * (p.trait==='DORMILON'?1.15:1) * (WEATHER.kind==='wind'?1.1:1) * (G.relics && G.relics.caracola?0.9:1); }
 function hungerRate(p){ return R_HUNGER * (p.trait==='GLOTON'?1.25:1); }
 function poopEvery(p){ return POOP_EVERY * (p.line==='petrea'?1.6:1); }
@@ -26,7 +26,7 @@ function petRate(p){
 }
 function motaRate(){
   let r=0; for(const p of G.pets) r += petRate(p);
-  return r * boostMult() * (G.relics && G.relics.trebol ? 1.05 : 1);
+  return r * boostMult() * (G.relics && G.relics.trebol ? 1.05 : 1) * (1 + Math.min(0.1, (G.bond||0)*0.002));
 }
 function tapYield(){ return Math.max(1, Math.round((1 + G.up.cosecha) * legacyMult())) + (G.relics && G.relics.campanilla ? 1 : 0); }
 function gainMotas(n, x, y){

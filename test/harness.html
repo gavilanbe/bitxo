@@ -24,6 +24,7 @@ function run(){
     salta: `G.games.salta = true; startJump(); UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
     evomorph: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[{r:24,a:0.4},{r:44,a:0.22}], sfxBurst:true, sfxReveal:true}; UI.evoT=2600; UI.mode='evolve';`,
     evoreveal: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:true, sfxReveal:true}; UI.evoT=4800; UI.mode='evolve';`,
+    statsbackup: `G.bond=24; UI.mode='stats';`,
     statsrumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex.pradera_childA=true; UI.mode='stats';`,
     treerumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex={pradera_babyA:true, pradera_childA:true}; UI.evoLine=0; UI.evoSel=1; UI.mode='evotree';`,
     beastpanel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1}}; UI.mode='beast';`,
@@ -262,6 +263,40 @@ function run(){
         R.evoExits = UI.mode==='main' && UI.evo===null;
         EVO_QUEUE.length = 0;
         G.pets.pop(); }
+      // normalizeSave: un guardado v5 antiguo recibe todos los defaults
+      { const oldSave = {v:5, gen:1, sel:0, motas:10, totalMotas:10, stars:0, ascensions:0,
+          dex:{}, muted:false, battlesWon:0, boostUntil:0, poops:[], lastSeen:Date.now(),
+          up:{cosecha:0,aura:0,iman:0,comedero:0,juguete:0,cama:0,jardin:0,nido:0},
+          hints:{sparkle:false,shop:false},
+          pets:[{line:'pradera', gen:1, stage:2, form:'childA', bornAt:Date.now()-4e6,
+                 hatchedAt:Date.now()-36e5, hunger:50, happy:50, energy:50, hygiene:50,
+                 weight:12, discipline:4, mistakes:0, sleeping:false, tapsOnEgg:0,
+                 fedMeals:1, fedSnacks:0, gamesWon:0, level:2, xp:0}]};
+        const g = normalizeSave(oldSave);
+        R.migration = !!(g.hats && g.beast && g.discos && g.discos.prado && g.games &&
+          g.daily===null && g.pets[0].str===4 && g.pets[0].def===0 && g.pets[0].trait); }
+      // sin luchador, el cartel no pide combates
+      { const stash = G.pets; const stashD = G.daily;
+        G.pets = [makePet('pradera',1)]; G.daily = null;
+        ensureDaily();
+        const combIdx = QUESTS.findIndex(q=>q.id==='combate');
+        R.questFilter = !G.daily.ids.includes(combIdx);
+        G.pets = stash; G.daily = stashD; }
+      // la amistad produce motas
+      { const b0 = G.bond; G.bond = 0; const r0 = motaRate();
+        G.bond = 50; const r1 = motaRate();
+        R.bondRate = r1 > r0; G.bond = b0; }
+      // dormir recarga y apenas consume
+      { _p.trait='TIMIDO'; _p.stage=3; _p.exped=null; UI.mode='shop';
+        _p.sleeping=false; _p.hunger=90; _p.happy=90; _p.energy=80;
+        liveUpdate(600000);
+        const awakeLoss = 90 - _p.hunger;
+        _p.sleeping=true; _p.hunger=90; _p.energy=50;
+        liveUpdate(600000);
+        const sleepLoss = 90 - _p.hunger;
+        R.sleepGentle = sleepLoss < awakeLoss*0.45 && sleepLoss > 0;
+        R.sleepCharges = _p.energy > 50;
+        _p.sleeping=false; UI.mode='main'; }
       UI.mode = 'album'; handleTap(80, 37+3*31+10);
       R.albumFungoRow = UI.mode === 'evotree' && UI.evoLine === 3 && LINE_KEYS[3] === 'fungo';
       UI.mode = 'main';

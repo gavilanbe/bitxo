@@ -74,6 +74,10 @@ function handleTap(x,y){
   if(UI.mode==='stats'){
     if(y>168 && y<184){ UI.mode = x<41 ? 'album' : (x<78 ? 'ach' : (x<115 ? 'relics' : 'beast')); SFX.tap(); return; }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
+    if(y>=205 && y<=222){
+      if(x>=14 && x<78){ exportSave(); return; }
+      if(x>=84 && x<148){ importSave(); return; }
+    }
     UI.mode='main'; SFX.tap(); return;
   }
   if(UI.mode==='shop'){

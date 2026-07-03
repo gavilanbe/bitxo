@@ -84,6 +84,10 @@ forma...), economía (`G.motas`, mejoras `G.up`), metaprogreso (`G.stars`,
 `UI` (en `game/ui.js`) es estado efímero de pantalla y **no se guarda**: modo
 actual, partículas, toasts, minijuego en curso.
 
+Nota de diseño del sueño: dormido, el hambre y el ánimo bajan a ×0.3 y las
+pilas se recargan de 0 a 100 en ~6 h (menos con CAMA y el carácter DORMILON).
+Dormir repara — no castiga.
+
 ## El bucle
 
 `main.js#frame()` corre con `requestAnimationFrame`:
@@ -129,6 +133,20 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   `discipline` migra a `str` al cargar). Toda evolución pasa por `EVO_QUEUE`
   (`game/ui.js`): se encola al cumplirse y la cinemática se reproduce cuando
   el jugador está en el prado — también las que ocurren offline.
+
+## Red de seguridad
+
+- **CI**: `.github/workflows/test.yml` ejecuta la batería del arnés en cada
+  push (Chrome headless en el runner). Si una prueba cae, el Action falla y
+  el badge del README se pone rojo. Ojo: GitHub Pages (legacy) despliega
+  igualmente — el Action es la alarma, no la barrera.
+- **Defaults de guardado**: TODOS los valores por defecto al cargar viven en
+  `normalizeSave()` (`main.js`), probado en la batería con un guardado v5
+  antiguo sintético. Campo nuevo en `G` ⇒ default en `normalizeSave` +
+  `freshGame()` y, si hace falta, su prueba.
+- **Copia de seguridad**: COPIAR/CARGAR SAVE en DATOS (base64 del JSON por
+  el portapapeles). Cargar valida el código y recarga la página para pasar
+  por `normalizeSave`.
 
 ## Publicar (y que a nadie le quede caché vieja)
 

@@ -13,6 +13,7 @@
 ![sin build](https://img.shields.io/badge/build-ninguno-2e8038?style=flat-square)
 ![audio](https://img.shields.io/badge/audio-chiptune_Web_Audio-8a6ae8?style=flat-square)
 ![licencia](https://img.shields.io/badge/licencia-MIT-e8b050?style=flat-square)
+[![pruebas](https://github.com/gavilanbe/bitxo/actions/workflows/test.yml/badge.svg)](https://github.com/gavilanbe/bitxo/actions/workflows/test.yml)
 
 </div>
 

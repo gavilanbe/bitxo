@@ -76,33 +76,39 @@ function frame(now){
 }
 
 /* ---------------- ARRANQUE ---------------- */
+/* aplica TODOS los valores por defecto a una partida cargada.
+   Único lugar donde se hace — el arnés lo prueba con guardados viejos */
+function normalizeSave(g){
+  g.wild = null;
+  if(!g.sel || g.sel>=g.pets.length) g.sel = 0;
+  g.ach = g.ach||{}; g.bond = g.bond||0;
+  g.relics = g.relics||{}; g.expedsDone = g.expedsDone||0;
+  g.bossesWon = g.bossesWon||0; g.bossDue = g.bossDue||false;
+  g.toys = g.toys||{}; g.foodsTried = g.foodsTried||{};
+  if(g.ballX===undefined) g.ballX = 80;
+  g.ballVX = 0; g.cajaReadyAt = g.cajaReadyAt||0;
+  g.giftStreak = g.giftStreak||0; g.lastGift = g.lastGift||null;
+  g.hats = g.hats||{}; g.daily = g.daily||null;
+  g.buhoNextAt = g.buhoNextAt||0; g.buho = g.buho||null;
+  g.discos = g.discos||{prado:true}; g.disco = g.disco||'prado'; g.games = g.games||{};
+  g.beast = g.beast||{};
+  for(const p of g.pets){
+    p.swingT=0; p.kickAt=0;
+    p.hat = p.hat||null;
+    if(p.str===undefined) p.str = p.discipline||0;
+    p.def = p.def||0; p.spd = p.spd||0;
+    if(!p.trait) p.trait = TRAIT_KEYS[Math.floor(Math.random()*TRAIT_KEYS.length)];
+    p.rx = p.rx||80; p.dropT=0; p.eatT=0; p.trainT=0; p.petT=0; p.joyAt=0; p.blinkAt=0;
+  }
+  return g;
+}
+
 (async function init(){
   buildAllSprites();
   buildEnemySprites();
   const saved = await loadGame();
   if(saved && saved.v===5){
-    G = saved;
-    G.wild = null;
-    if(!G.sel || G.sel>=G.pets.length) G.sel = 0;
-    G.ach = G.ach||{}; G.bond = G.bond||0;
-    G.relics = G.relics||{}; G.expedsDone = G.expedsDone||0;
-    G.bossesWon = G.bossesWon||0; G.bossDue = G.bossDue||false;
-    G.toys = G.toys||{}; G.foodsTried = G.foodsTried||{};
-    if(G.ballX===undefined) G.ballX = 80;
-    G.ballVX = 0; G.cajaReadyAt = G.cajaReadyAt||0;
-    for(const p of G.pets){ p.swingT=0; p.kickAt=0; }
-    G.giftStreak = G.giftStreak||0; G.lastGift = G.lastGift||null;
-    G.hats = G.hats||{}; G.daily = G.daily||null;
-    G.buhoNextAt = G.buhoNextAt||0; G.buho = G.buho||null;
-    G.discos = G.discos||{prado:true}; G.disco = G.disco||'prado'; G.games = G.games||{};
-    G.beast = G.beast||{};
-    for(const p of G.pets){
-      p.hat = p.hat||null;
-      if(p.str===undefined) p.str = p.discipline||0;
-      p.def = p.def||0; p.spd = p.spd||0;
-    }
-    for(const p of G.pets){ if(!p.trait) p.trait = TRAIT_KEYS[Math.floor(Math.random()*TRAIT_KEYS.length)]; }
-    for(const p of G.pets){ p.rx = p.rx||80; p.dropT=0; p.eatT=0; p.trainT=0; p.petT=0; p.joyAt=0; p.blinkAt=0; }
+    G = normalizeSave(saved);
     const away = Date.now() - (G.lastSeen||Date.now());
     if(away > 5000) applyElapsed(away);
     UI.mode='main';

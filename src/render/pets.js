@@ -193,9 +193,10 @@ function drawWild(t){
     drawText('!', w.x-1, 161-spr.height-9, '#e2574c');
   }
   /* nivel visible: lee el peligro antes de entrar */
-  if(w.nv){
-    const pp = Math.max(...G.pets.filter(q=>q.stage>=STAGES.CHILD).map(playerPower));
-    const d = w.nv - pp;
+  const fighters = G.pets.filter(q=>q.stage>=STAGES.CHILD);
+  if(w.nv && fighters.length){
+    const ref = AP().stage>=STAGES.CHILD ? AP() : fighters.reduce((a,b)=>playerPower(a)>=playerPower(b)?a:b);
+    const d = w.nv - playerPower(ref);
     const col = d<=-2 ? '#7ac74f' : (d<=1 ? '#f6efe0' : (d<=3 ? '#f0a04b' : '#e2574c'));
     drawTextC((w.elite?'★':'')+'NV'+w.nv, w.x, 161-spr.height-17, w.elite ? '#ffd94a' : col);
   }

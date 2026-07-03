@@ -61,7 +61,7 @@ function battleBurst(x, y, col, n){
 function applyHitToEnemy(b, isSuper){
   const p = AP();
   /* el sombrío se esfuma si no aciertas de lleno */
-  if(b.kind==='sombrio' && !b.crit && !isSuper &&
+  if(b.quirk==='evade' && !b.crit && !isSuper &&
      Math.random() < Math.max(0.05, 0.22 - (p.spd||0)*0.008)){
     UI.floats.push({x:112, y:96, s:'SE ESFUMA', col:'#b8a8e8', life:900, vy:-0.03});
     SFX.tap();
@@ -86,7 +86,7 @@ function applyHitToEnemy(b, isSuper){
   if(isSuper) SFX.superHit(); else SFX.hit(b.crit);
   if(!isSuper) b.super = Math.min(b.superMax, b.super + (b.crit?2:1));
   /* el pinchón devuelve pinchos si no fue crítico */
-  if(b.kind==='pinchon' && !b.crit && !isSuper && b.ehp>0){
+  if(b.quirk==='thorns' && !b.crit && !isSuper && b.ehp>0){
     const r = Math.max(1, Math.round(2 + G.battlesWon*0.15));
     b.php = Math.max(0, b.php - r);
     b.phurtT = performance.now();

@@ -192,7 +192,9 @@ function ensureDaily(){
   /* 3 misiones al día, elegidas con un LCG sembrado por la fecha:
      todos ven las mismas y no se pueden re-tirar */
   let s = 0; for(const c of key) s = (s*31 + c.charCodeAt(0)) >>> 0;
-  const idx = QUESTS.map((_,i)=>i);
+  /* sin luchador no se pide ganar combates: nada de misiones imposibles */
+  const fighter = G.pets.some(q=>q.stage>=STAGES.CHILD);
+  const idx = QUESTS.map((_,i)=>i).filter(i=>QUESTS[i].id!=='combate' || fighter);
   for(let i=idx.length-1;i>0;i--){
     s = (s*1664525 + 1013904223) >>> 0;
     const j = s % (i+1);
@@ -304,4 +306,26 @@ function buySalta(){
   G.games.salta = true;
   toast('¡LA COMBA ES TUYA!');
   SFX.buy(); vibrate(25); saveGame();
+}
+
+/* ---------------- COPIA DE SEGURIDAD DE LA PARTIDA ---------------- */
+async function exportSave(){
+  try{
+    await saveGame();
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify(G))));
+    await navigator.clipboard.writeText(code);
+    toast('CODIGO COPIADO: GUARDALO BIEN', 3000);
+    SFX.coin();
+  }catch(e){ toast('NO SE PUDO COPIAR'); SFX.nope(); }
+}
+async function importSave(){
+  try{
+    const code = ((await navigator.clipboard.readText())||'').trim();
+    const data = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if(!data || !data.v || !Array.isArray(data.pets)) throw 0;
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    toast('¡PARTIDA CARGADA!', 2000);
+    SFX.buy();
+    setTimeout(()=>location.reload(), 700);
+  }catch(e){ toast('EL PORTAPAPELES NO TRAE UN CODIGO VALIDO', 2600); SFX.nope(); }
 }

@@ -23,8 +23,10 @@ function liveUpdate(dtMs){
       if(now - p.bornAt > T_HATCH || p.tapsOnEgg>=15) hatchPet(i);
       continue;
     }
-    p.hunger = Math.max(0, p.hunger - hungerRate(p)*dtMs);
-    p.happy  = Math.max(0, p.happy - happyDecayRate(p)*dtMs);
+    /* dormido se consume mucho menos: el sueño repara, no castiga */
+    const drowse = p.sleeping ? 0.3 : 1;
+    p.hunger = Math.max(0, p.hunger - hungerRate(p)*dtMs*drowse);
+    p.happy  = Math.max(0, p.happy - happyDecayRate(p)*dtMs*drowse);
     if(p.sleeping){
       p.energy = Math.min(100, p.energy + sleepRegen(p)*dtMs);
       if(p.energy>=100){ p.sleeping=false; if(i===G.sel){ toast('¡BUENOS DIAS!'); SFX.yay(); } }

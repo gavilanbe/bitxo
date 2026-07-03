@@ -16,8 +16,9 @@ function applyElapsed(ms){
         continue;
       }
       if(p.stage===STAGES.EGG) continue;
-      p.hunger = Math.max(0, p.hunger - hungerRate(p)*sdt);
-      p.happy  = Math.max(0, p.happy - happyDecayRate(p)*sdt);
+      const drowse = p.sleeping ? 0.3 : 1;
+      p.hunger = Math.max(0, p.hunger - hungerRate(p)*sdt*drowse);
+      p.happy  = Math.max(0, p.happy - happyDecayRate(p)*sdt*drowse);
       if(p.sleeping){
         p.energy = Math.min(100, p.energy + sleepRegen(p)*sdt);
         if(p.energy>=100) p.sleeping=false;

@@ -55,6 +55,7 @@ function drawHUD(t){
   statBar(6,206,42,p.hunger,'#e2574c','HAMBRE');
   statBar(58,206,42,p.happy,'#f0a04b','ANIMO');
   statBar(110,206,44,p.energy,'#5ec8d8','PILAS');
+  if(p.sleeping && Math.floor(t/600)%2===0) drawText('+', 133, 206, '#5ec8d8');
 
   px(6,224,148,1,'rgba(26,20,40,0.2)');
 
@@ -78,7 +79,7 @@ function drawHUD(t){
 }
 
 function drawStats(){
-  panel(8,26,144,188);
+  panel(8,26,144,214);
   const p = AP();
   const f = currentFormDef();
   drawTextC('- '+ (p.stage===STAGES.EGG?'HUEVO':f.name) +' -', 80, 32, K);
@@ -91,11 +92,12 @@ function drawStats(){
   line('CARACTER', p.trait||'-');
   line('EDAD', days+' DIAS');
   line('NIVEL', p.level+' ('+fmt(p.xp)+'/'+fmt(xpNeed(p.level))+')');
-  line('PESO', p.weight+' KG');
+  drawText('PESO', 16, y, K);
+  drawText(p.weight+' KG'+(p.weight>40?' ¡UF!':''), 88, y, p.weight>40?'#a03030':K); y+=8;
   line('FUE·DEF·VEL', (p.str||0)+' · '+(p.def||0)+' · '+(p.spd||0));
   line('JUEGOS', p.gamesWon);
   line('FALLOS', p.mistakes);
-  line('COMBATES', G.battlesWon);
+  line('AMISTAD', '♥'+(G.bond||0)+' (+'+Math.min(10,Math.round((G.bond||0)*0.2))+'%)');
   line('MOTAS TOT.', '✦'+fmt(G.totalMotas));
   line('ESTRELLAS', '★'+G.stars+' (+'+ (G.stars*10) +'%)');
   y+=2;
@@ -136,7 +138,9 @@ function drawStats(){
       drawTextC('CRECERA... TEN PACIENCIA', 80, 191, 'rgba(26,20,40,0.45)');
     }
   }
-  drawTextC('TOCA PARA VOLVER', 80, 206, 'rgba(26,20,40,0.5)');
+  card(14,206,62,14); drawTextC('COPIAR SAVE', 45, 210, K);
+  card(84,206,62,14); drawTextC('CARGAR SAVE', 115, 210, K);
+  drawTextC('TOCA PARA VOLVER', 80, 228, 'rgba(26,20,40,0.5)');
 }
 
 function drawShop(){
@@ -220,7 +224,7 @@ function drawAscendConfirm(){
   drawTextC('SE CONVERTIRA EN', 80, 108, K);
   drawTextC('ESTRELLA ETERNA', 80, 116, K);
   drawTextC('GANAS ★'+ascendStars()+' (+'+(ascendStars()*10)+'% SIEMPRE)', 80, 128, '#8a6a10');
-  drawTextC('TODO SE REINICIA', 80, 140, '#a03030');
+  drawTextC('SE VA, LO DEMAS SE QUEDA', 80, 140, '#a03030');
   card(24,152,52,20); drawTextC('SI ★', 50, 159, K);
   card(84,152,52,20); drawTextC('NO', 110, 159, K);
 }
@@ -345,9 +349,9 @@ function drawBeast(){
     const E = ENEMIES[k];
     const info = G.beast[k];
     const seen = info && info.seen>0;
-    const y = 39 + i*20;
-    px(9,y,142,18, seen ? '#f6efe0' : '#d8d0ba');
-    px(9,y,142,1,K); px(9,y+17,142,1,K); px(9,y,1,18,K); px(150,y,1,18,K);
+    const y = 38 + i*19;
+    px(9,y,142,17, seen ? '#f6efe0' : '#d8d0ba');
+    px(9,y,142,1,K); px(9,y+16,142,1,K); px(9,y,1,17,K); px(150,y,1,17,K);
     const spr = ESPR[k];
     if(seen){
       const sc = Math.min(1, 14/Math.max(spr.width,spr.height));
@@ -362,11 +366,12 @@ function drawBeast(){
     px(28, y+3, 4, 4, seen ? (ELEM_COLS[E.elem]||'#c8c0b0') : 'rgba(26,20,40,0.2)');
     drawText(seen ? E.name : '?????', 35, y+2, seen ? K : 'rgba(26,20,40,0.45)');
     if(seen){
-      drawText(E.desc, 35, y+10, 'rgba(26,20,40,0.55)');
+      drawText(E.desc, 35, y+9, 'rgba(26,20,40,0.55)');
       drawText('X'+info.wins, 132, y+2, '#3a7048');
     }
   }
-  drawTextC('TOCA PARA VOLVER', 80, 242, 'rgba(26,20,40,0.5)');
+  drawTextC('BRASA>PRADERA>MAREA>BRASA', 80, 231, 'rgba(26,20,40,0.55)');
+  drawTextC('ASTRO>PETREA>FUNGO>ASTRO', 80, 240, 'rgba(26,20,40,0.55)');
 }
 function drawOfflineReport(){
   const r = offlineReport;
@@ -378,7 +383,7 @@ function drawOfflineReport(){
   drawTextC('✦ +'+fmt(r.motas)+' MOTAS', 80, y, '#8a6a10'); y+=12;
   if(r.autofed>0){ drawTextC('COMIO SOLO X'+r.autofed, 80, y, '#3a7048'); y+=12; }
   if(r.poops>0){ drawTextC('CACAS NUEVAS: '+r.poops, 80, y, '#a03030'); y+=12; }
-  if(r.evolved){ drawTextC('¡HA EVOLUCIONADO!', 80, y, '#8a6a10'); y+=12; }
+  if(r.evolved){ drawTextC('EVOLUCION A LA VISTA...', 80, y, '#8a6a10'); y+=12; }
   drawTextC('TOCA PARA SEGUIR', 80, 176, 'rgba(26,20,40,0.5)');
 }
 
