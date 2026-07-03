@@ -300,11 +300,11 @@ function previewDisco(i){
   }
   SFX.tap();
 }
-function buySalta(){
-  if(G.motas < COST_SALTA){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
-  G.motas -= COST_SALTA;
-  G.games.salta = true;
-  toast('¡LA COMBA ES TUYA!');
+function buyGame(gkey, cost){
+  if(G.motas < cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= cost;
+  G.games[gkey] = true;
+  toast('¡JUEGO NUEVO DESBLOQUEADO!');
   SFX.buy(); vibrate(25); saveGame();
 }
 

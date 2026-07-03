@@ -17,7 +17,7 @@ const MENU_DRAW = {
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
   quests:drawQuests, buho:drawBuhoShop,
   train:drawTrainMenu, discos:drawDiscos, evotree:drawEvoTree,
-  beast:drawBeast
+  beast:drawBeast, games:drawGames
 };
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -66,6 +66,10 @@ function frame(now){
     drawSimon(now, dt);
   } else if(UI.mode==='mgJump'){
     drawJump(now, dt);
+  } else if(UI.mode==='mgTopo'){
+    drawTopo(now, dt);
+  } else if(UI.mode==='mgPesca'){
+    drawPesca(now, dt);
   } else {
     drawScene(now);
     drawShoot(now);
@@ -102,7 +106,7 @@ function normalizeSave(g){
   g.hats = g.hats||{}; g.daily = g.daily||null;
   g.buhoNextAt = g.buhoNextAt||0; g.buho = g.buho||null;
   g.discos = g.discos||{prado:true}; g.disco = g.disco||'prado'; g.games = g.games||{};
-  g.beast = g.beast||{};
+  g.beast = g.beast||{}; g.best = g.best||{};
   for(const p of g.pets){
     p.swingT=0; p.kickAt=0;
     p.hat = p.hat||null;

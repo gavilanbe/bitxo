@@ -233,12 +233,24 @@ function buildAllSprites(){
 }
 
 const IC = {};
-IC.feed = mkIcon(["..11111..",".1222221.","122222221","111111111","122222221",".1222221.","..11111..",".........","........."],'#3b2f2f','#f6d186');
-IC.play = mkIcon(["..1111...",".122211..","12222211.","122111211","121222211","112222211",".1222211.","..11111..","........."],'#3b2f2f','#e2574c');
-IC.clean= mkIcon([".......11","......11.",".....11..","....11...",".1111....","12221....","12221....",".111.....","........."],'#3b2f2f','#5ec8d8');
-IC.sleep= mkIcon(["...111...","..11.....",".11......",".11......",".11......","..11.....","...111...",".........","........."],'#3b2f2f','#3b2f2f');
-IC.shop = mkIcon([".1111111.","12222221.","111111111","12111121.","12111121.","12111121.","11111111.",".........","........."],'#3b2f2f','#ffd94a');
-IC.stats= mkIcon([".......11","....11.11","....11.11",".11.11.11",".11.11.11",".11.11.11","111111111",".........","........."],'#3b2f2f','#3b2f2f');
+/* botonera 12x12: cada acción con su carácter */
+IC.feed = mkSprite({k:'#3b2f2f',m:'#c98a4b',w:'#f6efe0',d:'#a4713a'},[
+"......kkk...",".....kmmmk..","....kmmmmmk.","...kmmdmmmk.","...kmmmmmk..","..kmdmmmk...","..kmmmmk....",".kwkmmk.....","kwwkkk......","kwwk........",".kk.........","............"]);
+IC.play = mkSprite({k:'#3b2f2f',r:'#e2574c',w:'#ff9a90',y:'#ffd94a'},[
+"...kkkkk....","..kwrrrrk...",".kwrryrrrk..",".krryyyrrk..",".kryyyyyrk..",".krryyyrrk..",".krrryrrrk..","..krrrrrk...","...kkkkk....","............","............","............"]);
+IC.clean= mkSprite({k:'#3b2f2f',h:'#8a6a3a',s:'#e8c060',c:'#5ec8d8'},[
+".........kk.","........khk.","...c...khk..","......khk...",".....khk....","....khk.....","...ksk......","..kssk......",".kssssk.....","kssssk...c..","kkkkk.......","............"]);
+IC.sleep= mkSprite({k:'#3b2f2f',y:'#ffd94a',w:'#fff8d0'},[
+"....kkk.....","...kyyk.....","..kyyk......",".kyyk....w..",".kyyk.......",".kyyk.......",".kyyyk...w..","..kyyyk.....","...kyyyykk..","....kkkk....","............","............"]);
+IC.shop = mkSprite({k:'#3b2f2f',n:'#a4713a',y:'#ffd94a',d:'#7a4e28'},[
+"....kk......","...knnk.....","..kddddk....",".knnnnnnk...","knnnnynnnk..","knnnyyynnk..","knnnnynnnk..","knnnnnnnnk..",".knnnnnnk...","..kkkkkk....","............","............"]);
+IC.stats= mkSprite({k:'#3b2f2f',c:'#f6efe0',r:'#e2574c',d:'#8a8070'},[
+".kkkkkkkkk..",".krkcccccck.",".krkcdddcck.",".krkcccccck.",".krkcddccck.",".krkcccccck.",".krkcdddcck.",".krkcccccck.",".kkkkkkkkk..","............","............","............"]);
+/* categorías de JUGAR */
+IC.gym = mkSprite({k:'#3b2f2f',d:'#6a6a78',s:'#9a9aa4'},[
+"............",".kk......kk.","kddk....kddk","kddkkkkkkddk","kddksssskddk","kddkkkkkkddk","kddk....kddk",".kk......kk.","............","............","............","............"]);
+IC.map = mkSprite({k:'#3b2f2f',r:'#e2574c',w:'#f6efe0',h:'#8a6a3a'},[
+"..kk........","..khkkkkk...","..khrrrrrk..","..khrwwrrrk.","..khrrrrrk..","..khkkkkk...","..khk.......","..khk.......","..khk.......","..khk.......",".kkkkk......","............"]);
 
 let ESPR = {};
 function buildEnemySprites(){

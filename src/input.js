@@ -112,20 +112,35 @@ function handleTap(x,y){
     SFX.tap(); return;
   }
   if(UI.mode==='play'){
-    if(y>=94 && y<132){
-      if(x<56) startCatch();
-      else if(x<104) UI.mode='discos';
-      else startSimon();
-    } else if(y>=136 && y<174){
-      if(x<56){ if(G.games.salta) startJump(); else buySalta(); }
-      else if(x<104) UI.mode='train';
-      else {
-        if(AP().stage<STAGES.CHILD){ toast('AUN ES MUY PEQUENO'); SFX.nope(); }
-        else UI.mode='exped';
+    if(x>=26 && x<=134 && y>=86 && y<196){
+      const i = Math.floor((y-86)/38);
+      if(i===0){ UI.mode='train'; SFX.tap(); return; }
+      if(i===1){ UI.mode='games'; SFX.tap(); return; }
+      if(i===2){
+        if(AP().stage<STAGES.CHILD){ toast('AUN ES MUY PEQUENO'); SFX.nope(); return; }
+        UI.mode='exped'; SFX.tap(); return;
       }
     }
-    else { UI.mode='main'; }
-    SFX.tap(); return;
+    UI.mode='main'; SFX.tap(); return;
+  }
+  if(UI.mode==='games'){
+    if(x>=10 && x<=151 && y>=72 && y<192){
+      const col = Math.floor((x-10)/47), row = Math.floor((y-72)/62);
+      const i = row*3 + col;
+      if(col>=0 && col<3 && row>=0 && row<2 && i<MINIGAMES.length){
+        const M = MINIGAMES[i];
+        const owned = !M.gkey || !!G.games[M.gkey];
+        if(!owned){ buyGame(M.gkey, M.cost); return; }
+        if(M.id==='mgCatch') startCatch();
+        else if(M.id==='mgDance') UI.mode='discos';
+        else if(M.id==='mgSimon') startSimon();
+        else if(M.id==='mgJump') startJump();
+        else if(M.id==='mgTopo') startTopo();
+        else if(M.id==='mgPesca') startPesca();
+        SFX.tap(); return;
+      }
+    }
+    UI.mode='play'; SFX.tap(); return;
   }
   if(UI.mode==='train'){
     if(x>=18 && x<=142 && y>=92 && y<176){
@@ -143,7 +158,7 @@ function handleTap(x,y){
         buyDisco(i); return;
       }
     }
-    UI.mode='play'; SFX.tap(); return;
+    UI.mode='games'; SFX.tap(); return;
   }
   if(UI.mode==='evotree'){
     if(y<40){
@@ -159,12 +174,14 @@ function handleTap(x,y){
     UI.mode='album'; SFX.tap(); return;
   }
   if(UI.mode==='mgJump'){ jumpTap(); return; }
+  if(UI.mode==='mgTopo'){ topoTap(x, y); return; }
+  if(UI.mode==='mgPesca'){ pescaTap(); return; }
   if(UI.mode==='exped'){
     if(x>14 && x<146 && y>68 && y<196){
       const i = Math.floor((y-68)/32);
       if(i>=0 && i<EXPEDS.length){ sendExpedition(i); return; }
     }
-    UI.mode='main'; SFX.tap(); return;
+    UI.mode='play'; SFX.tap(); return;
   }
   if(UI.mode==='mgCatch'){
     const m = UI.mg;

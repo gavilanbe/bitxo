@@ -57,7 +57,7 @@ function freshGame(){
     relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null,
     toys:{}, ballX:80, ballVX:0, cajaReadyAt:0, foodsTried:{},
     hats:{}, daily:null, buhoNextAt:0, buho:null,
-    discos:{prado:true}, disco:'prado', games:{}, beast:{},
+    discos:{prado:true}, disco:'prado', games:{}, beast:{}, best:{},
     poops:[], lastSeen:Date.now(),
     hints:{sparkle:false, shop:false}
   };

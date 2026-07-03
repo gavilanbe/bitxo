@@ -57,18 +57,35 @@ function drawCloseBadge(){
 
 /* ---------------- HUD / PANTALLAS v6 ---------------- */
 function drawHUD(t){
-  px(0,0,160,19,'rgba(14,16,48,0.55)');
+  px(0,0,160,19,'rgba(14,16,48,0.62)');
   const p = AP();
+  /* retrato enmarcado del bitxo activo */
+  px(1,1,17,17,'#141838');
+  px(1,1,17,1,'rgba(255,255,255,0.28)');
+  px(1,17,17,1,'rgba(0,0,0,0.5)');
+  px(1,1,1,17,'rgba(255,255,255,0.12)'); px(17,1,1,17,'rgba(0,0,0,0.3)');
+  ctx.save();
+  ctx.beginPath(); ctx.rect(2,2,15,15); ctx.clip();
+  const ps = currentSprite();
+  ctx.drawImage(ps, 2+Math.floor((15-ps.width)/2), 17-ps.height);
+  ctx.restore();
   const name = p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name;
-  drawText(name+' LV'+p.level, 3, 3, '#ffffff');
-  drawText('GEN '+p.gen, 3, 11, 'rgba(255,255,255,0.65)');
-  if(G.stars>0) drawText('★'+G.stars, 34, 11, '#ffd94a');
-  if(G.pets.length>1) drawText((G.sel+1)+'/'+G.pets.length, 56, 11, 'rgba(255,255,255,0.65)');
-  const ms = '✦'+fmt(G.motas);
-  drawTextC(ms, 88, 3, '#ffd94a');
+  drawText(name, 21, 3, '#ffffff');
+  drawText('LV'+p.level+' G'+p.gen, 21, 11, 'rgba(255,255,255,0.65)');
+  if(G.stars>0) drawText('★'+G.stars, 52, 11, '#ffd94a');
+  if(G.pets.length>1) drawText((G.sel+1)+'/'+G.pets.length, 66, 11, 'rgba(255,255,255,0.65)');
+  /* motas con destello al ganar */
+  if(UI.lastMotas===undefined) UI.lastMotas = G.motas;
+  if(G.motas > UI.lastMotas+0.5){ UI.coinT = performance.now(); }
+  UI.lastMotas = G.motas;
+  const shiny = performance.now()-(UI.coinT||0) < 220;
+  drawTextC('✦'+fmt(G.motas), 92, 3, shiny ? '#fff8d0' : '#ffd94a');
   const boosted = Date.now() < G.boostUntil;
-  drawTextC('+'+motaRate().toFixed(1)+'/S'+(boosted?'!':''), 88, 11, boosted?'#7ac74f':'rgba(255,255,255,0.65)');
-  drawText(G.muted?'X':'♥', 150, 3, G.muted ? '#ffffff' : '#f2a2b8');
+  drawTextC('+'+motaRate().toFixed(1)+'/S'+(boosted?'!':''), 92, 11, boosted?'#7ac74f':'rgba(255,255,255,0.65)');
+  /* altavoz */
+  px(146,5,2,4,'#d8d4e8'); px(148,4,2,6,'#d8d4e8'); px(150,3,1,8,'#d8d4e8');
+  if(G.muted){ drawText('X', 153, 4, '#e2574c'); }
+  else { px(152,5,1,1,'#5ec8d8'); px(153,4,1,2,'#5ec8d8'); px(152,8,1,1,'#5ec8d8'); px(153,8,1,2,'#5ec8d8'); }
   if(needsAttention() && Math.floor(t/500)%2===0){
     drawText('!', 138, 3, '#ffd94a');
   }
@@ -91,22 +108,39 @@ function drawHUD(t){
 
   px(6,224,148,1,'rgba(26,20,40,0.2)');
 
+  const ACC = ['#e2574c','#f0a04b','#5ec8d8','#8a6ae8','#ffd94a','#7ac74f'];
+  const activeBtn = ({feed:0, play:1, games:1, train:1, discos:1, exped:1,
+    shop:4, stats:5, album:5, ach:5, relics:5, beast:5, evotree:5, ascendConfirm:5})[UI.mode];
   for(let i=0;i<6;i++){
-    const bx = 5 + i*26, by = BTN_Y;
+    const bx = 5 + i*26;
     const hot = UI.flashBtn===i && performance.now()<UI.flashUntil;
-    px(bx, by, BTN_S, BTN_S, hot ? '#ffd94a' : '#f6efe0');
-    px(bx, by, BTN_S, 1, K); px(bx, by+BTN_S-1, BTN_S,1,K);
-    px(bx, by, 1, BTN_S, K); px(bx+BTN_S-1, by, 1, BTN_S, K);
-    px(bx+1, by+BTN_S, BTN_S-1, 1, 'rgba(26,20,40,0.35)');
-    ctx.drawImage(IC[BTNS[i].ic], bx+6, by+5);
+    const act = activeBtn===i;
+    const by = BTN_Y + (hot?1:0);
+    if(!hot) px(bx+1, BTN_Y+BTN_S, BTN_S-1, 1, 'rgba(26,20,40,0.35)');
+    const bg = hot ? '#ffd94a' : (act ? '#fff3d0' : '#f6efe0');
+    px(bx+1, by, BTN_S-2, BTN_S, bg);
+    px(bx, by+1, BTN_S, BTN_S-2, bg);
+    const bc = act ? '#8a6a10' : K;
+    px(bx+1, by, BTN_S-2, 1, bc); px(bx+1, by+BTN_S-1, BTN_S-2, 1, bc);
+    px(bx, by+1, 1, BTN_S-2, bc); px(bx+BTN_S-1, by+1, 1, BTN_S-2, bc);
+    px(bx+1, by+1, BTN_S-2, 1, '#fffaf0');
+    px(bx+2, by+BTN_S-3, BTN_S-4, 2, ACC[i]);
+    ctx.drawImage(IC[BTNS[i].ic], bx+5, by+4);
   }
   if(UI.flashBtn>=0 && performance.now()<UI.flashUntil+900){
     drawTextC(BTNS[UI.flashBtn].label, 80, 265, K);
   }
   if(UI.msg && performance.now()<UI.msgUntil){
-    const wdt = textW(UI.msg)+8;
-    px(80-wdt/2, 96, wdt, 11, K);
-    drawTextC(UI.msg, 80, 99, '#ffffff');
+    const age = performance.now()-(UI.msgAt||0);
+    const pop = Math.min(1, age/130);
+    const ty = 96 - Math.round((1-pop)*7);
+    const wdt = textW(UI.msg)+12;
+    const tx = 80-wdt/2;
+    px(tx+1, ty+11, wdt-1, 1, 'rgba(0,0,0,0.4)');
+    px(tx+1, ty, wdt-2, 11, '#20243c'); px(tx, ty+1, wdt, 9, '#20243c');
+    px(tx+1, ty, wdt-2, 1, 'rgba(255,255,255,0.25)');
+    px(tx+1, ty+1, 2, 9, '#ffd94a');
+    drawTextC(UI.msg, 80+2, ty+3, '#f6efe0');
   }
 }
 
@@ -282,18 +316,46 @@ function drawFeedMenu(){
   drawTextC('TOCA FUERA PARA SALIR', 80, 220, 'rgba(26,20,40,0.5)');
 }
 function drawPlayMenu(){
-  panel(8,80,144,118);
-  drawTextC('¿QUE HACEIS?', 80, 85, K);
-  card(12,94,42,38);  drawTextC('✦', 33, 99, '#8a6a10'); drawTextC('MOTAS', 33, 110, K); drawTextC('ATRAPA', 33, 120, 'rgba(26,20,40,0.55)');
-  card(59,94,42,38);  drawTextC('♥', 80, 99, '#e2574c'); drawTextC('BAILE', 80, 110, K); drawTextC('DISCOS', 80, 120, 'rgba(26,20,40,0.55)');
-  card(106,94,42,38); drawTextC('?', 127, 99, '#6db1ff'); drawTextC('SIMON', 127, 110, K); drawTextC('+DEF', 127, 120, 'rgba(26,20,40,0.55)');
-  const salta = !!G.games.salta;
-  card(12,136,42,38, !salta);
-  if(salta){ drawTextC('>>', 33, 141, '#5ec8d8'); drawTextC('SALTA', 33, 152, K); drawTextC('+VEL', 33, 162, 'rgba(26,20,40,0.55)'); }
-  else { drawTextC('SALTA', 33, 143, 'rgba(26,20,40,0.6)'); drawTextC('✦'+COST_SALTA, 33, 153, G.motas>=COST_SALTA?'#8a6a10':'#a03030'); drawTextC('COMPRAR', 33, 162, 'rgba(26,20,40,0.55)'); }
-  card(59,136,42,38);  drawTextC('!', 80, 141, '#e2574c'); drawTextC('ENTRENO', 80, 152, K); drawTextC('STATS', 80, 162, 'rgba(26,20,40,0.55)');
-  card(106,136,42,38); drawTextC('>', 127, 141, '#8a6a10'); drawTextC('VIAJE', 127, 152, K); drawTextC('TESOROS', 127, 162, 'rgba(26,20,40,0.55)');
-  drawTextC('TOCA FUERA PARA SALIR', 80, 187, 'rgba(26,20,40,0.5)');
+  panel(20,68,120,142);
+  titleChip(80, 74, '¿QUE HACEIS?');
+  const cat = (y, ic, name, sub, accent)=>{
+    card(26,y,108,34);
+    px(27,y+1,3,32,accent);
+    ctx.drawImage(IC[ic], 34, y+11);
+    drawText(name, 52, y+8, K);
+    drawText(sub, 52, y+18, 'rgba(26,20,40,0.55)');
+    drawText('>', 124, y+13, accent);
+  };
+  cat(86,  'gym',  'GYM',        'FUE · DEF · VEL',   '#e2574c');
+  cat(124, 'play', 'JUEGOS',     'PREMIOS Y RECORDS', '#f0a04b');
+  cat(162, 'map',  'EXPLORACION','TESOROS LEJANOS',   '#7ac74f');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 201, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- SALA DE JUEGOS ---------------- */
+function drawGames(){
+  panel(6,54,148,166);
+  titleChip(80, 60, 'SALA DE JUEGOS');
+  G.best = G.best||{};
+  for(let i=0;i<MINIGAMES.length;i++){
+    const M = MINIGAMES[i];
+    const owned = !M.gkey || !!G.games[M.gkey];
+    const cx = 10 + (i%3)*47, cy = 72 + Math.floor(i/3)*62;
+    card(cx, cy, 44, 58, !owned);
+    px(cx+1, cy+1, 42, 14, owned ? M.col : 'rgba(26,20,40,0.15)');
+    drawTextC(M.glyph, cx+22, cy+5, owned ? '#ffffff' : 'rgba(26,20,40,0.4)');
+    drawTextC(M.name, cx+22, cy+20, owned ? K : 'rgba(26,20,40,0.55)');
+    if(owned){
+      drawTextC(M.sub, cx+22, cy+30, 'rgba(26,20,40,0.55)');
+      const best = G.best[M.id]||0;
+      drawTextC(best>0 ? 'REC '+best : 'SIN REC', cx+22, cy+42, best>0 ? '#8a6a10' : 'rgba(26,20,40,0.35)');
+    } else {
+      drawTextC('✦'+M.cost, cx+22, cy+32, G.motas>=M.cost ? '#8a6a10' : '#a03030');
+      drawTextC('COMPRAR', cx+22, cy+44, 'rgba(26,20,40,0.55)');
+    }
+  }
+  drawTextC('LOS JUEGOS TAMBIEN ENTRENAN', 80, 200, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 210, 'rgba(26,20,40,0.5)');
 }
 function drawExped(){
   panel(8,44,144,168);

@@ -11,7 +11,7 @@ const UI = {
   particles:[], floats:[], sparkles:[],
   sweepT:0, feedKind:null, shopFlash:{}, ascGain:0
 };
-function toast(s, ms=2000){ UI.msg=s; UI.msgUntil=performance.now()+ms; }
+function toast(s, ms=2000){ UI.msg=s; UI.msgUntil=performance.now()+ms; UI.msgAt=performance.now(); }
 function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
 /* cola de evoluciones: NINGUNA pasa sin verse — las de fuera de

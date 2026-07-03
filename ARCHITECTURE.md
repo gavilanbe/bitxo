@@ -107,9 +107,10 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
 - **Nueva mejora de tienda** — entrada en `SHOP` (`data/content.js`) + su efecto
   donde toque (las tasas están en `game/economy.js`). La lista de la tienda
   pagina de 8 en 8… con más de 8, toca darle scroll o pestañas.
-- **Nuevo minijuego** — lógica en `game/minigames.js` (usa `mgGuard`/`finishMg`),
-  dibujo en `render/minigames.js`, rama de modo en `frame()` y toques en
-  `handleTap`, y su tarjeta en `drawPlayMenu`.
+- **Nuevo minijuego** — lógica en `game/minigames.js` (usa `mgGuard`/`finishMg`,
+  que ya guarda récords por juego en `G.best`), dibujo en `render/minigames.js`,
+  rama de modo en `frame()` y toques en `handleTap`, y su carta en `MINIGAMES`
+  (`data/content.js`) — la SALA DE JUEGOS pinta precio/candado/récord sola.
 - **Nuevo SFX** — método en el objeto `SFX` componiendo `tone()`/`nz()`/`kick()`.
 - **Nueva misión diaria** — entrada en `QUESTS` (`data/content.js`) + su hook
   `questProg(id, n)` donde ocurra la acción. La selección diaria es determinista

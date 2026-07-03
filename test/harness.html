@@ -27,6 +27,9 @@ function run(){
     statsbackup: `G.bond=24; UI.mode='stats';`,
     statsrumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex.pradera_childA=true; UI.mode='stats';`,
     treerumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex={pradera_babyA:true, pradera_childA:true}; UI.evoLine=0; UI.evoSel=1; UI.mode='evotree';`,
+    gamesmenu: `G.games={salta:true}; G.best={mgCatch:23, mgSimon:6, mgJump:12}; G.motas=260; UI.mode='games';`,
+    topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
+    pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
     beastpanel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1}}; UI.mode='beast';`,
     wildnv: `G.wild={kind:'roquijo', nv:playerPower(_p)+4, elite:true, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
     breyseto: `_p.energy=90; G.wild={kind:'reyseto', nv:14, elite:false, boss:true, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.35; UI.bt.super=2; for(let i=0;i<26;i++){ UI.bt.fx.push({x:Math.random()*160, y:30+Math.random()*90, vx:-0.008, vy:0.012, life:1600, col:'rgba(201,116,58,0.8)', size:1}); }`,
@@ -61,6 +64,8 @@ function run(){
         drawText('ENEMIGOS', 8, 108, '#f6efe0');
       }
       else if(UI.mode==='mgJump'){ drawJump(t, 16); }
+      else if(UI.mode==='mgTopo'){ drawTopo(t, 0); }
+      else if(UI.mode==='mgPesca'){ drawPesca(t, 0); }
       else if(UI.mode==='evolve'){ drawEvolve(16); }
       else if(UI.mode==='battle'){ UI.bt.stop=0; drawBattle(t, 0); drawParticles(16); }
       else {
@@ -154,9 +159,10 @@ function run(){
       UI.mode = 'discos'; handleTap(60, 82);
       R.danceStarts = UI.mode === 'mgDance' && UI.mg.disco.id === 'prado';
       // salta: comprar y jugar
-      UI.mode = 'play'; G.motas = 1000; _p.energy = 90;
+      UI.mode = 'games'; G.motas = 1000; _p.energy = 90;
       handleTap(30, 150);
       R.saltaBought = !!G.games.salta;
+      UI.mode = 'games';
       handleTap(30, 150);
       R.saltaStarts = UI.mode === 'mgJump';
       if(UI.mode === 'mgJump'){ jumpTap(); R.saltaJumps = UI.mg.vy < 0; }
@@ -262,7 +268,7 @@ function run(){
         UI.evoT = 5000; handleTap(80,100);
         R.evoExits = UI.mode==='main' && UI.evo===null;
         EVO_QUEUE.length = 0;
-        G.pets.pop(); }
+        G.pets.pop(); G.sel = 0; }
       // normalizeSave: un guardado v5 antiguo recibe todos los defaults
       { const oldSave = {v:5, gen:1, sel:0, motas:10, totalMotas:10, stars:0, ascensions:0,
           dex:{}, muted:false, battlesWon:0, boostUntil:0, poops:[], lastSeen:Date.now(),
@@ -297,6 +303,46 @@ function run(){
         R.sleepGentle = sleepLoss < awakeLoss*0.45 && sleepLoss > 0;
         R.sleepCharges = _p.energy > 50;
         _p.sleeping=false; UI.mode='main'; }
+      // navegación JUGAR → GYM / JUEGOS / EXPLORACION
+      UI.mode = 'play'; handleTap(80, 95);
+      R.playToGym = UI.mode === 'train';
+      UI.mode = 'play'; handleTap(80, 135);
+      R.playToGames = UI.mode === 'games';
+      UI.mode = 'play'; _p.stage = 3; handleTap(80, 170);
+      R.playToExped = UI.mode === 'exped';
+      // insignia X universal
+      UI.mode = 'shop'; UI.closeAt = {x:150, y:40}; handleTap(150, 40);
+      R.closeBadge = UI.mode === 'main';
+      // TOPO: golpear ratuco y amigo
+      G.games.topo = true; _p.energy = 90;
+      startTopo();
+      R.topoStarts = UI.mode === 'mgTopo';
+      UI.mg.holes[4].up = 'ratuco';
+      topoTap(TOPO_POS[4].x, TOPO_POS[4].y);
+      R.topoBop = UI.mg.score === 1 && UI.mg.holes[4].up === null;
+      UI.mg.holes[2].up = 'friend';
+      const ts0 = UI.mg.score;
+      topoTap(TOPO_POS[2].x, TOPO_POS[2].y);
+      R.topoFriendPenalty = UI.mg.score === Math.max(0, ts0-2);
+      UI.mode = 'main'; UI.mg = null;
+      // PESCA: picada, tensión y captura
+      G.games.pesca = true; _p.energy = 90;
+      startPesca();
+      R.pescaStarts = UI.mode === 'mgPesca';
+      UI.mg.biteAt = 0; UI.mg.t = 100;
+      pescaTap();
+      R.pescaHooks = UI.mg.ph === 'reel' && !!UI.mg.fish;
+      const tn0 = UI.mg.tension; pescaTap();
+      R.pescaReels = UI.mg.tension === Math.min(100, tn0+11);
+      UI.mg.holdT = 3500; UI.mg.tension = 60;
+      pescaStep(20);
+      R.pescaCatch = UI.mg.caught.length === 1 && UI.mg.ph === 'wait';
+      UI.mode = 'main'; UI.mg = null;
+      // récords por juego
+      UI.mode = 'mgTopo'; UI.mg = {ph:'play'};
+      finishMg('TOPO', 9, 18, 10, false);
+      R.recordSaved = G.best.mgTopo === 9;
+      UI.mode = 'main'; UI.mg = null;
       // PWA: manifest válido y SW con caché versionada
       try{
         const mf = await (await fetch('../manifest.webmanifest')).json();

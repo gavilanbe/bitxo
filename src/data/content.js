@@ -127,6 +127,15 @@ const DISCOS = [
   tune:[0,0,3,0,5,3,0,7,0,0,3,0,10,7,5,3]}
 ];
 const COST_SALTA = 250;
+/* sala de juegos: catálogo con desbloqueo y qué entrena cada uno */
+const MINIGAMES = [
+ {id:'mgCatch', name:'MOTAS', glyph:'✦', col:'#8a6a10', sub:'REFLEJOS'},
+ {id:'mgDance', name:'BAILE', glyph:'♥', col:'#e2574c', sub:'RITMO'},
+ {id:'mgSimon', name:'SIMON', glyph:'?', col:'#6db1ff', sub:'+DEF'},
+ {id:'mgJump',  name:'SALTA', glyph:'>', col:'#5ec8d8', sub:'+VEL', cost:250, gkey:'salta'},
+ {id:'mgTopo',  name:'TOPO',  glyph:'!', col:'#a4713a', sub:'+FUE', cost:200, gkey:'topo'},
+ {id:'mgPesca', name:'PESCA', glyph:'~', col:'#4a90d8', sub:'TESOROS', cost:300, gkey:'pesca'}
+];
 
 /* --- árbol evolutivo: requisitos visibles (estilo Digimon World) --- */
 const EVO_REQS = {

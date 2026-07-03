@@ -54,9 +54,12 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
 - 🌦️ **Mundo vivo**: día/noche con tu reloj real, lluvia, viento, niebla,
   estrellas fugaces a las que pedir deseos, y una constelación que crece con cada
   ascensión de tu dinastía.
-- 🎮 **4 minijuegos**: atrapa-motas, baile rítmico, simón floral y SALTA (la
-  comba, se compra ✦250). Cada uno alimenta algo: el combate da FUERZA, el simón
-  DEFENSA y la comba VELOCIDAD.
+- 🎮 **Sala de juegos con 6 minijuegos** y récords guardados: atrapa-motas,
+  baile, simón, SALTA (✦250), TOPO (✦200 — zúmbales a los ratucos, no a los
+  amigos) y PESCA (✦300 — espera la picada y domina la tensión del sedal).
+  Los juegos también entrenan: simón +DEF, comba +VEL, topo +FUE.
+- 🧭 **JUGAR organizado en tres puertas**: GYM (entreno), JUEGOS (la sala) y
+  EXPLORACIÓN (expediciones).
 - ⚔️ **Combate de verdad**: golpea con timing, **bloquea** el ataque enemigo en
   el momento justo y carga el medidor de **SUPER** para soltar el ataque único
   de tu línea (llamarada, ola gigante, lluvia estelar...). Con hit-stop, zoom

@@ -11,6 +11,7 @@ const SKY = {
 const stars = []; for(let i=0;i<26;i++) stars.push({x:Math.random()*160,y:Math.random()*90,t:Math.random()*6});
 const clouds = [{x:20,y:22,s:1},{x:100,y:40,s:0.7},{x:-40,y:12,s:1.2}];
 const fireflies = []; for(let i=0;i<9;i++) fireflies.push({x:Math.random()*160,y:130+Math.random()*55,a:Math.random()*7});
+const butterflies = []; for(let i=0;i<6;i++) butterflies.push({x:Math.random()*160,y:126+Math.random()*50,a:Math.random()*7,c:['#f2a2b8','#fff8d0','#ffd94a'][i%3]});
 /* estrellas de ascensos anteriores: posiciones deterministas */
 function legacyStarPos(i){
   return { x: (i*53+23)%150+5, y: (i*37+11)%70+8 };
@@ -87,6 +88,20 @@ function drawScene(t){
   }
   for(let i=0;i<8;i++){ px((i*37+11)%160, 130+(i*23)%60, 2,1, S.grass2); }
 
+  /* mariposas al sol (más con jardín) */
+  if(ph==='day' || ph==='dawn'){
+    const nB = 3 + Math.min(3, G.up.jardin);
+    for(let i=0;i<nB;i++){
+      const b = butterflies[i];
+      b.x += Math.sin(t/700+b.a)*0.22; b.y += Math.cos(t/860+b.a*2)*0.12;
+      if(b.x<4) b.x=4; if(b.x>156) b.x=156;
+      if(b.y<122) b.y=122; if(b.y>186) b.y=186;
+      const open = Math.floor(t/160+b.a)%2===0;
+      px(b.x, b.y, 1, 1, b.c);
+      if(open){ px(b.x-1, b.y, 1, 1, b.c); px(b.x+1, b.y, 1, 1, b.c); }
+      else px(b.x, b.y-1, 1, 1, b.c);
+    }
+  }
   if(G.up.jardin>=2){ ctx.drawImage(SPR.shroom, 134, 128); }
   if(G.up.jardin>=3){
     /* estanque */

@@ -400,3 +400,143 @@ function drawJump(t, dt){
   drawParticles(dt);
   if(m.ph==='end') drawMgEnd();
 }
+
+/* ---------------- TOPO: DIBUJO ---------------- */
+function drawTopo(t, dt){
+  const m = UI.mg;
+  drawScene(t);
+  if(m.ph==='play'){
+    m.t += dt;
+    if(m.t<m.end && m.t>m.next){
+      const empty = [];
+      for(let i=0;i<9;i++) if(!m.holes[i].up) empty.push(i);
+      if(empty.length){
+        const i = empty[Math.floor(Math.random()*empty.length)];
+        const r = Math.random();
+        m.holes[i].up = r<0.14 ? 'friend' : (r<0.28 ? 'gold' : 'ratuco');
+        m.holes[i].hideAt = m.t + (m.holes[i].up==='gold' ? 750 : 1150) - Math.min(400, m.t*0.014);
+      }
+      m.next = m.t + Math.max(420, 850 - m.t*0.016);
+    }
+    for(const h of m.holes){
+      if(h.up && m.t>h.hideAt){ if(h.up!=='friend'){ m.combo=0; } h.up=null; }
+    }
+    if(m.t>=m.end) topoFinish();
+  }
+  /* madrigueras y bichos */
+  for(let i=0;i<9;i++){
+    const P = TOPO_POS[i], h = m.holes[i];
+    px(P.x-13, P.y+7, 26, 5, 'rgba(26,20,40,0.5)');
+    px(P.x-11, P.y+6, 22, 3, '#5a4632');
+    if(h.up){
+      const spr = h.up==='friend' ? SPR.marea_babyA[0] : ESPR.ratuco;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(P.x-14, P.y-18, 28, 26); ctx.clip();
+      if(h.up==='gold'){
+        ctx.drawImage(spr, P.x-spr.width/2, P.y+8-spr.height);
+        ctx.globalCompositeOperation='source-atop';
+        ctx.fillStyle='rgba(255,217,74,0.45)';
+        ctx.fillRect(P.x-14, P.y-18, 28, 26);
+        ctx.globalCompositeOperation='source-over';
+      } else {
+        ctx.drawImage(spr, P.x-spr.width/2, P.y+8-spr.height);
+      }
+      ctx.restore();
+      if(h.up==='gold' && Math.floor(t/200)%2===0) drawTextC('✦', P.x+10, P.y-16, '#ffd94a');
+      if(h.up==='friend' && Math.floor(t/300)%2===0) drawTextC('♥', P.x+10, P.y-16, '#f2a2b8');
+    } else if(performance.now()-h.bopT < 220){
+      px(P.x-4, P.y-8, 8, 2, '#ffd94a');
+      px(P.x-7, P.y-4, 3, 3, '#fff8d0'); px(P.x+5, P.y-4, 3, 3, '#fff8d0');
+    }
+  }
+  px(0,0,160,20,'rgba(14,16,48,0.55)');
+  drawText('✦'+m.score, 5, 4, '#ffd94a');
+  if(m.combo>2) drawTextC('RACHA X'+m.combo, 80, 4, '#7ac74f');
+  drawText(Math.ceil(Math.max(0,(m.end-m.t))/1000)+'S', 138, 4, '#ffffff');
+  px(0,20,Math.round(160*Math.max(0,1-m.t/m.end)),2,'#a4713a');
+  if(m.t<2600 && m.ph==='play') drawTextC('¡ZUMBALES! CUIDA A LOS AZULES', 80, 34, '#ffffff');
+  drawParticles(dt);
+  if(m.ph==='end') drawMgEnd();
+}
+
+/* ---------------- PESCA: DIBUJO ---------------- */
+function drawPesca(t, dt){
+  const m = UI.mg;
+  pescaStep(dt);
+  const ph = dayPhase(), S = SKY[ph];
+  /* cielo y lago */
+  px(0,0,160,64,S.bands[1]);
+  px(0,64,160,20,S.bands[2]);
+  px(0,84,160,120,'#2a4a8a');
+  px(0,84,160,3,'#3a6bb0');
+  for(let i=0;i<7;i++){
+    const wy = 96+i*14 + Math.sin(t/900+i)*2;
+    px((i*43+t*0.01)%160, wy, 8, 1, 'rgba(154,220,240,0.35)');
+  }
+  px(0,204,160,68,'#1c3a2e');
+  /* orilla y bitxo pescando */
+  px(0,84,44,10,'#3a7048'); px(0,80,38,6,'#57a05e');
+  const spr = currentSprite(), w=spr.width, h=spr.height;
+  ctx.save();
+  ctx.translate(20, 84);
+  ctx.drawImage(spr, -w/2, -h);
+  ctx.restore();
+  /* caña en las manos, hacia el agua */
+  px(24,74,2,2,'#8a6a3a'); px(26,71,2,3,'#8a6a3a'); px(28,68,2,3,'#8a6a3a');
+  px(30,64,2,4,'#8a6a3a'); px(32,59,2,5,'#8a6a3a'); px(34,54,2,5,'#8a6a3a');
+  const fx2 = 100, fy = m.ph==='reel' ? 118+Math.sin(t/90)*3 : 112+Math.sin(t/500)*2;
+  /* sedal */
+  const steps = 14;
+  for(let i=0;i<=steps;i++){
+    const lx = 35 + (fx2-35)*i/steps;
+    const ly = 55 + (fy-8-55)*Math.pow(i/steps, 1.6);
+    px(lx, ly, 1, 1, 'rgba(240,240,255,0.55)');
+  }
+  /* flotador o pez luchando */
+  if(m.ph==='wait'){
+    const biting = m.t>m.biteAt && m.t<m.biteAt+420;
+    px(fx2-2, fy-6+(biting?3:0), 4, 4, '#e2574c');
+    px(fx2-2, fy-2+(biting?3:0), 4, 2, '#f6efe0');
+    if(biting){
+      drawTextC('¡!', fx2, fy-22, '#ffd94a');
+      px(fx2-8, fy+2, 4, 1, 'rgba(255,255,255,0.6)'); px(fx2+5, fy+2, 4, 1, 'rgba(255,255,255,0.6)');
+    }
+  } else if(m.ph==='reel'){
+    const f = m.fish;
+    ctx.save();
+    ctx.translate(fx2+Math.sin(t/120)*4, fy);
+    ctx.scale(Math.sin(t/240)>0?1:-1, 1);
+    ctx.drawImage(SPR.pescado, -5, -3);
+    ctx.restore();
+    px(fx2-10, fy+6, 4, 1, 'rgba(255,255,255,0.5)'); px(fx2+7, fy+5, 5, 1, 'rgba(255,255,255,0.5)');
+    /* barra de tensión con zonas de peligro visibles */
+    px(146,84,10,110,'rgba(0,0,0,0.4)');
+    px(147,85,8,108,'#1c3a42');
+    const th = Math.round(108*m.tension/100);
+    px(147, 85+108-th, 8, th, m.tension>88||m.tension<14 ? '#e2574c' : '#7ac74f');
+    ctx.fillStyle = 'rgba(226,87,76,0.55)';
+    ctx.fillRect(147, 85, 8, Math.round(108*0.12));
+    ctx.fillRect(147, 85+Math.round(108*0.88), 8, Math.round(108*0.12));
+    drawTextC('TENSION', 126, 88, '#ffffff');
+    const hold = Math.min(1, m.holdT/3400);
+    px(20,196,120,5,'rgba(0,0,0,0.4)');
+    px(21,197,Math.round(118*hold),3, m.fish.col);
+  }
+  /* peces ya pescados */
+  for(let i=0;i<m.caught.length;i++){
+    px(6+i*12, 210, 9, 5, m.caught[i].col);
+    px(6+i*12+9, 211, 2, 3, m.caught[i].col);
+  }
+  px(0,0,160,20,'rgba(14,16,48,0.55)');
+  drawText('✦'+m.score, 5, 4, '#ffd94a');
+  drawText(Math.ceil(Math.max(0,(m.end-m.t))/1000)+'S', 138, 4, '#ffffff');
+  px(0,20,Math.round(160*Math.max(0,1-m.t/m.end)),2,'#4a90d8');
+  const hint2 = m.ph==='reel' ? 'TOCA: TENSION EN VERDE' : (m.t<2600 ? 'TOCA CUANDO PIQUE' : null);
+  if(hint2){
+    const hw = textW(hint2)+8;
+    px(80-hw/2, 31, hw, 9, 'rgba(14,16,48,0.6)');
+    drawTextC(hint2, 80, 33, '#ffffff');
+  }
+  drawParticles(dt);
+  if(m.ph==='end') drawMgEnd();
+}
