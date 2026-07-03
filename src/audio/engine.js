@@ -8,10 +8,14 @@ function audio(){ if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudi
 function NOTE(base, semi){ return base * Math.pow(2, semi/12); }
 
 /* bus maestro + delay con feedback filtrado (el "aire") */
+function soundLevel(){ return (G && G.sound!==undefined) ? G.sound : 2; }
+function applyVolume(){
+  if(AC && AC._master) AC._master.gain.value = [0, 0.35, 0.9][soundLevel()];
+}
 function bus(){
   const a = audio(); if(!a) return null;
   if(!a._master){
-    const m = a.createGain(); m.gain.value = 0.9; m.connect(a.destination);
+    const m = a.createGain(); m.gain.value = [0, 0.35, 0.9][soundLevel()]; m.connect(a.destination);
     const d = a.createDelay(1); d.delayTime.value = 0.23;
     const fb = a.createGain(); fb.gain.value = 0.34;
     const lp = a.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value = 2300;

@@ -26,8 +26,8 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   criando a un GRIMO hasta nivel 10 — redime el fracaso), FLORA (jardín 5).
 - **Más enemigos** — ✅ 13 · ideas: pareja que ataca junta (dos barras de vida),
   mímico que copia tu línea, jefe estacional.
-- **Más discos** — NANA (para dormirlo tú), MAREA ALTA (ritmo irregular),
-  disco secreto del buhonero.
+- **Más discos** — ✅ NANA (báilala y lo dejas dormido) · ideas: MAREA ALTA
+  (ritmo irregular), disco secreto del buhonero.
 - **Más expediciones** — ✅ 5 · ideas: expedición nocturna (solo de noche),
   cooperativa (dos bitxos, botín doble).
 - **Más gorros** — ✅ 11 con posiciones (cara/cuello/halo) y ✅ el primero por
@@ -37,8 +37,9 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 ## 🌦 Mundo
 
-- **Estaciones reales** — por mes: nieve en invierno (bitxos con bufanda),
-  hojas en otoño, flores extra en primavera; comida y enemigo de temporada.
+- **Estaciones reales** — ✅ primera fase: el prado respira el calendario
+  (nieve en invierno, hojas en otoño, pétalos en primavera) · pendiente:
+  bufandas, comida y enemigo de temporada.
 - **Clima extremo raro** — tormenta con truenos (corren a refugiarse a la
   casita), arcoíris tras la lluvia con mota dorada.
 - **Eventos de fecha** — cumpleaños del bitxo (tarta gratis), año nuevo
@@ -48,13 +49,14 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 - **🎨 Temas de panel desbloqueables** — madera, noche, GBC verde; se ganan
   con logros, se cambian en DATOS.
-- **📸 Postales** — botón de foto que compone un PNG del bitxo con marco y
-  fecha para compartir (usa el pipeline de captura del arnés).
+- ✅ **📸 Postales** — FOTO en DATOS: PNG enmarcado con nombre y fecha, por
+  la hoja de compartir del móvil (o descarga).
 - **✏️ Nombres propios** — teclado pixel en pantalla para bautizarlo; el
   nombre viaja por HUD, combate y dinastía.
 - **📊 Página de estadísticas de vida** — pasos del prado, motas históricas,
   comidas favoritas, tiempo jugado.
-- **🔊 Volumen fino** — deslizador música/efectos por separado (hoy solo mute).
+- ✅ **🔊 Volumen en el altavoz** — alto → bajo → silencio, de un toque ·
+  pendiente: música y efectos por separado.
 
 ## 🔗 Social / meta
 
@@ -70,4 +72,5 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - **Gate de deploy por CI** — pasar Pages a despliegue por Actions para que
   un rojo bloquee la publicación (hoy es alarma, no barrera).
 - **i18n ligero** — tabla de cadenas si algún día hay inglés.
-- **Gamepad / teclado** — mapear la botonera a teclas para escritorio.
+- ✅ **Teclado de escritorio** — 1-6 abren la botonera, M cambia el volumen,
+  Escape cierra paneles · pendiente: gamepad.

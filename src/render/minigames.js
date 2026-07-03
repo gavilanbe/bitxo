@@ -264,6 +264,10 @@ function drawDance(t, dt){
     if(now > m.end){
       const max = m.beats.length*3;
       finishMg('BAILE', m.score, Math.round(m.score*(m.disco?m.disco.mult:1)), 12+m.score, m.score >= max*0.55);
+      if(m.disco && m.disco.id==='nana'){
+        const p2 = AP();
+        if(!p2.sleeping){ p2.sleeping = true; SFX.sleep(); toast('LA NANA LE CIERRA LOS OJOS...', 2800); }
+      }
     }
   }
   /* pista */

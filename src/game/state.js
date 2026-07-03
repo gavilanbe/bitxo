@@ -51,7 +51,7 @@ function freshGame(){
     v:5, gen:0, sel:0, pets:[],
     motas:30, totalMotas:0,
     up:{cosecha:0,aura:0,iman:0,comedero:0,juguete:0,cama:0,jardin:0,nido:0},
-    stars:0, ascensions:0, dex:{}, muted:false,
+    stars:0, ascensions:0, dex:{}, muted:false, sound:2,
     battlesWon:0, boostUntil:0,
     ach:{}, bond:0, lastGift:null, giftStreak:0,
     relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null,

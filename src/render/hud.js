@@ -82,10 +82,14 @@ function drawHUD(t){
   drawTextC('✦'+fmt(G.motas), 92, 3, shiny ? '#fff8d0' : '#ffd94a');
   const boosted = Date.now() < G.boostUntil;
   drawTextC('+'+motaRate().toFixed(1)+'/S'+(boosted?'!':''), 92, 11, boosted?'#7ac74f':'rgba(255,255,255,0.65)');
-  /* altavoz */
+  /* altavoz con nivel */
   px(146,5,2,4,'#d8d4e8'); px(148,4,2,6,'#d8d4e8'); px(150,3,1,8,'#d8d4e8');
-  if(G.muted){ drawText('X', 153, 4, '#e2574c'); }
-  else { px(152,5,1,1,'#5ec8d8'); px(153,4,1,2,'#5ec8d8'); px(152,8,1,1,'#5ec8d8'); px(153,8,1,2,'#5ec8d8'); }
+  const snd = G.sound===undefined ? 2 : G.sound;
+  if(snd===0){ drawText('X', 153, 4, '#e2574c'); }
+  else {
+    px(152,5,1,1,'#5ec8d8'); px(152,8,1,1,'#5ec8d8');
+    if(snd===2){ px(154,4,1,2,'#5ec8d8'); px(154,8,1,2,'#5ec8d8'); px(155,6,1,2,'#5ec8d8'); }
+  }
   if(needsAttention() && Math.floor(t/500)%2===0){
     drawText('!', 138, 3, '#ffd94a');
   }
@@ -204,8 +208,9 @@ function drawStats(){
       drawTextC('CRECERA... TEN PACIENCIA', 80, 191, 'rgba(26,20,40,0.45)');
     }
   }
-  card(14,206,62,14); drawTextC('COPIAR SAVE', 45, 210, K);
-  card(84,206,62,14); drawTextC('CARGAR SAVE', 115, 210, K);
+  card(12,206,44,14); drawTextC('COPIA', 34, 210, K);
+  card(58,206,44,14); drawTextC('CARGA', 80, 210, K);
+  card(104,206,44,14); drawTextC('FOTO', 126, 210, K);
   drawTextC('TOCA PARA VOLVER', 80, 228, 'rgba(26,20,40,0.5)');
 }
 
@@ -654,14 +659,14 @@ function drawBuhoShop(){
 
 /* ---------------- DISCOS DEL BAILE ---------------- */
 function drawDiscos(){
-  panel(8,50,144,148);
-  titleChip(64, 56, 'DISCOTECA');
-  drawText('✦'+fmt(G.motas), 112, 56, '#8a6a10');
-  drawTextC('ELIGE DISCO Y A BAILAR', 80, 65, 'rgba(26,20,40,0.6)');
+  panel(8,46,144,164);
+  titleChip(64, 52, 'DISCOTECA');
+  drawText('✦'+fmt(G.motas), 112, 52, '#8a6a10');
+  drawTextC('ELIGE DISCO Y A BAILAR', 80, 61, 'rgba(26,20,40,0.6)');
   for(let i=0;i<DISCOS.length;i++){
     const D = DISCOS[i];
     const owned = !!G.discos[D.id];
-    const y = 76 + i*27;
+    const y = 71 + i*25;
     const afford = G.motas>=D.cost;
     px(14,y,132,24, owned ? '#f6efe0' : (afford ? '#efe6d0' : '#d8d0ba'));
     px(14,y,132,1,K); px(14,y+23,132,1,K); px(14,y,1,24,K); px(145,y,1,24,K);
@@ -677,7 +682,7 @@ function drawDiscos(){
     px(128,y+4,16,1,K); px(128,y+19,16,1,K); px(128,y+4,1,16,K); px(143,y+4,1,16,K);
     drawTextC('♥', 136, y+9, K);
   }
-  drawTextC('TOCA ♥ PARA OIRLO ANTES', 80, 188, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA ♥ PARA OIRLO ANTES', 80, 200, 'rgba(26,20,40,0.5)');
 }
 
 /* ---------------- ARBOL EVOLUTIVO (estilo Digimon World) ---------------- */

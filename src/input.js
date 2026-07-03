@@ -100,8 +100,9 @@ function handleTap(x,y){
     if(y>168 && y<184){ UI.mode = x<41 ? 'album' : (x<78 ? 'ach' : (x<115 ? 'relics' : 'beast')); SFX.tap(); return; }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
     if(y>=205 && y<=222){
-      if(x>=14 && x<78){ exportSave(); return; }
-      if(x>=84 && x<148){ importSave(); return; }
+      if(x>=12 && x<56){ exportSave(); return; }
+      if(x>=58 && x<102){ importSave(); return; }
+      if(x>=104 && x<148){ takePhoto(); return; }
     }
     UI.mode='main'; SFX.tap(); return;
   }
@@ -193,8 +194,8 @@ function handleTap(x,y){
     return;
   }
   if(UI.mode==='discos'){
-    if(x>=14 && x<=146 && y>=76 && y<184){
-      const i = Math.floor((y-76)/27);
+    if(x>=14 && x<=146 && y>=71 && y<196){
+      const i = Math.floor((y-71)/25);
       if(i>=0 && i<DISCOS.length){
         if(x>=126){ previewDisco(i); return; }
         if(G.discos[DISCOS[i].id]){ G.disco = DISCOS[i].id; startDance(i); saveGame(); return; }
@@ -280,7 +281,13 @@ function handleTap(x,y){
 
   /* ---- modo principal ---- */
   if(UPDATE_READY && y>=22 && y<=36 && x>26 && x<134){ saveGame(); location.reload(); return; }
-  if(x>142 && y<16){ G.muted=!G.muted; toast(G.muted?'SILENCIO':'SONIDO ON'); saveGame(); return; }
+  if(x>142 && y<16){
+    G.sound = G.sound===undefined ? 1 : (G.sound+2)%3; /* 2→1→0→2 */
+    G.muted = G.sound===0;
+    applyVolume();
+    toast(['SILENCIO','VOLUMEN BAJO','VOLUMEN ALTO'][G.sound]);
+    saveGame(); return;
+  }
 
   if(y>BTN_Y-4 && y<BTN_Y+BTN_S+8){
     const i = Math.floor((x-4)/26);
@@ -386,3 +393,20 @@ function handleTap(x,y){
     }
   }
 }
+
+/* ---------------- TECLADO (escritorio) ---------------- */
+document.addEventListener('keydown', ev=>{
+  if(!G || UI.mode==='boot') return;
+  const k = ev.key;
+  if(k>='1' && k<='6' && UI.mode==='main'){
+    audio();
+    const i = +k-1;
+    UI.flashBtn = i; UI.flashUntil = performance.now()+150;
+    SFX.tap(); BTNS[i].fn();
+  } else if(k==='m' || k==='M'){
+    handleTap(150, 8);
+  } else if(k==='Escape' && MENU_PARENT[UI.mode]){
+    UI.mode = MENU_PARENT[UI.mode];
+    SFX.tap();
+  }
+});

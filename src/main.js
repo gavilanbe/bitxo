@@ -84,6 +84,7 @@ function frame(now){
     drawBuho(now);
     drawPets(now);
     drawWeather(now);
+    drawSeason(now);
     if(AP().sleeping) px(0,0,160,200,'rgba(10,8,30,0.35)');
     drawParticles(dt);
     drawHUD(now);
@@ -111,6 +112,7 @@ function normalizeSave(g){
   g.discos = g.discos||{prado:true}; g.disco = g.disco||'prado'; g.games = g.games||{};
   g.beast = g.beast||{}; g.best = g.best||{}; g.huertoReadyAt = g.huertoReadyAt||0;
   g.tower = g.tower||null; g.towerNextAt = g.towerNextAt||0;
+  if(g.sound===undefined) g.sound = g.muted ? 0 : 2;
   g.weekly = g.weekly||null; g.legacy = g.legacy||[];
   for(const p of g.pets){
     p.swingT=0; p.kickAt=0;

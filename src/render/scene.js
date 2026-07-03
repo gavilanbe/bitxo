@@ -146,6 +146,37 @@ function drawSparkles(t){
 /* ---------------- CLIMA Y FUGACES: DIBUJO ---------------- */
 const rainDrops = [];
 for(let i=0;i<46;i++) rainDrops.push({x:Math.random()*160, y:Math.random()*200, s:0.7+Math.random()*0.6});
+/* estación por mes: el prado respira el calendario */
+function season(){
+  const m = new Date().getMonth();
+  if(m===11||m<=1) return 'invierno';
+  if(m>=2&&m<=4) return 'primavera';
+  if(m>=8&&m<=10) return 'otono';
+  return 'verano';
+}
+const seasonBits = [];
+for(let i=0;i<18;i++) seasonBits.push({x:Math.random()*160, y:Math.random()*200, s:0.5+Math.random()*0.7, a:Math.random()*7});
+function drawSeason(t){
+  const sn = season();
+  if(sn==='verano') return;
+  const n = sn==='invierno' ? 18 : 10;
+  for(let i=0;i<n;i++){
+    const d = seasonBits[i];
+    if(sn==='invierno'){
+      const y = (d.y + t*0.018*d.s)%200;
+      const x = ((d.x + Math.sin(t/900+d.a)*8)%160+160)%160;
+      px(x, y, d.s>0.9?2:1, d.s>0.9?2:1, 'rgba(240,246,255,0.8)');
+    } else if(sn==='otono'){
+      const y = (d.y + t*0.026*d.s)%200;
+      const x = ((d.x + Math.sin(t/500+d.a)*14 + t*0.008)%160+160)%160;
+      px(x, y, 2, 1, i%2 ? '#c9743a' : '#e2a04b');
+    } else {
+      const y = (d.y + t*0.014*d.s)%200;
+      const x = ((d.x + Math.sin(t/700+d.a)*10)%160+160)%160;
+      px(x, y, 1, 1, i%2 ? '#f2a2b8' : '#ffd3e2');
+    }
+  }
+}
 function drawWeather(t){
   if(WEATHER.kind==='rain'){
     ctx.fillStyle='rgba(20,30,70,0.15)'; ctx.fillRect(0,0,160,196);

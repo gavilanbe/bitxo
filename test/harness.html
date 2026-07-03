@@ -485,6 +485,36 @@ function run(){
       R.legacyOpens = UI.mode === 'legacy';
       handleTap(80, 100);
       R.legacyCloses = UI.mode === 'main';
+      // volumen 3 niveles
+      G.sound = 2; UI.mode = 'main'; handleTap(150, 8);
+      R.soundCycles = G.sound === 1 && G.muted === false;
+      handleTap(150, 8);
+      R.soundMutes = G.sound === 0 && G.muted === true;
+      G.sound = 2; G.muted = false;
+      // disco NANA duerme al bailarín
+      R.nanaDisc = DISCOS.length === 5 && DISCOS.some(dd=>dd.id==='nana');
+      G.discos.nana = true; _p.energy = 90; _p.sleeping = false;
+      const ni = DISCOS.findIndex(dd=>dd.id==='nana');
+      startDance(ni);
+      R.nanaStarts = UI.mode === 'mgDance' && UI.mg.disco.id === 'nana';
+      UI.mg.end = performance.now() - 1;
+      drawDance(performance.now(), 16);
+      R.nanaSleeps = _p.sleeping === true && UI.mg.ph === 'end';
+      _p.sleeping = false; UI.mode = 'main'; UI.mg = null;
+      // estaciones
+      R.seasonWorks = ['invierno','primavera','verano','otono'].includes(season());
+      let seasonCrash = false;
+      try{ drawSeason(performance.now()); }catch(err){ seasonCrash = true; }
+      R.seasonDraws = !seasonCrash;
+      // teclado: 2 abre JUGAR, Escape cierra
+      UI.mode = 'main';
+      document.dispatchEvent(new KeyboardEvent('keydown', {key:'2'}));
+      R.keyOpensPlay = UI.mode === 'play';
+      document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'}));
+      R.keyEscCloses = UI.mode === 'main';
+      // postal (sin compartir de verdad: que no reviente)
+      const photoOk = await takePhoto();
+      R.photoWorks = photoOk === true;
       // PWA: manifest válido y SW con caché versionada
       try{
         const mf = await (await fetch('../manifest.webmanifest')).json();

@@ -47,3 +47,16 @@ function fmt(n){
   if(n<1e9) return (n/1e6).toFixed(1).replace('.0','')+'M';
   return (n/1e9).toFixed(1).replace('.0','')+'B';
 }
+
+/* dibuja texto con la fuente 3x5 en OTRO canvas, a la escala pedida */
+function drawTextAt(g2, s2, x, y, col, sc){
+  s2 = String(s2).toUpperCase().replace(/¡/g,'!').replace(/¿/g,'?')
+      .replace(/Á/g,'A').replace(/É/g,'E').replace(/Í/g,'I').replace(/Ó/g,'O').replace(/Ú/g,'U').replace(/Ñ/g,'N');
+  g2.fillStyle = col;
+  for(let i=0;i<s2.length;i++){
+    const gl = FONT[s2[i]] || FONT['?'];
+    for(let p2=0;p2<15;p2++){
+      if(gl[p2]==='1') g2.fillRect(x + i*4*sc + (p2%3)*sc, y + Math.floor(p2/3)*sc, sc, sc);
+    }
+  }
+}

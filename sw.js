@@ -1,7 +1,7 @@
 /* BITXO service worker: red primero, caché de respaldo.
    Las actualizaciones siempre llegan (los ?v= cambian de URL) y sin
    conexión el prado sigue abierto con lo último que se descargó. */
-const CACHE = 'bitxo-cache-20260703-1751';
+const CACHE = 'bitxo-cache-20260703-1807';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(

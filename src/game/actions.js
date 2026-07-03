@@ -436,3 +436,48 @@ function claimWeekly(){
   toast('¡SEMANAL CUMPLIDA! +'+W.m+'✦', 3000);
   SFX.buy(); vibrate(30); saveGame();
 }
+
+/* ---------------- POSTAL: foto para compartir ---------------- */
+async function takePhoto(){
+  try{
+    const sc = 4, m = 24;
+    const o = document.createElement('canvas');
+    o.width = 160*sc + m*2; o.height = 272*sc + m*2 + 56;
+    const g2 = o.getContext('2d');
+    g2.imageSmoothingEnabled = false;
+    g2.fillStyle = '#e8e0c8'; g2.fillRect(0,0,o.width,o.height);
+    g2.fillStyle = '#d6cdb4'; g2.fillRect(0,o.height-4,o.width,4);
+    g2.fillStyle = '#1a1428'; g2.fillRect(m-4, m-4, 160*sc+8, 272*sc+8);
+    g2.drawImage(cv, m, m, 160*sc, 272*sc);
+    const p = AP();
+    const d = new Date();
+    const who = p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name;
+    const label = 'BITXO · '+who+' · '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
+    drawTextAt(g2, label, Math.round((o.width - label.length*4*3)/2), o.height-42, '#3b3552', 3);
+    /* todo síncrono hasta share: así el gesto del toque sigue vivo (iOS) */
+    const dataURL = o.toDataURL('image/png');
+    const bin = atob(dataURL.split(',')[1]);
+    const bytes = new Uint8Array(bin.length);
+    for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], {type:'image/png'});
+    const file = new File([blob], 'bitxo-postal.png', {type:'image/png'});
+    let shared = false;
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:'BITXO'}); shared = true; }
+      catch(e){ if(e && e.name==='AbortError') return false; /* canceló */ }
+    }
+    if(!shared){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'bitxo-postal.png';
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    }
+    toast('¡POSTAL LISTA!');
+    SFX.coin();
+    return true;
+  }catch(e){
+    toast('NO SE PUDO HACER LA FOTO'); SFX.nope();
+    return false;
+  }
+}
