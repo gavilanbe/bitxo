@@ -6,21 +6,19 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 ## 🎮 Mecánicas grandes
 
-- **🗼 Torre del Prado** — combate encadenado: 5 rivales de NV creciente sin
-  curarte entre medias, cuota de entrada, premio gordo arriba (reliquia
-  garantizada, gorro exclusivo, marca en el bestiario). El endgame que el
-  combate ya se merece. *Se apoya en: NV, élites, trucos, súper.*
+- ✅ **🗼 Torre del Prado** — 5 pisos de NV creciente sin curarte (solo un
+  respiro del 18% entre pisos), cuota ✦100, élite en el 4º y jefe arriba;
+  bono en el piso 3 y en la cima motas + reliquia + el gorro LAUREL.
 - **🥚 Cría** — dos adultos con AMISTAD alta pueden dar un huevo que hereda
   línea y carácter (con sorpresas). *Se apoya en: multi-bitxo, bond, dex.*
-- **🌟 Pantalla de DINASTÍA** — tocar la constelación nocturna y ver a cada
-  ascendido: nombre, forma, nivel que alcanzó, generación. *Se apoya en: la
-  constelación que ya se pinta.*
+- ✅ **🌟 Pantalla de DINASTÍA** — toca el cielo y ahí están: cada ascendido
+  con su sprite, nivel, generación y las estrellas que dejó.
 - **🎒 Inventario ligero** — pociones del buhonero que se guardan en vez de
   usarse al momento (3 huecos). *Se apoya en: buhonero, boosts.*
-- **📅 Misiones semanales** — un encargo gordo por semana (vence 3 élites,
-  completa una línea del álbum) con recompensa a juego.
-- **🏆 Torneo del bestiario** — revancha contra cualquier enemigo ya visto,
-  a su NV récord, desde su ficha del bestiario.
+- ✅ **📅 Misión semanal** — un encargo gordo por semana (élites, combates,
+  minijuegos o entreno) en el cartel, bajo las diarias.
+- ✅ **🏆 Revancha del bestiario** — toca la ficha de cualquier enemigo visto
+  y peleas contra él a tu nivel +1.
 
 ## 🐾 Contenido
 
@@ -32,8 +30,8 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   disco secreto del buhonero.
 - **Más expediciones** — ✅ 5 · ideas: expedición nocturna (solo de noche),
   cooperativa (dos bitxos, botín doble).
-- **Más gorros** — ✅ 10 con posiciones (cara/cuello/halo) · ideas: gorros por
-  logro (corona del campeón al ganar 50 combates), gorro estacional.
+- **Más gorros** — ✅ 11 con posiciones (cara/cuello/halo) y ✅ el primero por
+  mérito (LAUREL de la torre) · ideas: gorro estacional.
 - **Más juguetes** — ✅ 9 · ideas: cama elástica (minijuego improvisado),
   espejo (posan con el gorro), casita (duermen mejor sin CAMA máxima).
 

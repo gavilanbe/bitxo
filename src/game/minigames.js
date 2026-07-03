@@ -16,6 +16,7 @@ function finishMg(title, score, motas, xp, won){
   if(motas>0) gainMotas(motas);
   gainXP(Math.round(xp*(p.trait==='JUGUETON'?1.5:1)));
   questProg('juegos', 1);
+  weeklyProg('juegos', 1);
   const m = UI.mg;
   m.ph='end'; m.title=title; m.scoreF=score; m.rMotas=motas; m.rXp=xp; m.won=won;
   G.best = G.best||{};

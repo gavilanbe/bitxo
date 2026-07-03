@@ -50,10 +50,11 @@ function handleTap(x,y){
   if(UI.mode==='ach'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='relics'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='quests'){
-    if(x>=16 && x<=144 && y>=76 && y<160){
-      const i = Math.floor((y-76)/28);
+    if(x>=16 && x<=144 && y>=62 && y<146){
+      const i = Math.floor((y-62)/28);
       if(i>=0 && i<3){ claimQuest(i); return; }
     }
+    if(x>=16 && x<=144 && y>=158 && y<=183){ claimWeekly(); return; }
     UI.mode='main'; SFX.tap(); return;
   }
   if(UI.mode==='buho'){
@@ -77,7 +78,24 @@ function handleTap(x,y){
     } else { UI.mode='stats'; SFX.tap(); }
     return;
   }
-  if(UI.mode==='beast'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='beast'){
+    if(x>=9 && x<=151 && y>=35 && y<217){
+      const i = Math.floor((y-35)/14);
+      if(i>=0 && i<BEAST_ORDER.length){
+        const k = BEAST_ORDER[i];
+        if(G.beast && G.beast[k] && G.beast[k].seen>0){
+          /* revancha: a tu nivel actual +1 */
+          const pp2 = playerPower(AP());
+          G.wild = {kind:k, nv:Math.max(1,pp2+1), elite:false, boss:!!ENEMIES[k].boss, revenge:true,
+                    x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+9e9, dir:-1};
+          startBattle();
+          if(UI.mode!=='battle'){ G.wild = null; UI.mode = 'beast'; }
+          return;
+        }
+      }
+    }
+    UI.mode='stats'; SFX.tap(); return;
+  }
   if(UI.mode==='stats'){
     if(y>168 && y<184){ UI.mode = x<41 ? 'album' : (x<78 ? 'ach' : (x<115 ? 'relics' : 'beast')); SFX.tap(); return; }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
@@ -99,7 +117,7 @@ function handleTap(x,y){
       if(i>=0 && i<TOYS.length) buyToy(i);
     } else {
       const col = x<80 ? 0 : 1;
-      const row = Math.floor((y-64)/28);
+      const row = Math.floor((y-64)/25);
       const i = row*2 + col;
       if(row>=0 && i>=0 && i<HATS.length) tapHat(i);
     }
@@ -114,17 +132,31 @@ function handleTap(x,y){
     SFX.tap(); return;
   }
   if(UI.mode==='play'){
-    if(x>=26 && x<=134 && y>=86 && y<196){
-      const i = Math.floor((y-86)/38);
+    if(x>=26 && x<=134 && y>=80 && y<228){
+      const i = Math.floor((y-80)/38);
       if(i===0){ UI.mode='train'; SFX.tap(); return; }
       if(i===1){ UI.mode='games'; SFX.tap(); return; }
       if(i===2){
         if(AP().stage<STAGES.CHILD){ toast('AUN ES MUY PEQUENO'); SFX.nope(); return; }
         UI.mode='exped'; SFX.tap(); return;
       }
+      if(i===3){
+        if(G.battlesWon < TOWER.unlockWins){ toast('GANA '+TOWER.unlockWins+' COMBATES ANTES'); SFX.nope(); return; }
+        UI.mode='tower'; SFX.tap(); return;
+      }
     }
     UI.mode='main'; SFX.tap(); return;
   }
+  if(UI.mode==='tower'){
+    if(!G.tower){
+      if(x>=60 && x<=140 && y>=160 && y<=178){ towerEnter(); return; }
+    } else {
+      if(x>=60 && x<=140 && y>=130 && y<=148){ towerLaunch(); return; }
+      if(x>=60 && x<=140 && y>=152 && y<=166){ towerAbandon(); return; }
+    }
+    UI.mode='play'; SFX.tap(); return;
+  }
+  if(UI.mode==='legacy'){ UI.mode='main'; SFX.tap(); return; }
   if(UI.mode==='games'){
     if(x>=10 && x<=151 && y>=72 && y<192){
       const col = Math.floor((x-10)/47), row = Math.floor((y-72)/62);
@@ -258,6 +290,10 @@ function handleTap(x,y){
       BTNS[i].fn();
       return;
     }
+  }
+  /* la constelación: tu dinastía */
+  if(y>18 && y<62 && G.ascensions>0 && !UI.shoot){
+    UI.mode='legacy'; SFX.tap(); return;
   }
   /* estrella fugaz */
   if(UI.shoot && Math.abs(x-UI.shoot.x)<15 && Math.abs(y-UI.shoot.y)<15){

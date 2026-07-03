@@ -33,6 +33,10 @@ function run(){
     gamesmenu: `G.games={salta:true}; G.best={mgCatch:23, mgSimon:6, mgJump:12}; G.motas=260; UI.mode='games';`,
     topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
     pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
+    towerintro: `G.battlesWon=15; G.motas=260; UI.mode='tower';`,
+    towerrun: `G.battlesWon=15; G.tower={floor:3, php:31}; UI.mode='tower';`,
+    legacypanel: `G.stars=7; G.legacy=[{name:'RAYON',key:'pradera_adultA',lv:9,gen:1,stars:2},{name:'IGNIS',key:'brasa_adultS',lv:12,gen:2,stars:3},{name:'GRIMO',key:'grimo',lv:8,gen:3,stars:1}]; UI.mode='legacy';`,
+    questsweekly: `ensureDaily(); ensureWeekly(); G.weekly.prog=9; G.daily.prog[QUESTS[G.daily.ids[0]].id]=99; UI.mode='quests';`,
     beastpanel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1}}; UI.mode='beast';`,
     wildnv: `G.wild={kind:'roquijo', nv:playerPower(_p)+4, elite:true, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
     breyseto: `_p.energy=90; G.wild={kind:'reyseto', nv:14, elite:false, boss:true, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.35; UI.bt.super=2; for(let i=0;i<26;i++){ UI.bt.fx.push({x:Math.random()*160, y:30+Math.random()*90, vx:-0.008, vy:0.012, life:1600, col:'rgba(201,116,58,0.8)', size:1}); }`,
@@ -398,7 +402,7 @@ function run(){
       R.elemVoltio = elemMult('voltio','marea') === 1.3 && elemMult('marea','voltio') === 0.75 && elemMult('petrea','voltio') === 1.3;
       R.expedFive = EXPEDS.length === 5 && EXPEDS[4].egg === 'voltio';
       // wearables nuevos: dy y compra en rejilla
-      R.hatsTen = HATS.length === 10 && HAT_BY_ID.gafas.dy === 4 && !!SPR.hat_halo;
+      R.hatsTen = HATS.length === 11 && HAT_BY_ID.gafas.dy === 4 && !!SPR.hat_halo && !!SPR.hat_laurel;
       G.motas = 3000; UI.mode = 'shop'; UI.shopTab = 2;
       handleTap(30, 64 + 1*28 + 10); // fila 1, col 0 = pajarita
       R.hatGridBuy = !!G.hats.pajarita;
@@ -436,6 +440,51 @@ function run(){
       handleTap(80, 66 + 4*28 + 5);
       R.expedRowFive = !!_p.exped && _p.exped.dest === 4;
       _p.exped = null; UI.mode = 'main';
+      // LA TORRE: entrar pagando, avanzar pisos, corona final
+      G.battlesWon = 15; G.motas = 500; _p.energy = 90; _p.stage = 3;
+      UI.mode = 'play'; handleTap(80, 208);
+      R.towerDoor = UI.mode === 'tower';
+      const mt0 = G.motas;
+      handleTap(100, 165);
+      R.towerEnter = UI.mode === 'battle' && G.motas === mt0 - TOWER.fee &&
+                     !!G.tower && G.tower.floor === 1 && G.wild === null || (!!UI.bt && G.tower.floor===1 && G.motas===mt0-TOWER.fee);
+      R.towerBattle = UI.mode === 'battle' && !!UI.bt;
+      endBattle(true); UI.bt.t = 900; battleTap();
+      R.towerFloor2 = !!G.tower && G.tower.floor === 2 && UI.mode === 'tower' && G.tower.php !== null;
+      G.tower.floor = 5; towerLaunch();
+      R.towerBoss = UI.mode === 'battle' && UI.bt.boss === true;
+      endBattle(true); UI.bt.t = 900; battleTap();
+      R.towerCrown = G.tower === null && !!G.hats.laurel && G.towerNextAt > Date.now();
+      UI.bt = null; G.wild = null; UI.mode = 'main';
+      // laurel no se compra
+      const li = HATS.findIndex(h=>h.id==='laurel');
+      G.hats.laurel = false; tapHat(li);
+      R.laurelLocked = !G.hats.laurel;
+      // SEMANAL: progreso y cobro
+      ensureWeekly();
+      const W2 = weeklyDef();
+      R.weeklySet = !!G.weekly && WEEKLY.some(w=>w.id===G.weekly.id);
+      G.weekly.prog = 0; G.weekly.claimed = false;
+      weeklyProg(G.weekly.id, W2.n);
+      const mw0 = G.motas;
+      claimWeekly();
+      R.weeklyClaim = G.weekly.claimed && G.motas === mw0 + W2.m;
+      // REVANCHA desde el bestiario
+      G.beast.ratuco = {seen:2, wins:1}; _p.energy = 90;
+      UI.mode = 'beast'; handleTap(80, 40);
+      R.rematch = UI.mode === 'battle' && UI.bt.kind === 'ratuco' && G.wild.revenge === true;
+      UI.bt = null; G.wild = null; UI.mode = 'main';
+      // DINASTIA: el ascenso deja huella y el cielo la enseña
+      const lg0 = (G.legacy||[]).length;
+      _p.stage = 3; _p.form = 'adultA'; _p.level = 9;
+      UI.ascGain = 2;
+      finishAscend();
+      R.legacySaved = G.legacy.length === lg0+1 && G.legacy[lg0].lv === 9 && G.legacy[lg0].stars === 2;
+      G.pets[G.sel] = _p; // restaurar para el resto de pruebas
+      UI.mode = 'main'; handleTap(80, 30);
+      R.legacyOpens = UI.mode === 'legacy';
+      handleTap(80, 100);
+      R.legacyCloses = UI.mode === 'main';
       // PWA: manifest válido y SW con caché versionada
       try{
         const mf = await (await fetch('../manifest.webmanifest')).json();

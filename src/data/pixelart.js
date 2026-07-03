@@ -267,6 +267,8 @@ function buildAllSprites(){
 "kk...kk","krrkrrk","krdkdrk","kk...kk"]);
   SPR.hat_halo = mkSprite({k:'#c9a227',y:'#ffd94a'},[
 ".kkkkkkk.","kyyyyyyyk",".kkkkkkk."]);
+  SPR.hat_laurel = mkSprite({k:'#3d6b2f',g:'#7ac74f',y:'#ffd94a'},[
+".gk.....kg.","gkg.kyk.gkg",".gkg...gkg.","..kgg.ggk..","....kkk...."]);
   SPR.hat_vikingo = mkSprite({k:K,w:'#f6efe0',n:'#8a6a3a'},[
 "kk.......kk","kwk.....kwk","kwwk...kwwk",".kkwkkkwkk.","..kknnnkk.."]);
 }

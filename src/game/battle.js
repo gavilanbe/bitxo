@@ -172,9 +172,20 @@ function battleTap(){
     const canArm = (b.phase==='eanim' && b.t<320) || (b.phase==='eTele' && b.t > dur-180);
     if(!b.blocked && canArm){ b.blocked = true; SFX.tap(); vibrate(15); }
   } else if(b.phase==='end' && b.t>800){
+    const wasTower = G.wild && G.wild.tower;
     G.wild = null;
     nextWildAt = Date.now() + 120000 + Math.random()*180000;
-    UI.mode='main';
+    if(wasTower && G.tower){
+      if(b.win){ towerAdvance(b); }
+      else {
+        G.tower = null;
+        G.towerNextAt = Date.now() + TOWER.cooldown;
+        toast('LA TORRE TE ESCUPE... VUELVE MAS FUERTE', 3200);
+        UI.mode='main';
+      }
+    } else {
+      UI.mode='main';
+    }
     saveGame();
   }
 }
@@ -294,6 +305,8 @@ function endBattle(win){
     p.happy = Math.min(100, p.happy+10);
     G.battlesWon++;
     questProg('combate', 1);
+    weeklyProg('combates', 1);
+    if(b.elite) weeklyProg('elites', 1);
     if(b.boss){
       G.bossesWon = (G.bossesWon||0)+1;
       G.bossDue = false;

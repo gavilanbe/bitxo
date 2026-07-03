@@ -123,7 +123,8 @@ const HATS = [
  {id:'vikingo', name:'VIKINGO',    cost:300, desc:'A LA CONQUISTA'},
  {id:'corona',  name:'CORONA',     cost:400, desc:'PARA LEYENDAS'},
  {id:'halo',    name:'HALO',       cost:500, desc:'BENDITO BICHO', dy:-4},
- {id:'buho',    name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true}
+ {id:'buho',    name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true},
+ {id:'laurel',  name:'LAUREL',     cost:0,   desc:'CAMPEON DE LA TORRE', towerOnly:true}
 ];
 const HAT_BY_ID = {};
 for(const H of HATS) HAT_BY_ID[H.id] = H;
@@ -172,3 +173,16 @@ const EVO_REQS = {
  adultS:['TODAS LAS STATS 6+ Y 0 FALLOS', 'CUIDADO 85+ Y JUEGOS 5+'],
  grimo: ['5 FALLOS O CUIDADO PESIMO', 'EL ABANDONO TIENE PRECIO']
 };
+
+/* --- la torre del prado: 5 combates seguidos, la vida no se cura --- */
+const TOWER = {fee:100, floors:5, heal:0.18, unlockWins:10, cooldown:4*3600*1000};
+const TOWER_POOL_LOW  = ['ratuco','pinchon','chispin','burbujon'];
+const TOWER_POOL_HIGH = ['sombrio','roquijo','setazo','polillux','cuervillo','ladronzuelo','relampin'];
+
+/* --- misión semanal: un encargo gordo con premio a juego --- */
+const WEEKLY = [
+ {id:'combates', name:'GANA 12 COMBATES',   n:12, m:350, xp:40},
+ {id:'elites',   name:'VENCE 3 ELITES',     n:3,  m:400, xp:50},
+ {id:'juegos',   name:'JUEGA 20 MINIJUEGOS',n:20, m:300, xp:40},
+ {id:'entrena',  name:'ENTRENA 15 VECES',   n:15, m:350, xp:40}
+];

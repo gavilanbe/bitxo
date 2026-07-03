@@ -9,7 +9,7 @@ const MENU_PARENT = {
   stats:'main', album:'stats', ach:'stats', relics:'stats', beast:'stats',
   ascendConfirm:'stats', shop:'main', feed:'main', play:'main',
   quests:'main', buho:'main', discos:'games',
-  games:'play', exped:'play'
+  games:'play', exped:'play', tower:'play', legacy:'main'
 };
 const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
@@ -17,7 +17,8 @@ const MENU_DRAW = {
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
   quests:drawQuests, buho:drawBuhoShop,
   discos:drawDiscos, evotree:drawEvoTree,
-  beast:drawBeast, games:drawGames
+  beast:drawBeast, games:drawGames,
+  tower:drawTower, legacy:drawLegacy
 };
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -109,6 +110,8 @@ function normalizeSave(g){
   g.buhoNextAt = g.buhoNextAt||0; g.buho = g.buho||null;
   g.discos = g.discos||{prado:true}; g.disco = g.disco||'prado'; g.games = g.games||{};
   g.beast = g.beast||{}; g.best = g.best||{}; g.huertoReadyAt = g.huertoReadyAt||0;
+  g.tower = g.tower||null; g.towerNextAt = g.towerNextAt||0;
+  g.weekly = g.weekly||null; g.legacy = g.legacy||[];
   for(const p of g.pets){
     p.swingT=0; p.kickAt=0;
     p.hat = p.hat||null;

@@ -271,18 +271,20 @@ function drawShop(){
       const owned = !!G.hats[H.id];
       const worn = AP().hat===H.id;
       const afford = G.motas>=H.cost && !owned && !H.buhoOnly;
-      const x = 10 + (i%2)*71, y = 64 + Math.floor(i/2)*28;
+      const x = 10 + (i%2)*71, y = 64 + Math.floor(i/2)*25;
       const flash = UI.shopFlash[H.id] && performance.now()-UI.shopFlash[H.id]<250;
-      px(x,y,69,25, flash ? '#ffd94a' : (worn ? '#ffe9a8' : (owned ? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba'))));
-      px(x,y,69,1,K); px(x,y+24,69,1,K); px(x,y,1,25,K); px(x+68,y,1,25,K);
+      px(x,y,69,22, flash ? '#ffd94a' : (worn ? '#ffe9a8' : (owned ? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba'))));
+      px(x,y,69,1,K); px(x,y+21,69,1,K); px(x,y,1,22,K); px(x+68,y,1,22,K);
       const hs = SPR['hat_'+H.id];
-      if(owned || !H.buhoOnly) ctx.drawImage(hs, x+9-Math.floor(hs.width/2), y+Math.round((25-hs.height)/2));
-      else drawText('?', x+7, y+9, 'rgba(26,20,40,0.45)');
-      drawText(owned || !H.buhoOnly ? H.name : '?????', x+19, y+4, K);
-      if(worn) drawText('PUESTO', x+19, y+14, '#8a6a10');
-      else if(owned) drawText('TUYO', x+19, y+14, '#3a7048');
-      else if(!H.buhoOnly) drawText('✦'+fmt(H.cost), x+19, y+14, afford?'#8a6a10':'#a03030');
-      else drawText('BUHONERO', x+19, y+14, 'rgba(26,20,40,0.45)');
+      const secretH = (H.buhoOnly || H.towerOnly) && !owned;
+      if(!secretH) ctx.drawImage(hs, x+9-Math.floor(hs.width/2), y+Math.round((22-hs.height)/2));
+      else drawText('?', x+7, y+8, 'rgba(26,20,40,0.45)');
+      drawText(!secretH ? H.name : '?????', x+19, y+3, K);
+      if(worn) drawText('PUESTO', x+19, y+12, '#8a6a10');
+      else if(owned) drawText('TUYO', x+19, y+12, '#3a7048');
+      else if(H.buhoOnly) drawText('BUHONERO', x+19, y+12, 'rgba(26,20,40,0.45)');
+      else if(H.towerOnly) drawText('LA TORRE', x+19, y+12, 'rgba(26,20,40,0.45)');
+      else drawText('✦'+fmt(H.cost), x+19, y+12, afford?'#8a6a10':'#a03030');
     }
     drawTextC('TOCA PARA PONER O QUITAR', 80, 209, 'rgba(26,20,40,0.45)');
   }
@@ -321,20 +323,104 @@ function drawFeedMenu(){
   drawTextC('TOCA FUERA PARA SALIR', 80, 220, 'rgba(26,20,40,0.5)');
 }
 function drawPlayMenu(){
-  panel(20,68,120,142);
-  titleChip(80, 74, '¿QUE HACEIS?');
-  const cat = (y, ic, name, sub, accent)=>{
-    card(26,y,108,34);
-    px(27,y+1,3,32,accent);
-    ctx.drawImage(IC[ic], 34, y+11);
-    drawText(name, 52, y+8, K);
+  panel(20,62,120,178);
+  titleChip(80, 68, '¿QUE HACEIS?');
+  const cat = (y, ic, name, sub, accent, locked)=>{
+    card(26,y,108,34, locked);
+    px(27,y+1,3,32, locked ? 'rgba(26,20,40,0.2)' : accent);
+    if(ic) ctx.drawImage(IC[ic], 34, y+11);
+    drawText(name, 52, y+8, locked ? 'rgba(26,20,40,0.5)' : K);
     drawText(sub, 52, y+18, 'rgba(26,20,40,0.55)');
-    drawText('>', 124, y+13, accent);
+    if(!locked) drawText('>', 124, y+13, accent);
   };
-  cat(86,  'gym',  'GYM',        'FUE · DEF · VEL',   '#e2574c');
-  cat(124, 'play', 'JUEGOS',     'PREMIOS Y RECORDS', '#f0a04b');
-  cat(162, 'map',  'EXPLORACION','TESOROS LEJANOS',   '#7ac74f');
-  drawTextC('TOCA FUERA PARA SALIR', 80, 201, 'rgba(26,20,40,0.5)');
+  cat(80,  'gym',  'GYM',        'FUE · DEF · VEL',   '#e2574c');
+  cat(118, 'play', 'JUEGOS',     'PREMIOS Y RECORDS', '#f0a04b');
+  cat(156, 'map',  'EXPLORACION','TESOROS LEJANOS',   '#7ac74f');
+  const towerLocked = G.battlesWon < TOWER.unlockWins;
+  cat(194, null, 'LA TORRE', towerLocked ? 'GANA '+TOWER.unlockWins+' COMBATES' : 'RETO DE 5 PISOS', '#8a6ae8', towerLocked);
+  /* torrecita dibujada */
+  px(36,197,10,26,'#9a9aa4'); px(36,197,10,1,K); px(35,196,12,2,'#6a6a78');
+  px(34,194,3,3,'#6a6a78'); px(40,194,3,3,'#6a6a78'); px(45,194,3,3,'#6a6a78');
+  px(39,205,4,6,'#3a3448'); px(38,214,2,2,'#3a3448'); px(42,214,2,2,'#3a3448');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 233, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- LA TORRE DEL PRADO ---------------- */
+function drawTower(){
+  panel(14,56,132,158);
+  titleChip(80, 62, 'LA TORRE DEL PRADO');
+  /* la torre con pisos iluminados */
+  const floor = G.tower ? G.tower.floor : 0;
+  for(let f=0; f<5; f++){
+    const y = 176 - f*18;
+    const lit = G.tower && floor > f;
+    const cur = G.tower && floor === f+1;
+    px(28, y, 26, 16, lit ? '#ffe9a8' : (cur ? '#f6efe0' : '#b8b2a0'));
+    px(28, y, 26, 1, K); px(28, y+15, 26, 1, K); px(28, y, 1, 16, K); px(53, y, 1, 16, K);
+    drawTextC(String(f+1), 41, y+5, cur ? '#a03030' : K);
+    if(f===4){ px(30,y-4,22,4,'#8a6ae8'); px(30,y-4,22,1,K); }
+  }
+  if(!G.tower){
+    drawText('5 COMBATES SEGUIDOS', 62, 92, K);
+    drawText('LA VIDA NO SE CURA', 62, 102, 'rgba(26,20,40,0.6)');
+    drawText('(SOLO UN RESPIRO', 62, 110, 'rgba(26,20,40,0.6)');
+    drawText('ENTRE PISOS)', 62, 118, 'rgba(26,20,40,0.6)');
+    drawText('PISO 3: MOTAS', 62, 132, '#8a6a10');
+    drawText('PISO 5: RELIQUIA', 62, 140, '#8a6a10');
+    drawText('Y EL LAUREL', 62, 148, '#8a6a10');
+    const cool = Date.now() < (G.towerNextAt||0);
+    card(60,160,80,18, cool);
+    if(cool){
+      const mns = Math.ceil((G.towerNextAt-Date.now())/60000);
+      drawTextC('ABRE EN '+(mns>=60? Math.ceil(mns/60)+'H' : mns+'M'), 100, 166, 'rgba(26,20,40,0.5)');
+    } else {
+      drawTextC('ENTRAR ✦'+TOWER.fee, 100, 166, G.motas>=TOWER.fee ? '#8a6a10' : '#a03030');
+    }
+    drawTextC('TOCA FUERA PARA SALIR', 80, 202, 'rgba(26,20,40,0.5)');
+  } else {
+    drawText('PISO '+G.tower.floor+' DE 5', 62, 92, K);
+    const p = AP();
+    const hpTxt = G.tower.php==null ? 'VIDA COMPLETA' : 'VIDA: '+Math.ceil(G.tower.php);
+    drawText(hpTxt, 62, 104, G.tower.php!=null && G.tower.php<15 ? '#a03030' : '#3a7048');
+    drawText('PILAS: '+Math.round(p.energy), 62, 114, p.energy<12 ? '#a03030' : K);
+    card(60,130,80,18);
+    drawTextC('¡AL PISO '+G.tower.floor+'!', 100, 136, '#a03030');
+    card(60,152,80,14);
+    drawTextC('RENDIRSE', 100, 156, 'rgba(26,20,40,0.55)');
+    drawText('SI PIERDES,', 62, 172, 'rgba(26,20,40,0.5)');
+    drawText('ESTAS FUERA', 62, 180, 'rgba(26,20,40,0.5)');
+    drawTextC('TOCA FUERA PARA SALIR', 80, 202, 'rgba(26,20,40,0.5)');
+  }
+}
+
+/* ---------------- DINASTIA ---------------- */
+function drawLegacy(){
+  panel(8,30,144,214);
+  titleChip(80, 35, 'DINASTIA ★'+G.stars);
+  const L = G.legacy||[];
+  if(L.length===0){
+    drawTextC('AUN NADIE HA ASCENDIDO', 80, 110, 'rgba(26,20,40,0.55)');
+    drawTextC('CRIA UN ADULTO AL NIVEL 8', 80, 122, 'rgba(26,20,40,0.45)');
+    drawTextC('Y TOCA ASCENDER EN DATOS', 80, 130, 'rgba(26,20,40,0.45)');
+  } else {
+    const show = L.slice(-9).reverse();
+    for(let i=0;i<show.length;i++){
+      const e = show[i];
+      const y = 46 + i*20;
+      px(13,y,134,18,'#f6efe0');
+      px(13,y,134,1,K); px(13,y+17,134,1,K); px(13,y,1,18,K); px(146,y,1,18,K);
+      const spr = SPR[e.key] ? SPR[e.key][0] : SPR.grimo[0];
+      const sc = Math.min(1, 14/Math.max(spr.width,spr.height));
+      ctx.save(); ctx.translate(22, y+9); ctx.scale(sc,sc);
+      ctx.drawImage(spr, -spr.width/2, -spr.height/2);
+      ctx.restore();
+      drawText(e.name, 32, y+2, K);
+      drawText('LV'+e.lv+' · GEN '+e.gen, 32, y+10, 'rgba(26,20,40,0.55)');
+      drawText('+'+(e.stars||1)+'★', 122, y+6, '#8a6a10');
+    }
+    if(L.length>9) drawTextC('...Y '+(L.length-9)+' MAS EN EL CIELO', 80, 232, 'rgba(26,20,40,0.45)');
+  }
+  drawTextC('SU LUZ GUIA A LOS QUE VIENEN', 80, 235, 'rgba(26,20,40,0.5)');
 }
 
 /* ---------------- SALA DE JUEGOS ---------------- */
@@ -509,11 +595,11 @@ function drawAch(){
 /* ---------------- MISIONES DEL DIA ---------------- */
 function drawQuests(){
   ensureDaily();
-  panel(10,58,140,134);
-  titleChip(80, 64, 'MISIONES DEL DIA');
+  panel(10,44,140,178);
+  titleChip(80, 50, 'MISIONES');
   for(let i=0;i<3;i++){
     const q = QUESTS[G.daily.ids[i]];
-    const y = 76 + i*28;
+    const y = 62 + i*28;
     const done = !!G.daily.claimed[q.id];
     const prog = Math.min(q.n, G.daily.prog[q.id]||0);
     const ready = !done && prog>=q.n;
@@ -525,8 +611,21 @@ function drawQuests(){
     if(ready) drawTextC('¡COBRAR!', 88, y+14, '#a03030');
     drawText('+'+q.m+'✦', 118, y+14, '#8a6a10');
   }
-  drawTextC('NUEVAS CADA DIA', 80, 168, 'rgba(26,20,40,0.5)');
-  drawTextC('TOCA FUERA PARA SALIR', 80, 186, 'rgba(26,20,40,0.5)');
+  /* la semanal */
+  const W = weeklyDef();
+  const wDone = G.weekly.claimed;
+  const wProg = Math.min(W.n, G.weekly.prog);
+  const wReady = !wDone && wProg>=W.n;
+  drawText('SEMANAL', 16, 150, 'rgba(26,20,40,0.5)');
+  px(16,158,128,25, wDone ? '#d0e8d0' : (wReady ? '#ffe9a8' : '#efe6d0'));
+  px(16,158,128,1,K); px(16,182,128,1,K); px(16,158,1,25,K); px(143,158,1,25,K);
+  drawText(W.name, 20, 162, K);
+  if(wDone) drawText('HECHA', 20, 172, '#3a7048');
+  else drawText(wProg+'/'+W.n, 20, 172, wReady ? '#8a6a10' : 'rgba(26,20,40,0.55)');
+  if(wReady) drawTextC('¡COBRAR!', 88, 172, '#a03030');
+  drawText('+'+W.m+'✦', 118, 172, '#8a6a10');
+  drawTextC('DIARIAS NUEVAS CADA DIA', 80, 192, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 206, 'rgba(26,20,40,0.5)');
 }
 
 /* ---------------- TIENDA DEL BUHONERO ---------------- */

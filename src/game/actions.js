@@ -86,6 +86,7 @@ function trainEffect(kind){
   p.happy = Math.max(0, p.happy-3);
   gainXP(12);
   questProg('entrena', 1);
+  weeklyProg('entrena', 1);
   SFX.train(); vibrate(30);
   saveGame();
   return {gain, kind, cost};
@@ -183,6 +184,9 @@ function doAscend(){
   SFX.ascend(); vibrate([80,60,80,60,200]);
 }
 function finishAscend(){
+  const p = AP();
+  G.legacy = G.legacy||[];
+  G.legacy.push({name: currentFormDef().name, key: evoKeyOf(p), lv: p.level, gen: p.gen, stars: UI.ascGain});
   G.stars += UI.ascGain;
   G.ascensions++;
   const i = G.sel;
@@ -195,6 +199,7 @@ function finishAscend(){
 /* ---------------- MISIONES DEL DÍA ---------------- */
 function dayKey(){ const d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
 function ensureDaily(){
+  ensureWeekly();
   const key = dayKey();
   if(G.daily && G.daily.key===key) return;
   /* 3 misiones al día, elegidas con un LCG sembrado por la fecha:
@@ -280,6 +285,7 @@ function tapHat(i){
     SFX.tap(); saveGame(); return;
   }
   if(H.buhoOnly){ toast('SOLO LO VENDE EL BUHONERO'); SFX.nope(); return; }
+  if(H.towerOnly){ toast('SOLO LA TORRE LO OTORGA'); SFX.nope(); return; }
   if(G.motas < H.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
   G.motas -= H.cost; G.hats[H.id] = true; p.hat = H.id;
   UI.shopFlash[H.id] = performance.now();
@@ -336,4 +342,97 @@ async function importSave(){
     SFX.buy();
     setTimeout(()=>location.reload(), 700);
   }catch(e){ toast('EL PORTAPAPELES NO TRAE UN CODIGO VALIDO', 2600); SFX.nope(); }
+}
+
+/* ---------------- LA TORRE DEL PRADO ---------------- */
+function towerLaunch(){
+  const t2 = G.tower;
+  const p = AP();
+  const pp = playerPower(p);
+  const floor = t2.floor;
+  let kind, boss = false, elite = false;
+  if(floor>=TOWER.floors){
+    kind = (G.bossesWon%2===0) ? 'lobruno' : 'reyseto'; boss = true;
+  } else if(floor===4){
+    kind = TOWER_POOL_HIGH[Math.floor(Math.random()*TOWER_POOL_HIGH.length)]; elite = true;
+  } else {
+    const pool = floor<=2 ? TOWER_POOL_LOW : TOWER_POOL_HIGH;
+    kind = pool[Math.floor(Math.random()*pool.length)];
+  }
+  const nv = Math.max(1, pp + [-1,0,2,3,4][floor-1]);
+  G.wild = {kind, nv, elite, boss, tower:true, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+9e9, dir:-1};
+  startBattle();
+  if(UI.mode!=='battle'){ G.wild = null; return false; } /* guardas (pilas...) */
+  if(t2.php!=null){ UI.bt.php = Math.min(UI.bt.pmx, t2.php); UI.bt.phpShow = UI.bt.php; }
+  return true;
+}
+function towerEnter(){
+  const p = AP();
+  if(p.stage<STAGES.CHILD){ toast('MUY PEQUENO PARA LA TORRE'); SFX.nope(); return; }
+  if(Date.now() < (G.towerNextAt||0)){
+    const mns = Math.ceil((G.towerNextAt-Date.now())/60000);
+    toast('LA TORRE ABRE EN '+(mns>=60? Math.ceil(mns/60)+'H' : mns+'M')); SFX.nope(); return;
+  }
+  if(G.motas < TOWER.fee){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= TOWER.fee;
+  G.tower = {floor:1, php:null};
+  saveGame();
+  towerLaunch();
+}
+function towerAbandon(){
+  G.tower = null;
+  G.towerNextAt = Date.now() + TOWER.cooldown;
+  toast('LA TORRE ESPERARA...');
+  SFX.bye(); saveGame();
+  UI.mode = 'main';
+}
+/* al ganar un piso (lo llama battleTap al salir del combate) */
+function towerAdvance(b){
+  const t2 = G.tower;
+  t2.php = Math.min(b.pmx, b.php + Math.round(b.pmx*TOWER.heal));
+  t2.floor++;
+  if(t2.floor===4){
+    const bono = 200 + playerPower(AP())*8;
+    gainMotas(bono);
+    toast('¡PISO 3 SUPERADO! +'+bono+'✦', 3000);
+  }
+  if(t2.floor > TOWER.floors){
+    /* campeón */
+    const premio = 500 + playerPower(AP())*20;
+    gainMotas(premio);
+    const rl = relicRoll();
+    if(rl) G.relics[rl.id] = true;
+    let hatMsg = '';
+    if(!G.hats.laurel){ G.hats.laurel = true; AP().hat = 'laurel'; hatMsg = ' ¡Y EL LAUREL!'; }
+    G.tower = null;
+    G.towerNextAt = Date.now() + TOWER.cooldown;
+    toast('¡CAMPEON DE LA TORRE! +'+premio+'✦'+hatMsg, 4200);
+    SFX.evolveFanfare(); vibrate([60,60,60,60,150]);
+    saveGame();
+    UI.mode = 'main';
+    return;
+  }
+  saveGame();
+  UI.mode = 'tower';
+}
+
+/* ---------------- MISION SEMANAL ---------------- */
+function ensureWeekly(){
+  const key = Math.floor(Date.now()/(7*86400000));
+  if(G.weekly && G.weekly.key===key) return;
+  G.weekly = {key, id: WEEKLY[key % WEEKLY.length].id, prog:0, claimed:false};
+}
+function weeklyDef(){ ensureWeekly(); return WEEKLY.find(w=>w.id===G.weekly.id); }
+function weeklyProg(kind, n){
+  if(!G || !G.weekly) return;
+  if(G.weekly.claimed || G.weekly.id!==kind) return;
+  G.weekly.prog += n;
+}
+function claimWeekly(){
+  const W = weeklyDef();
+  if(G.weekly.claimed || G.weekly.prog < W.n){ SFX.tap(); return; }
+  G.weekly.claimed = true;
+  gainMotas(W.m); gainXP(W.xp);
+  toast('¡SEMANAL CUMPLIDA! +'+W.m+'✦', 3000);
+  SFX.buy(); vibrate(30); saveGame();
 }
