@@ -70,7 +70,7 @@ function frame(now){
     drawParticles(dt);
     drawHUD(now);
     drawModals(now);
-    if(UI.pendingEvoNote){ UI.pendingEvoNote=false; toast('¡ALGUIEN EVOLUCIONO!', 3000); }
+    if(UI.mode==='main' && !offlineReport && !UI.expReport && EVO_QUEUE.length) playNextEvo();
   }
   requestAnimationFrame(frame);
 }

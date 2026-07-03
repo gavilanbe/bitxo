@@ -41,7 +41,11 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
   evolución**: el guerrero, el tanque o el ágil según lo que entrenes.
 - 🌳 **Árbol evolutivo estilo Digimon World**: toca una línea en el álbum y verás
   su árbol completo con los **requisitos de cada forma** — y las que te faltan,
-  en silueta.
+  en silueta. Tu forma actual se marca **AQUÍ** y el destino previsto, **RUMBO**.
+- ✨ **Evolución estilo Pokémon**: cuenta atrás y rumbo en DATOS, destellos de
+  anticipación en el prado, y la cinemática — silueta blanca alternando formas
+  cada vez más rápido, estallido, revelación y fanfarria. Las evoluciones que
+  ocurren mientras no estás **se reproducen al volver**: ninguna pasa sin verse.
 - 💿 **Discoteca**: el BAILE tiene 4 discos con canciones distintas — escúchalos
   antes de comprarlos y baila el que te pida el cuerpo.
 - 🎭 **6 caracteres** (glotón, valiente, dormilón, juguetón, tímido, curioso) que

@@ -212,3 +212,11 @@ SFX.superHit = function(){
   tone({f:200, slide:60, d:0.4, type:'sawtooth', vol:0.05});
   [1319,1568,2093].forEach((f,i)=> tone({f, at:sfxAt(0.3+i*0.06), d:0.25, type:'p125', vol:0.035, send:0.5}));
 };
+/* ------ fanfarria de evolución (la resolución triunfal) ------ */
+SFX.evolveFanfare = function(){
+  [[392,0,0.11],[523,0.11,0.11],[659,0.22,0.11],[784,0.33,0.26],[659,0.59,0.09],[784,0.68,0.5]]
+    .forEach(n => tone({f:n[0], at:sfxAt(n[1]), d:n[2], type:'p25', vol:0.05, vib:n[2]>0.2, send:0.3}));
+  [1047,1319,1568].forEach((f,i)=> tone({f, at:sfxAt(0.68+i*0.07), d:0.35, type:'p125', vol:0.03, send:0.5}));
+  kick(sfxAt(0.68), 0.09);
+  nz(sfxAt(0.7), 0.4, 0.018, 8500, 4);
+};

@@ -14,10 +14,29 @@ const UI = {
 function toast(s, ms=2000){ UI.msg=s; UI.msgUntil=performance.now()+ms; }
 function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
-function startEvolveFX(){
-  UI.evoFrom = currentSprite();
-  UI.mode='evolve'; UI.evoT=0;
-  SFX.evolve(); vibrate([60,60,60,60,120]);
+/* cola de evoluciones: NINGUNA pasa sin verse — las de fuera de
+   pantalla (offline, menús) se reproducen al volver al prado */
+const EVO_QUEUE = [];
+function queueEvolution(pet, fromKey, toKey){
+  EVO_QUEUE.push({pet, fromKey, toKey});
+}
+function playNextEvo(){
+  while(EVO_QUEUE.length){
+    const q = EVO_QUEUE.shift();
+    const i = G.pets.indexOf(q.pet);
+    if(i<0) continue; /* ya no está (se fue o ascendió) */
+    G.sel = i;
+    UI.evo = {
+      from: SPR[q.fromKey][0], to: SPR[q.toKey][0],
+      fromName: nameOfKey(q.fromKey), toName: nameOfKey(q.toKey),
+      dark: q.toKey==='grimo',
+      swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false
+    };
+    UI.evoT = 0; UI.mode = 'evolve';
+    SFX.evolve(); vibrate([60,60,60,60,120]);
+    return true;
+  }
+  return false;
 }
 function currentFormDef(){
   const p = AP();

@@ -51,6 +51,13 @@ function liveUpdate(dtMs){
       continue;
     }
     checkEvolution(p, false);
+    /* destellos de anticipación: algo está a punto de pasar */
+    if(UI.mode==='main' && p.stage<STAGES.ADULT){
+      const nx = predictNext(p);
+      if(nx && nx.when>0 && nx.when<90000 && Math.random() < dtMs*0.004){
+        UI.particles.push({x:p.rx-9+Math.random()*18, y:152-Math.random()*16, vy:-0.02, life:900, ch:'.', col:'#ffd94a'});
+      }
+    }
     /* paseo */
     if(!p.sleeping && !p.eatT && !p.trainT && !(p.swingT>0) && UI.mode==='main'){
       if(now > p.nextWalk){

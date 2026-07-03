@@ -33,7 +33,11 @@ function handleTap(x,y){
   if(offlineReport){ offlineReport=null; SFX.tap(); return; }
   if(UI.expReport){ UI.expReport=null; SFX.tap(); return; }
   if(UI.mode==='hatch'){ if(UI.hatchT>1500) UI.mode='main'; return; }
-  if(UI.mode==='evolve'){ if(UI.evoT>2600) UI.mode='main'; return; }
+  if(UI.mode==='evolve'){
+    if(UI.evoT > 4900){ UI.mode='main'; UI.evo=null; }
+    else if(UI.evoT < 3900) UI.evoT = 3900; /* saltar al estallido */
+    return;
+  }
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }
   if(UI.mode==='battle'){ battleTap(); return; }
   if(UI.mode==='album'){

@@ -122,10 +122,13 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   `step` (ms por paso), `pat` (16 pulsos), `tune` (16 semitonos sobre `base`) y
   `mult` (recompensa). La discoteca, la preview y el juego lo recogen solos.
 - **Cambiar la evolución** — las reglas viven en `checkEvolution()`
-  (`game/economy.js`) y su descripción visible en `EVO_REQS`
-  (`data/content.js`). **Mantenlas sincronizadas**: lo que promete el árbol
-  del álbum es lo que debe ejecutar el código. Stats entrenables: `p.str`,
-  `p.def`, `p.spd` (el antiguo `discipline` migra a `str` al cargar).
+  (`game/economy.js`), su predicción en `predictNext()` (mismo archivo) y su
+  descripción visible en `EVO_REQS` (`data/content.js`). **Mantén las TRES
+  sincronizadas**: lo que promete el árbol y el RUMBO de DATOS es lo que debe
+  ejecutar el código. Stats entrenables: `p.str`, `p.def`, `p.spd` (el antiguo
+  `discipline` migra a `str` al cargar). Toda evolución pasa por `EVO_QUEUE`
+  (`game/ui.js`): se encola al cumplirse y la cinemática se reproduce cuando
+  el jugador está en el prado — también las que ocurren offline.
 
 ## Publicar (y que a nadie le quede caché vieja)
 

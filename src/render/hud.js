@@ -123,7 +123,18 @@ function drawStats(){
   } else if(p.stage===STAGES.ADULT){
     drawTextC('ASCENSO AL NIVEL 8', 80, 191, 'rgba(26,20,40,0.45)');
   } else {
-    drawTextC('CRECERA... TEN PACIENCIA', 80, 191, 'rgba(26,20,40,0.45)');
+    const nx = predictNext(p);
+    if(nx){
+      const mins = Math.ceil(nx.when/60000);
+      const tt = nx.when<=1000 ? 'AL CAER...' : (mins>=60 ? 'EN '+Math.floor(mins/60)+'H '+(mins%60)+'M' : 'EN '+mins+'M');
+      drawTextC((p.stage===STAGES.EGG?'ECLOSIONA ':'EVOLUCIONA ')+tt, 80, 187, '#8a6a10');
+      if(nx.key){
+        const known = !!G.dex[nx.key];
+        drawTextC('RUMBO: '+(known ? nameOfKey(nx.key) : '?????'), 80, 195, 'rgba(26,20,40,0.6)');
+      }
+    } else {
+      drawTextC('CRECERA... TEN PACIENCIA', 80, 191, 'rgba(26,20,40,0.45)');
+    }
   }
   drawTextC('TOCA PARA VOLVER', 80, 206, 'rgba(26,20,40,0.5)');
 }
@@ -537,6 +548,16 @@ function drawEvoTree(){
     else {
       ctx.drawImage(darkSilhouette(spr), dx, dy);
       drawTextC('?', nd.x, nd.y-2, 'rgba(246,239,224,0.85)');
+    }
+    /* marca de tu forma actual y del rumbo previsto */
+    if(LINE_KEYS[UI.evoLine||0]===AP().line || AP().form==='grimo'){
+      const pcur = AP();
+      const nx2 = predictNext(pcur);
+      if(key && key===evoKeyOf(pcur)){
+        drawTextC('AQUI', nd.x, nd.y+11, '#3a7048');
+      } else if(nx2 && nx2.key===key && Math.floor(performance.now()/400)%2===0){
+        drawTextC('RUMBO', nd.x, nd.y+11, '#8a6a10');
+      }
     }
     if(i===sel && Math.floor(performance.now()/300)%2===0){
       const r = Math.ceil(Math.max(spr.width,spr.height)/2)+2;

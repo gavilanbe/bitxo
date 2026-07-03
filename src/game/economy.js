@@ -63,16 +63,24 @@ function careScore(p){
   s += Math.min(10, p.gamesWon);
   return Math.max(0, Math.min(100, s));
 }
+function evoKeyOf(p){ return p.form==='grimo' ? 'grimo' : p.line+'_'+(p.form||'babyA'); }
+function nameOfKey(key){
+  if(key==='grimo') return 'GRIMO';
+  const i = key.indexOf('_');
+  return LINES[key.slice(0,i)].names[key.slice(i+1)];
+}
 function checkEvolution(p, silent){
   if(!p.hatchedAt) return;
   const age = Date.now() - p.hatchedAt;
   if(p.stage===STAGES.BABY && age > T_CHILD){
+    const fromKey = evoKeyOf(p);
     p.stage = STAGES.CHILD;
     p.form = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
     markDex(p.line+'_'+p.form);
-    if(!silent){ G.sel = G.pets.indexOf(p); startEvolveFX(); } else UI.pendingEvoNote = true;
+    queueEvolution(p, fromKey, evoKeyOf(p));
   }
   if(p.stage===STAGES.CHILD && age > T_ADULT){
+    const fromKey = evoKeyOf(p);
     p.stage = STAGES.ADULT;
     const cs = careScore(p);
     if(p.mistakes>=5 || cs<35) p.form='grimo';
@@ -80,8 +88,29 @@ function checkEvolution(p, silent){
     else if(p.form==='childA') p.form = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
     else p.form = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
     markDex(p.form==='grimo' ? 'grimo' : p.line+'_'+p.form);
-    if(!silent){ G.sel = G.pets.indexOf(p); startEvolveFX(); } else UI.pendingEvoNote = true;
+    queueEvolution(p, fromKey, evoKeyOf(p));
   }
+}
+/* hacia dónde va y cuánto queda — EN SINCRONIA con checkEvolution */
+function predictNext(p){
+  if(p.exped) return null;
+  if(p.stage===STAGES.EGG) return {when: Math.max(0, T_HATCH-(Date.now()-p.bornAt)), key:null};
+  if(!p.hatchedAt) return null;
+  const age = Date.now() - p.hatchedAt;
+  if(p.stage===STAGES.BABY){
+    const slot = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
+    return {when: Math.max(0, T_CHILD-age), key: p.line+'_'+slot};
+  }
+  if(p.stage===STAGES.CHILD){
+    const cs = careScore(p);
+    let slot;
+    if(p.mistakes>=5 || cs<35) slot = 'grimo';
+    else if(cs>=85 && p.str>=6 && p.def>=6 && p.spd>=6 && p.gamesWon>=5 && p.mistakes===0) slot = 'adultS';
+    else if(p.form==='childA') slot = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
+    else slot = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
+    return {when: Math.max(0, T_ADULT-age), key: slot==='grimo' ? 'grimo' : p.line+'_'+slot};
+  }
+  return null;
 }
 
 function checkAchievements(){
