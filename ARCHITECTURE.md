@@ -115,6 +115,10 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
 - **Nueva misión diaria** — entrada en `QUESTS` (`data/content.js`) + su hook
   `questProg(id, n)` donde ocurra la acción. La selección diaria es determinista
   (LCG sembrado por la fecha) en `ensureDaily()`.
+- **Nuevo juguete** — entrada en `TOYS` (`data/content.js`), su efecto especial
+  en `buyToy()` si arranca relojes, su dibujo en `drawToys()` (`render/pets.js`)
+  y su comportamiento en el bloque de juguetes de `liveUpdate` (`game/sim.js`).
+  La tienda pinta la fila sola (icono: añade el caso en `drawShop`).
 - **Nuevo gorro** — entrada en `HATS` + sprite `hat_<id>` en `buildAllSprites()`.
   Se dibuja anclado a la cabeza en `drawOnePet` y en el combate.
 - **Nueva oferta del buhonero** — añádela al `pool` de `buhoOffers()` y su

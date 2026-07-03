@@ -69,19 +69,26 @@ function doSleepToggle(){
 }
 /* afinidad de línea: cada una entrena mejor una stat */
 const TRAIN_AFFINITY = {brasa:'str', petrea:'def', marea:'spd'};
-function doTrain(kind){
+/* la cuota del parque sube con la stat: sumidero de motas de largo plazo */
+function trainCost(p, kind){ return 5 + (p[kind]||0)*2; }
+function trainEffect(kind){
   const p = AP();
-  if(p.sleeping){ toast('SHHH... DUERME'); return; }
-  if(p.energy<15){ toast('SIN ENERGIA'); SFX.nope(); return; }
-  p.energy=Math.max(0,p.energy-15);
+  if(p.stage===STAGES.EGG){ toast('AUN ES UN HUEVO'); SFX.nope(); return null; }
+  if(p.sleeping){ toast('SHHH... DUERME'); return null; }
+  if(p.energy<15){ toast('SIN ENERGIA'); SFX.nope(); return null; }
+  const cost = trainCost(p, kind);
+  if(G.motas < cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return null; }
+  G.motas -= cost;
+  p.energy = Math.max(0, p.energy-15);
   const gain = TRAIN_AFFINITY[p.line]===kind ? 2 : 1;
   p[kind] = Math.min(99, (p[kind]||0) + gain);
-  p.weight=Math.max(5,p.weight-1); p.happy=Math.max(0,p.happy-3);
-  p.trainT = 1500; gainXP(12);
-  const label = {str:'FUE', def:'DEF', spd:'VEL'}[kind];
-  UI.floats.push({x:p.rx, y:128, s:'+'+gain+' '+label, col:'#7ac74f', life:1000, vy:-0.025});
+  p.weight = Math.max(5, p.weight-1);
+  p.happy = Math.max(0, p.happy-3);
+  gainXP(12);
   questProg('entrena', 1);
-  SFX.train(); vibrate(30); UI.mode='main'; saveGame();
+  SFX.train(); vibrate(30);
+  saveGame();
+  return {gain, kind, cost};
 }
 
 function buyToy(i){
@@ -91,6 +98,7 @@ function buyToy(i){
   G.motas -= T.cost;
   G.toys[T.id] = true;
   if(T.id==='caja') G.cajaReadyAt = Date.now();
+  if(T.id==='huerto') G.huertoReadyAt = Date.now() + 2*3600*1000;
   UI.shopFlash[T.id] = performance.now();
   toast('¡NUEVO JUGUETE EN EL PRADO!');
   SFX.buy(); vibrate(25); saveGame();

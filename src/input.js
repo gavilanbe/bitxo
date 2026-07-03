@@ -95,7 +95,7 @@ function handleTap(x,y){
       const i = Math.floor((y-64)/19);
       if(i>=0 && i<SHOP.length) buyUpgrade(i);
     } else if(tab===1){
-      const i = Math.floor((y-64)/26);
+      const i = Math.floor((y-64)/24);
       if(i>=0 && i<TOYS.length) buyToy(i);
     } else {
       const i = Math.floor((y-64)/24);
@@ -143,11 +143,20 @@ function handleTap(x,y){
     UI.mode='play'; SFX.tap(); return;
   }
   if(UI.mode==='train'){
-    if(x>=18 && x<=142 && y>=92 && y<176){
-      const i = Math.floor((y-92)/28);
-      if(i>=0 && i<3){ doTrain(['str','def','spd'][i]); return; }
+    if(y<16 && x<48){ UI.mode='play'; UI.park=null; SFX.tap(); return; }
+    const pk = UI.park || (UI.park = {phase:'idle', px:80, t:0});
+    if(pk.phase==='idle' && y>=104 && y<=180){
+      let kind=null, tx=0;
+      if(x>=18 && x<52){ kind='str'; tx=36; }
+      else if(x>=64 && x<100){ kind='def'; tx=76; }
+      else if(x>=106 && x<146){ kind='spd'; tx=118; }
+      if(kind){
+        const r = trainEffect(kind);
+        if(r){ pk.phase='walk'; pk.kind=kind; pk.tx=tx; pk.t=0; pk.gain=r.gain; SFX.tap(); }
+        return;
+      }
     }
-    UI.mode='play'; SFX.tap(); return;
+    return;
   }
   if(UI.mode==='discos'){
     if(x>=14 && x<=146 && y>=76 && y<184){
@@ -268,6 +277,27 @@ function handleTap(x,y){
     else {
       const mns = Math.ceil((G.cajaReadyAt-Date.now())/60000);
       toast('CAJA LISTA EN '+mns+'M');
+    }
+    return;
+  }
+  /* huerto: cosechar la fruta */
+  if(G.toys && G.toys.huerto && x>72 && x<98 && y>134 && y<166 &&
+     !G.pets.some(q=>q.stage>STAGES.EGG && Math.abs(x-q.rx)<9)){
+    if(Date.now() >= (G.huertoReadyAt||0)){
+      const p2 = AP();
+      if(p2.stage===STAGES.EGG){ toast('EL HUEVO NO COME'); return; }
+      p2.hunger = Math.min(100, p2.hunger+20);
+      p2.happy = Math.min(100, p2.happy+4);
+      p2.energy = Math.min(100, p2.energy+10);
+      p2.eatT = 1600; p2.feedKind = 'fruta';
+      gainXP(6);
+      G.foodsTried.fruta = true;
+      G.huertoReadyAt = Date.now() + 2*3600*1000;
+      toast('¡FRUTA DEL HUERTO!');
+      SFX.eatFood('fruta'); vibrate(15); saveGame();
+    } else {
+      const mns = Math.ceil((G.huertoReadyAt-Date.now())/60000);
+      toast('FRUTA EN '+(mns>=60? Math.ceil(mns/60)+'H' : mns+'M'));
     }
     return;
   }

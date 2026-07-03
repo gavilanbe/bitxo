@@ -20,6 +20,18 @@ function drawOnePet(p, i, t){
     if(sel && Math.floor(t/400)%2===0){ px(26,149-h2-6,2,2,'#ffd94a'); px(25,149-h2-8,4,2,'#ffd94a'); }
     return;
   }
+  if((p.batheT||0)>0){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(52,136,14,15); ctx.clip();
+    const def3 = p.form==='grimo' ? 'grimo' : p.line+'_'+(p.form||'babyA');
+    const spr3 = SPR[def3][0];
+    ctx.translate(59, 154+Math.round(Math.sin(t/170)*1.5));
+    ctx.drawImage(spr3, -spr3.width/2, -spr3.height+4);
+    ctx.restore();
+    if(Math.random()<0.08) UI.particles.push({x:53+Math.random()*12, y:147, vy:-0.022, life:520, ch:'.', col:'#9adcf0'});
+    if(sel && Math.floor(t/400)%2===0){ px(58,132,2,2,'#ffd94a'); px(57,130,4,2,'#ffd94a'); }
+    return;
+  }
   if(p.exped){
     px(p.rx-1,147,2,14,'#5a4632');
     px(p.rx-8,139,16,10,'#8a6a3a');
@@ -165,6 +177,27 @@ function drawToys(t){
   if(G.toys.pelota && G.ballX!==undefined){
     px(Math.round(G.ballX)-3,160,7,2,'rgba(0,0,0,0.25)');
     ctx.drawImage(SPR.pelota, Math.round(G.ballX)-3, 153);
+  }
+  if(G.toys.banera){
+    px(51,159,16,2,'rgba(0,0,0,0.25)');
+    ctx.drawImage(SPR.banera, 51, 149);
+  }
+  if(G.toys.tambor){
+    px(121,159,12,2,'rgba(0,0,0,0.25)');
+    ctx.drawImage(SPR.tambor, 121, 151);
+  }
+  if(G.toys.huerto){
+    const left = Math.max(0, (G.huertoReadyAt||0) - Date.now());
+    const total = 2*3600*1000;
+    px(74,157,22,6,'#5a4632');
+    px(76,158,18,4,'#7a5e3a');
+    const stage = left<=0 ? 3 : (left<total*0.33 ? 2 : (left<total*0.66 ? 1 : 0));
+    if(stage>=1){ px(84,151,2,6,'#57a05e'); }
+    if(stage>=2){ px(82,149,2,2,'#57a05e'); px(87,147,2,4,'#57a05e'); px(89,149,2,2,'#57a05e'); }
+    if(stage>=3){
+      ctx.drawImage(SPR.fruta, 82, 146);
+      if(Math.floor(t/300)%2===0) drawText('!', 85, 136, '#ffd94a');
+    }
   }
   if(G.toys.caja){
     const ready = Date.now() >= (G.cajaReadyAt||0);

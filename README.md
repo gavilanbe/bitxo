@@ -60,6 +60,12 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
   Los juegos también entrenan: simón +DEF, comba +VEL, topo +FUE.
 - 🧭 **JUGAR organizado en tres puertas**: GYM (entreno), JUEGOS (la sala) y
   EXPLORACIÓN (expediciones).
+- 🏋️ **Parque de entreno visual**: tu bitxo camina hasta las PESAS, el MURO o
+  la CARRERA y entrena delante de ti — cada sesión cuesta pilas y una **cuota
+  en motas que sube con la stat** (el gimnasio no es gratis).
+- 🧸 **6 juguetes vivos**: pelota, caja sorpresa, columpio, BAÑERA (se bañan
+  solos y recuperan limpieza), TAMBOR (conciertos que animan al prado) y
+  HUERTO (fruta gratis cada 2 h que ves crecer).
 - ⚔️ **Combate de verdad**: golpea con timing, **bloquea** el ataque enemigo en
   el momento justo y carga el medidor de **SUPER** para soltar el ataque único
   de tu línea (llamarada, ola gigante, lluvia estelar...). Con hit-stop, zoom

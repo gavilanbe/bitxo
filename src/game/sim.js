@@ -126,6 +126,36 @@ function liveUpdate(dtMs){
         }
       }
     }
+    if(G.toys.banera){
+      for(const p of G.pets){
+        if((p.batheT||0)>0){
+          p.batheT -= dtMs;
+          p.hygiene = Math.min(100, p.hygiene + dtMs*0.012);
+          if(p.batheT<=0){ p.batheT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
+        } else if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) &&
+                  p.hygiene<72 && now>(p.batheCd||0) && Math.random() < dtMs*0.00004){
+          p.tx = 59;
+        }
+        if(!(p.batheT>0) && p.tx===59 && Math.abs(p.rx-59)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
+          p.batheT = 3000; p.batheCd = now + 60000;
+          SFX.clean();
+        }
+      }
+    }
+    if(G.toys.tambor){
+      for(const p of G.pets){
+        if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.batheT>0) &&
+           Math.abs(p.rx-127)<12 && now>(p.drumAt||0) && Math.random() < dtMs*0.0001){
+          p.drumAt = now + 25000;
+          p.joyAt = performance.now();
+          const base = [262,330,392][Math.floor(Math.random()*3)];
+          [0,4,7,12].forEach((sv,j)=> tone({f:NOTE(base,sv), at:sfxAt(j*0.11), d:0.13, type:'p25', vol:0.04, send:0.3}));
+          for(let j=0;j<4;j++) UI.particles.push({x:123+Math.random()*8, y:148, vy:-0.028, life:900, ch:'✦', col:'#ffd94a'});
+          for(const q of G.pets) if(q!==p && q.stage>STAGES.EGG) q.happy = Math.min(100, q.happy+3);
+          p.happy = Math.min(100, p.happy+4);
+        }
+      }
+    }
     if(G.toys.columpio){
       const someone = G.pets.some(q=>(q.swingT||0)>0);
       for(const p of G.pets){

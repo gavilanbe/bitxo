@@ -246,19 +246,23 @@ function drawShop(){
       const T = TOYS[i];
       const owned = !!G.toys[T.id];
       const afford = G.motas>=T.cost && !owned;
-      const y = 64 + i*26;
+      const y = 64 + i*24;
       const flash = UI.shopFlash[T.id] && performance.now()-UI.shopFlash[T.id]<250;
-      px(10,y,140,23, flash ? '#ffd94a' : (owned? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba')));
-      px(10,y,140,1,K); px(10,y+22,140,1,K); px(10,y,1,23,K); px(149,y,1,23,K);
-      const icon = T.id==='pelota'? SPR.pelota : (T.id==='caja'? SPR.caja : null);
-      if(icon) ctx.drawImage(icon, 14, y+8);
-      else { px(15,y+6,1,12,'#5a4632'); px(24,y+6,1,12,'#5a4632'); px(13,y+5,14,2,'#8a6a3a'); px(17,y+15,6,2,'#8a6a3a'); }
+      px(10,y,140,21, flash ? '#ffd94a' : (owned? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba')));
+      px(10,y,140,1,K); px(10,y+20,140,1,K); px(10,y,1,21,K); px(149,y,1,21,K);
+      let icon = null;
+      if(T.id==='pelota') icon = SPR.pelota;
+      else if(T.id==='caja') icon = SPR.caja;
+      else if(T.id==='banera') icon = SPR.banera;
+      else if(T.id==='tambor') icon = SPR.tambor;
+      if(icon) ctx.drawImage(icon, 14, y+Math.floor((21-icon.height)/2));
+      else if(T.id==='columpio'){ px(15,y+4,1,12,'#5a4632'); px(24,y+4,1,12,'#5a4632'); px(13,y+3,14,2,'#8a6a3a'); px(17,y+13,6,2,'#8a6a3a'); }
+      else { px(13,y+13,15,4,'#5a4632'); px(19,y+7,2,6,'#57a05e'); px(17,y+9,2,2,'#57a05e'); ctx.drawImage(SPR.fruta, 20, y+2); }
       drawText(T.name, 30, y+3, K);
-      drawText(T.desc, 30, y+12, 'rgba(26,20,40,0.55)');
-      if(owned) drawText('TUYO', 124, y+8, '#3a7048');
-      else drawText('✦'+fmt(T.cost), 118, y+8, afford?'#8a6a10':'#a03030');
+      drawText(T.desc, 30, y+11, 'rgba(26,20,40,0.55)');
+      if(owned) drawText('TUYO', 124, y+7, '#3a7048');
+      else drawText('✦'+fmt(T.cost), 118, y+7, afford?'#8a6a10':'#a03030');
     }
-    drawTextC('VIVEN EN EL PRADO', 80, 152, 'rgba(26,20,40,0.45)');
   }
   if(tab===2){
     for(let i=0;i<HATS.length;i++){
@@ -545,30 +549,6 @@ function drawBuhoShop(){
   const left = Math.max(0, Math.ceil((b.until-Date.now())/1000));
   drawTextC('SE VA EN '+(left>60? Math.ceil(left/60)+' MIN' : left+'S'), 80, 172, '#a03030');
   drawTextC('TOCA FUERA PARA SALIR', 80, 184, 'rgba(26,20,40,0.5)');
-}
-
-/* ---------------- ENTRENO POR STAT ---------------- */
-function drawTrainMenu(){
-  const p = AP();
-  panel(12,66,136,124);
-  titleChip(80, 72, 'GYM DEL PRADO');
-  drawTextC('PILAS: '+Math.round(p.energy)+'  (CADA SESION -15)', 80, 81, 'rgba(26,20,40,0.6)');
-  const rows = [
-    {kind:'str', name:'PESAS',   label:'FUERZA',    val:p.str||0, col:'#e2574c', hint:'PEGA MAS FUERTE'},
-    {kind:'def', name:'MURO',    label:'DEFENSA',   val:p.def||0, col:'#8a6a3a', hint:'ENCAJA LOS GOLPES'},
-    {kind:'spd', name:'CARRERA', label:'VELOCIDAD', val:p.spd||0, col:'#5ec8d8', hint:'ESQUIVA Y APUNTA'}
-  ];
-  for(let i=0;i<3;i++){
-    const r = rows[i], y = 92 + i*28;
-    const afin = TRAIN_AFFINITY[p.line]===r.kind;
-    px(18,y,124,25,'#f6efe0');
-    px(18,y,124,1,K); px(18,y+24,124,1,K); px(18,y,1,25,K); px(141,y,1,25,K);
-    drawText(r.name, 22, y+4, K);
-    drawText(r.hint, 22, y+14, 'rgba(26,20,40,0.55)');
-    drawText(r.label.slice(0,3)+' '+r.val, 104, y+4, r.col);
-    if(afin) drawText('X2', 104, y+14, '#3a7048');
-  }
-  drawTextC('TOCA FUERA PARA SALIR', 80, 182, 'rgba(26,20,40,0.5)');
 }
 
 /* ---------------- DISCOS DEL BAILE ---------------- */

@@ -540,3 +540,125 @@ function drawPesca(t, dt){
   drawParticles(dt);
   if(m.ph==='end') drawMgEnd();
 }
+
+/* ---------------- PARQUE DE ENTRENO ---------------- */
+const PARK_STATIONS = [
+  {kind:'str', x:35,  label:'PESAS'},
+  {kind:'def', x:80,  label:'MURO'},
+  {kind:'spd', x:125, label:'CARRERA'}
+];
+function drawPark(t, dt){
+  const pk = UI.park || (UI.park = {phase:'idle', px:80, t:0});
+  const p = AP();
+  const ph = dayPhase(), S = SKY[ph];
+  /* cielo, valla y césped del parque */
+  px(0,0,160,70,S.bands[1]);
+  px(0,70,160,34,S.bands[2]);
+  for(let x=4;x<160;x+=18){ px(x,86,3,18,'#8a6a3a'); px(x,86,3,1,K); }
+  px(0,91,160,2,'#a4834e'); px(0,97,160,2,'#a4834e');
+  px(0,104,160,92,S.grass);
+  for(let x=0;x<160;x+=6) px(x,104,3,2,S.grass2);
+  /* pista de tierra */
+  px(0,146,160,32,'#c2a26a');
+  px(0,146,160,2,'#8a6a3a'); px(0,176,160,2,'#8a6a3a');
+  px(0,196,160,4,K);
+
+  /* estaciones + carteles con la cuota */
+  for(const st of PARK_STATIONS){
+    px(st.x-1,126,2,10,'#5a4632');
+    px(st.x-16,108,32,19,'#f6efe0');
+    px(st.x-16,108,32,1,K); px(st.x-16,126,32,1,K);
+    px(st.x-16,108,1,19,K); px(st.x+15,108,1,19,K);
+    const cost = trainCost(p, st.kind);
+    drawTextC(st.label, st.x, 111, K);
+    drawTextC('✦'+cost, st.x, 119, G.motas>=cost ? '#8a6a10' : '#a03030');
+    if(TRAIN_AFFINITY[p.line]===st.kind){
+      px(st.x+8,104,14,8,'#ffd94a');
+      px(st.x+8,104,14,1,K); px(st.x+8,111,14,1,K); px(st.x+8,104,1,8,K); px(st.x+21,104,1,8,K);
+      drawTextC('X2', st.x+15, 106, K);
+    }
+  }
+  /* pesas */
+  px(22,158,6,10,'#3a3448'); px(46,158,6,10,'#3a3448');
+  px(27,161,20,3,'#8a8a94');
+  /* muro (tiembla al empujarlo) */
+  const shake = (pk.phase==='train' && pk.kind==='def') ? Math.round(Math.sin(t/50)) : 0;
+  for(let r=0;r<4;r++) for(let c=0;c<3;c++){
+    px(88+shake+c*8, 152+r*5, 7, 4, (r+c)%2 ? '#9a9aa4' : '#8a8a94');
+  }
+  px(88+shake,152,24,1,K); px(88+shake,171,24,1,K); px(88+shake,152,1,20,K); px(111+shake,152,1,20,K);
+  /* conos de carrera */
+  for(const cx of [112,140]){
+    px(cx+1,160,2,2,'#f0a04b'); px(cx,162,4,2,'#f0a04b'); px(cx-1,164,6,2,'#e2574c'); px(cx-2,166,8,2,K);
+  }
+  for(let x=116;x<138;x+=6) px(x,164,3,1,'rgba(59,47,47,0.4)');
+
+  /* el bitxo entrenando */
+  const spr = currentSprite(), w=spr.width, h=spr.height;
+  let bx = pk.px, lift=0, sx=1, sy=1, dir=1;
+  if(pk.phase==='walk'){
+    const d = pk.tx - pk.px;
+    pk.px += Math.sign(d)*Math.min(Math.abs(d), dt*0.07);
+    dir = Math.sign(d)||1;
+    const phw = Math.abs(Math.sin(t/150));
+    lift = phw*2; sy = 1+phw*0.04;
+    if(Math.abs(d)<2){ pk.phase='train'; pk.t=0; }
+    bx = pk.px;
+  } else if(pk.phase==='train'){
+    pk.t += dt;
+    if(pk.kind==='str'){
+      const ph2 = Math.abs(Math.sin(pk.t/260));
+      sy = 1-ph2*0.16; sx = 1+ph2*0.10;
+      /* la barra sube y baja con él */
+      const by2 = 150 - ph2*14;
+      px(24,by2,4,6,'#3a3448'); px(46,by2,4,6,'#3a3448'); px(28,by2+2,18,2,'#8a8a94');
+      if(Math.random()<dt*0.006) pk.sweat = {x:bx-8+Math.random()*16, y:132};
+    } else if(pk.kind==='def'){
+      sx = 1.12; sy = 0.92; dir = 1;
+      bx = pk.px + Math.abs(Math.sin(pk.t/180))*2;
+      if(Math.random()<dt*0.006) pk.sweat = {x:bx-10, y:134};
+    } else {
+      bx = 125 + Math.sin(pk.t/240)*13;
+      dir = Math.cos(pk.t/240)>=0 ? 1 : -1;
+      const ph2 = Math.abs(Math.sin(pk.t/90));
+      lift = ph2*3; sy = 1+ph2*0.05;
+      if(Math.random()<dt*0.01) UI.particles.push({x:bx-dir*6, y:170, vy:-0.01, life:350, ch:'.', col:'rgba(194,162,106,0.9)'});
+    }
+    if(pk.sweat){
+      px(pk.sweat.x, pk.sweat.y, 1, 2, '#9adcf0');
+      pk.sweat.y += dt*0.05;
+      if(pk.sweat.y>150) pk.sweat = null;
+    }
+    if(pk.t>2200){
+      pk.phase='idle';
+      UI.floats.push({x:bx, y:126, s:'+'+pk.gain+' '+({str:'FUE',def:'DEF',spd:'VEL'})[pk.kind], col:'#7ac74f', life:1200, vy:-0.025});
+      petVoice(p);
+    }
+  } else {
+    sy = 1 + Math.sin(t/420)*0.02;
+  }
+  px(Math.round(bx)-w/2+2, 176, w-4, 2, 'rgba(0,0,0,0.3)');
+  ctx.save();
+  ctx.translate(Math.round(bx), Math.round(176-lift));
+  ctx.scale(dir*sx, sy);
+  ctx.drawImage(spr, -w/2, -h);
+  ctx.restore();
+  if(pk.phase==='train' && Math.floor(t/300)%2===0){
+    drawText('!', Math.round(bx)+10, 176-h-8, '#ffd94a');
+  }
+
+  /* pie económico */
+  px(0,200,160,72,'#e8e0c8'); px(0,200,160,1,K); px(0,202,160,1,'rgba(26,20,40,0.2)');
+  drawText('FUE '+(p.str||0), 8, 208, '#e2574c');
+  drawText('DEF '+(p.def||0), 48, 208, '#8a6a3a');
+  drawText('VEL '+(p.spd||0), 88, 208, '#5ec8d8');
+  drawText('PILAS '+Math.round(p.energy), 122, 208, K);
+  px(6,218,148,1,'rgba(26,20,40,0.2)');
+  drawTextC('CADA SESION: -15 PILAS Y SU CUOTA', 80, 224, 'rgba(26,20,40,0.55)');
+  drawTextC('LA CUOTA SUBE CON LA STAT', 80, 233, 'rgba(26,20,40,0.45)');
+  /* cabecera */
+  px(0,0,160,14,'rgba(14,16,48,0.6)');
+  drawText('< VOLVER', 4, 4, '#ffffff');
+  drawText('✦'+fmt(G.motas), 122, 4, '#ffd94a');
+  drawParticles(dt);
+}

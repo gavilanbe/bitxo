@@ -27,6 +27,9 @@ function run(){
     statsbackup: `G.bond=24; UI.mode='stats';`,
     statsrumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex.pradera_childA=true; UI.mode='stats';`,
     treerumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex={pradera_babyA:true, pradera_childA:true}; UI.evoLine=0; UI.evoSel=1; UI.mode='evotree';`,
+    park: `G.motas=137; _p.str=3; _p.def=1; _p.spd=0; UI.mode='train'; UI.park={phase:'idle', px:80, t:0};`,
+    parktrain: `G.motas=137; _p.line='brasa'; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:36, tx:36, kind:'str', t:600, gain:2};`,
+    toysprado: `G.toys={pelota:true, caja:true, columpio:true, banera:true, tambor:true, huerto:true}; G.huertoReadyAt=Date.now()-1; G.ballX=105; _p.rx=40; _p.tx=40; UI.mode='main';`,
     gamesmenu: `G.games={salta:true}; G.best={mgCatch:23, mgSimon:6, mgJump:12}; G.motas=260; UI.mode='games';`,
     topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
     pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
@@ -66,6 +69,7 @@ function run(){
       else if(UI.mode==='mgJump'){ drawJump(t, 16); }
       else if(UI.mode==='mgTopo'){ drawTopo(t, 0); }
       else if(UI.mode==='mgPesca'){ drawPesca(t, 0); }
+      else if(UI.mode==='train'){ drawPark(t, 16); }
       else if(UI.mode==='evolve'){ drawEvolve(16); }
       else if(UI.mode==='battle'){ UI.bt.stop=0; drawBattle(t, 0); drawParticles(16); }
       else {
@@ -126,10 +130,38 @@ function run(){
       const m2 = G.motas;
       handleTap(45, 60);
       R.feedWorks = (m2 - G.motas === 5) && UI.mode === 'main';
-      // entreno por stat
-      _p.energy = 90; const d0 = _p.def;
-      UI.mode = 'train'; handleTap(80, 125);
-      R.trainDef = _p.def === d0+1 && _p.energy === 75 && UI.mode === 'main';
+      // parque de entreno: pagar la cuota, caminar y entrenar
+      _p.energy = 90; G.motas = 500;
+      const d0 = _p.def, m0b = G.motas;
+      UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
+      handleTap(80, 140); // estación MURO
+      R.trainDef = _p.def === d0+1 && _p.energy === 75;
+      R.trainCosts = G.motas === m0b - (5 + d0*2);
+      R.trainWalks = UI.park.phase === 'walk' && UI.park.kind === 'def';
+      let crashedPark = false;
+      try{ UI.park.px = 76; drawPark(1000, 16); UI.park.phase='train'; UI.park.t=0; drawPark(1100, 16); }
+      catch(err){ crashedPark = true; }
+      R.parkDraws = !crashedPark;
+      handleTap(10, 8); // < VOLVER
+      R.parkBack = UI.mode === 'play';
+      UI.mode = 'main';
+      // el gym sin motas no deja entrenar
+      G.motas = 0; UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
+      const d1 = _p.def; handleTap(80, 140);
+      R.trainNeedsMotas = _p.def === d1 && UI.park.phase === 'idle';
+      G.motas = 1000; UI.mode = 'main'; UI.park = null;
+      // juguetes nuevos: comprar bañera (fila 4) y huerto (fila 6)
+      UI.mode = 'shop'; UI.shopTab = 1;
+      handleTap(80, 64 + 3*24 + 10);
+      R.toyBanera = !!G.toys.banera;
+      handleTap(80, 64 + 5*24 + 10);
+      R.toyHuerto = !!G.toys.huerto && G.huertoReadyAt > Date.now();
+      UI.mode = 'main';
+      // cosechar el huerto
+      G.huertoReadyAt = Date.now() - 1;
+      _p.rx = 30; _p.hunger = 50; // lejos del huerto
+      handleTap(84, 150);
+      R.huertoHarvest = _p.hunger === 70 && G.huertoReadyAt > Date.now();
       // evolución por stats (estilo digimon)
       const evo = (stage, form, st, df, sp, games, care) => {
         const q = makePet('pradera', 1);

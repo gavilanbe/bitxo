@@ -64,7 +64,10 @@ const FAVES = {pradera:'fruta', brasa:'picante', marea:'pescado', fungo:'seta', 
 const TOYS = [
  {id:'pelota',  name:'PELOTA',        desc:'LA CHUTAN Y JUEGAN', cost:60},
  {id:'caja',    name:'CAJA SORPRESA', desc:'PREMIO CADA 45 MIN', cost:100},
- {id:'columpio',name:'COLUMPIO',      desc:'RELAX: ANIMO Y PILAS', cost:150}
+ {id:'columpio',name:'COLUMPIO',      desc:'RELAX: ANIMO Y PILAS', cost:150},
+ {id:'banera',  name:'BANERA',        desc:'CHAPUZONES: +LIMPIO', cost:180},
+ {id:'tambor',  name:'TAMBOR',        desc:'CONCIERTOS DE PRADO', cost:220},
+ {id:'huerto',  name:'HUERTO',        desc:'FRUTA GRATIS CADA 2H', cost:400}
 ];
 
 const ENEMIES = {

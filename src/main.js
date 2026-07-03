@@ -8,7 +8,7 @@
 const MENU_PARENT = {
   stats:'main', album:'stats', ach:'stats', relics:'stats', beast:'stats',
   ascendConfirm:'stats', shop:'main', feed:'main', play:'main',
-  quests:'main', buho:'main', train:'play', discos:'games',
+  quests:'main', buho:'main', discos:'games',
   games:'play', exped:'play'
 };
 const MENU_DRAW = {
@@ -16,7 +16,7 @@ const MENU_DRAW = {
   exped:drawExped, ascendConfirm:drawAscendConfirm,
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
   quests:drawQuests, buho:drawBuhoShop,
-  train:drawTrainMenu, discos:drawDiscos, evotree:drawEvoTree,
+  discos:drawDiscos, evotree:drawEvoTree,
   beast:drawBeast, games:drawGames
 };
 function drawModals(now){
@@ -70,6 +70,8 @@ function frame(now){
     drawTopo(now, dt);
   } else if(UI.mode==='mgPesca'){
     drawPesca(now, dt);
+  } else if(UI.mode==='train'){
+    drawPark(now, dt);
   } else {
     drawScene(now);
     drawShoot(now);
@@ -106,7 +108,7 @@ function normalizeSave(g){
   g.hats = g.hats||{}; g.daily = g.daily||null;
   g.buhoNextAt = g.buhoNextAt||0; g.buho = g.buho||null;
   g.discos = g.discos||{prado:true}; g.disco = g.disco||'prado'; g.games = g.games||{};
-  g.beast = g.beast||{}; g.best = g.best||{};
+  g.beast = g.beast||{}; g.best = g.best||{}; g.huertoReadyAt = g.huertoReadyAt||0;
   for(const p of g.pets){
     p.swingT=0; p.kickAt=0;
     p.hat = p.hat||null;

@@ -217,6 +217,10 @@ function buildAllSprites(){
 "..kkk..",".krrwk.","krrrwwk","krrwwwk","krwwwwk",".krwwk.","..kkk.."]);
   SPR.caja = mkSprite({k:K,p:'#9d7bd8',y:'#ffd94a'},[
 "kkkkkkkkkk","kppyyppyyk","kppppppppk","kyyppppyyk","kppppppppk","kppyyppyyk","kkkkkkkkkk"]);
+  SPR.banera = mkSprite({k:K,w:'#f6efe0',b:'#5e9be0',c:'#9adcf0'},[
+".kkkkkkkkkkkk.","kwccccccccccwk","kwbbbcbbcbbbwk","kwwbbbbbbbbwwk",".kwwwwwwwwwwk.","..kk......kk.."]);
+  SPR.tambor = mkSprite({k:K,r:'#e2574c',c:'#fbe6c2',w:'#f6efe0'},[
+"..kkkkkkkk..",".kcccccccck.","kkkkkkkkkkkk","krrwrrrrwrrk","krwrrrrrrwrk","krrwrrrrwrrk","kkkkkkkkkkkk"]);
   /* gorros */
   SPR.hat_lazo = mkSprite({k:K,p:'#f78fb3',d:'#d8578a'},[
 "kk...kk","kppkppk","kpdkdpk",".kk.kk."]);
