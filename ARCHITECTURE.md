@@ -148,6 +148,14 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   el portapapeles). Cargar valida el código y recarga la página para pasar
   por `normalizeSave`.
 
+## PWA
+
+`manifest.webmanifest` + `sw.js` + `icons/` (generados desde el arte real con
+`tools/icon.html`). El service worker es **red primero, caché de respaldo**:
+nunca sirve JS viejo si hay conexión (los `?v=` además cambian de URL), y sin
+red el juego abre con lo último descargado. `tools/stamp.sh` estampa también
+el nombre de la caché del SW, que purga las versiones anteriores al activarse.
+
 ## Publicar (y que a nadie le quede caché vieja)
 
 `make ship MSG="mensaje"` hace todo: ejecuta `tools/stamp.sh` (estampa una

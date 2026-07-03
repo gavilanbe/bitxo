@@ -77,7 +77,7 @@ function run(){
     document.body.style.margin = 0;
     document.title = 'SHOT'; return;
   }
-  const out = E(`(function(){
+  const outPromise = E(`(async function(){
     const R = {};
     try{
       ${setup}
@@ -297,6 +297,15 @@ function run(){
         R.sleepGentle = sleepLoss < awakeLoss*0.45 && sleepLoss > 0;
         R.sleepCharges = _p.energy > 50;
         _p.sleeping=false; UI.mode='main'; }
+      // PWA: manifest válido y SW con caché versionada
+      try{
+        const mf = await (await fetch('../manifest.webmanifest')).json();
+        R.pwaManifest = mf.name==='BITXO' && mf.display==='standalone' && mf.icons.length>=4;
+        const sw = await (await fetch('../sw.js')).text();
+        R.pwaSw = sw.includes('bitxo-cache-') && sw.includes('ignoreSearch');
+        const ic = await fetch('../icons/icon-512.png');
+        R.pwaIcon = ic.ok;
+      }catch(err){ R.pwaManifest = false; }
       UI.mode = 'album'; handleTap(80, 37+3*31+10);
       R.albumFungoRow = UI.mode === 'evotree' && UI.evoLine === 3 && LINE_KEYS[3] === 'fungo';
       UI.mode = 'main';
@@ -308,7 +317,9 @@ function run(){
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);
-  document.getElementById('out').textContent = 'RESULTS::' + out;
-  document.title = 'DONE';
+  Promise.resolve(outPromise).then(out => {
+    document.getElementById('out').textContent = 'RESULTS::' + out;
+    document.title = 'DONE';
+  });
 }
 </script></body></html>

@@ -137,6 +137,9 @@ function normalizeSave(g){
   }
   checkUpdate();
   setInterval(checkUpdate, 5*60*1000);
+  if('serviceWorker' in navigator && location.protocol==='https:'){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkUpdate(); });
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveGame(); });
   window.addEventListener('pagehide', ()=>{ saveGame(); });

@@ -110,6 +110,17 @@ Todo con el dedo (o el ratón). Diseñado para móvil en vertical.
 |:--:|:--:|:--:|:--:|
 | ![árbol](docs/screenshots/06-arbol.png) | ![discoteca](docs/screenshots/07-discoteca.png) | ![salta](docs/screenshots/08-salta.png) | ![datos](docs/screenshots/05-datos.png) |
 
+## 📱 Instalar como app (PWA)
+
+BITXO se instala en tu pantalla de inicio como una app de verdad, con su icono
+y a pantalla completa: en iOS, Safari → Compartir → **Añadir a pantalla de
+inicio**; en Android, Chrome → **Instalar app**. Funciona **sin conexión**
+(red primero, caché de respaldo: las actualizaciones siempre entran).
+
+> 💡 La app instalada guarda su propia partida, separada de la del navegador.
+> Para llevártela: DATOS → **COPIAR SAVE** en el navegador, y **CARGAR SAVE**
+> dentro de la app.
+
 ## 🚀 Ejecutar en local
 
 Sin dependencias, sin build. Solo hace falta servirlo estático:

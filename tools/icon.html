@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!-- Genera el icono de la PWA desde el arte real del juego.
+     ?maskable=1 añade la zona segura para iconos enmascarables. -->
+<html><head><meta charset="UTF-8"><style>body{margin:0}canvas{display:block}</style></head>
+<body>
+<canvas id="icon" width="512" height="512"></canvas>
+<script src="../src/config.js"></script>
+<script src="../src/core/color.js"></script>
+<script src="../src/core/sprites.js"></script>
+<script src="../src/data/species.js"></script>
+<script src="../src/data/pixelart.js"></script>
+<script>
+buildAllSprites();
+const cv2 = document.getElementById('icon');
+const g = cv2.getContext('2d');
+g.imageSmoothingEnabled = false;
+const maskable = new URLSearchParams(location.search).get('maskable');
+
+/* cielo nocturno del prado en bandas */
+const bands = ['#0e1030','#141646','#1b1f5c'];
+g.fillStyle = bands[0]; g.fillRect(0,0,512,200);
+g.fillStyle = bands[1]; g.fillRect(0,200,512,160);
+g.fillStyle = bands[2]; g.fillRect(0,360,512,152);
+/* estrellas deterministas */
+for(let i=0;i<26;i++){
+  const x = (i*97+31)%500, y = (i*61+17)%330;
+  g.fillStyle = i%3 ? '#dfe8ff' : '#8a92c8';
+  g.fillRect(x, y, i%4?6:9, i%4?6:9);
+}
+/* hierba abajo */
+g.fillStyle = '#1c4a3a'; g.fillRect(0,430,512,82);
+g.fillStyle = '#153a2e'; for(let x=0;x<512;x+=36) g.fillRect(x,430,18,10);
+
+/* MIRU en el centro, gigante y nítido */
+const spr = SPR.pradera_babyA[0];
+const sc = maskable ? 22 : 30;
+const w = spr.width*sc, h = spr.height*sc;
+/* sombra */
+g.fillStyle = 'rgba(0,0,0,0.35)';
+g.fillRect(256-w/2+sc, 430, w-2*sc, 14);
+g.drawImage(spr, 256-w/2, 438-h, w, h);
+
+/* chispa dorada ✦ */
+const spark = (cx,cy,s,col)=>{
+  g.fillStyle = col;
+  g.fillRect(cx-s/2, cy-s*1.6, s, s*3.2);
+  g.fillRect(cx-s*1.6, cy-s/2, s*3.2, s);
+  g.fillRect(cx-s, cy-s, s*2, s*2);
+};
+spark(408, 150, 14, '#ffd94a');
+spark(120, 220, 9, '#fff8d0');
+document.title = 'ICON-READY';
+</script></body></html>

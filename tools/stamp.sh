@@ -7,5 +7,6 @@ cd "$(dirname "$0")/.."
 V=$(date +%Y%m%d-%H%M)
 sed -i '' -E "s/\?v=[0-9-]+/?v=$V/g" index.html
 sed -i '' -E "s/const GAME_VERSION = '[^']*'/const GAME_VERSION = '$V'/" src/config.js
+sed -i '' -E "s/bitxo-cache-[0-9-]+/bitxo-cache-$V/" sw.js
 printf '{"v":"%s"}\n' "$V" > version.json
 echo "📦 versión $V estampada"
