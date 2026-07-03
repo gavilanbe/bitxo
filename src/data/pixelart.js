@@ -51,6 +51,33 @@ blink:[[4,".kbkkbbbbbbkkbk."]]},
 marea_adultB:{pal:{k:K,m:'#7a9ae8',c:'#c8e0f8'},rows:[
 "....kkkkkkkk....","..kkmmmmmmmmkk..",".kmmmmmmmmmmmmk.",".kmkcmmmmmmckmk.","kmmmmmmmmmmmmmmk","kmcmmkkkkkkmmcmk","kmmmmmmmmmmmmmmk",".kmmcmmccmmcmmk.",".kkmmmmmmmmmmkk.","..kkkkkkkkkkkk..","..km.km.mk.mk...","..mk.km.mk.km...","..km.mk.km.mk...","...k..m..k..m..."],
 blink:[[3,".kmkkmmmmmmkkmk."]]},
+fungo_babyA:{pal:{k:K,r:'#d8574c',w:'#f6efe0',c:'#f0e0c0'},rows:[
+"...kkkkk...","..krrwrrk..",".krrrrrwrk.",".kkkkkkkkk.",".kccccccck.",".kckccckck.","..kccccck..","...kkkkk..."],
+blink:[[5,".kccccccck."]]},
+fungo_babyB:{pal:{k:K,n:'#a4713a',c:'#f0e0c0',w:'#f6efe0'},rows:[
+"....kkk....","...knwnk...","..knnnnnk..",".kkkkkkkkk.",".kccccccck.",".kckccckck.","..kccccck..","...kkkkk..."],
+blink:[[5,".kccccccck."]]},
+fungo_childA:{pal:{k:K,r:'#d8574c',w:'#f6efe0',c:'#f0e0c0'},rows:[
+"...kkkkkkk...","..krrwrrrrk..",".krrrrrwrrrk.",".krwrrrrrrrk.","kkkkkkkkkkkkk",".kccccccccck.",".kckccccckck.",".kccccccccck.","..kccccccck..","...kk.kkk.k.."],
+blink:[[6,".kccccccccck."]]},
+fungo_childB:{pal:{k:K,n:'#a4713a',c:'#f0e0c0',g:'#7ac74f'},rows:[
+".....kgk.....","....kgk......","..kkknnkk....",".knnnnnnnnk..","knnwnnnnnnnk.","knnnnnwnnnnk.","kkkkkkkkkkkk.",".kckcccckck..",".kcccccccck..","..kcccccck...","...kkkkkk...."],
+blink:[[7,".kcccccccck.."]]},
+fungo_adultA:{pal:{k:K,r:'#d8574c',w:'#f6efe0',c:'#f0e0c0'},rows:[
+"....kkkkkkk....","..kkrrwrrrrkk..",".krrrrrrrwrrrk.",".krwrrrrrrrrrk.","kkkkkkkkkkkkkkk","..kccccccccck..","..kckccccckck..","kkkccccccccckkk","kcckccccccckcck","kkkkccccccckkkk","...kccccccck...","...kcckkkcck...","...kkk...kkk..."],
+blink:[[6,"..kckkccckkck.."]]},
+fungo_adultB:{pal:{k:K,n:'#a4713a',w:'#f6efe0',c:'#f0e0c0'},rows:[
+"...kkkkkkkkkk...",".kknnnnwnnnnnkk.","knnnwnnnnnnwnnnk","knnnnnnnnwnnnnnk","kkkkkkkkkkkkkkkk",".kcccccccccccck.",".kckccccccckck..",".kcccccccccccck.",".kccccccccccck..",".kkccccccccckk..","..kkkkkkkkkkk..."],
+blink:[[6,".kccccccccccck.."]]},
+fungo_adultC:{pal:{k:K,r:'#d8574c',w:'#f6efe0',c:'#f0e0c0'},rows:[
+"....kkkkkk....","..krrwrrrrk...",".krrrrrwrrrk..",".krwrrrrrwrk..","kkkkkkkkkkkkk.","..kccccccck...","..kckccckck...","..kccccccck...","...kccccck....","...kckkkck....","..kck...kck...","..kk.....kk..."],
+blink:[[6,"..kckkccckk..."]]},
+fungo_adultD:{pal:{k:K,n:'#a4713a',d:'#7a4e28',c:'#f0e0c0'},rows:[
+"...kkkkkkkkkk...","..knnnndnnnnnk..",".knndnnnnnndnnk.","knnnnnnndnnnnnnk","kkkkkkkkkkkkkkkk",".kcccccccccccck.",".kckccccccckck..",".kcccccccccccck.",".kccccccccccck..","..kcccccccccck..","..kkcccccccckk..","...kkkkkkkkkk..."],
+blink:[[6,".kccccccccccck.."]]},
+fungo_adultS:{pal:{k:K,v:'#b88ae8',w:'#f6efe0',c:'#f0e0c0',y:'#ffd94a'},rows:[
+".y.....y.....y..","....kkkkkkk.....","..kkvvwvvvvkk...",".kvvvvvvwvvvvk..",".kvwvvvvvvvwvk..","kkkkkkkkkkkkkkkk","..kcccccccccck..","..kckcccccckck..","y.kccccccccccky.","..kccccccccck...","...kcckkkcck....","...kkk...kkk...."],
+blink:[[7,"..kckkcccckkk..."]]},
 petrea_babyA:{pal:{k:K,s:'#9a9aa4',d:'#6a6a78'},rows:[
 "...kkkkkk...","..kssssssk..",".kssdssdssk.",".kskssssksk.","kssssssssssk","ksdskkkksdsk","kssssssssssk",".ksdssssdsk.","..kssssssk..","...kkkkkk..."],
 blink:[[3,".kskksskksk."]]},
@@ -221,6 +248,18 @@ function buildEnemySprites(){
 "..k...kk...k..","...k.kggk.k...","..kkkggggkkk..",".kggggggggggk.","kgkwggggggwkgk","kggggggggggggk","kggggkkkkggggk","kggdggggggdggk",".kggggggggggk.","..kkkggggkkk..","...k.kggk.k...","..k...kk...k.."]);
   ESPR.lobruno = mkSprite({k:K,l:'#5a5464',d:'#3e3a4a',r:'#e8574c',w:'#ffffff'},[
 ".kk..........kk.",".kllk......kllk.",".klllkkkkkklllk.","kllllllllllllllk","klkrllllllllrklk","kllllllllllllllk","klkwkwkwkwkwkllk","kllllkkkkkkllllk","kllldllldllldllk",".kllllllllllllk.","..klldlldlldlk..","..kk.kk..kk.kk.."]);
+  ESPR.chispin = mkSprite({k:K,o:'#f8a04b',y:'#ffd94a',r:'#e8574c'},[
+"..k......k..",".kok....kok.",".koyk..kyok.","..koykkyok..",".koyyyyyyok.","koyykyykyyok","koyyyyyyyyok",".koykkkkyok.",".kooyyyyook.","..kooooook..","...kkkkkk..."]);
+  ESPR.burbujon = mkSprite({k:K,b:'#4a90d8',c:'#9adcf0',w:'#ffffff'},[
+"...kkkkkkk...","..kccccccck..",".kccbbbbbcck.","kccbwbbbbbcck","kcbbbkbbkbbck","kcbbbbbbbbbck","kcbbbkkbbbbck",".kcbbbbbbbck.","..kccbbbcck..","...kkkkkkk...","..c.......c.."]);
+  ESPR.roquijo = mkSprite({k:K,s:'#9a9aa4',d:'#6a6a78',r:'#e8574c'},[
+".kk........kk.","kddk......kddk","kdddkkkkkkdddk",".kdsssssssssk.",".ksdsrssrsdsk.","ksssssssssssk.","ksdsskkkkssdsk","kssssssssssssk",".ksdssssssdsk.","..kkssssssk...","..kdk.kk.kdk..",".kk........kk."]);
+  ESPR.polillux = mkSprite({k:K,v:'#8a6ae8',l:'#c8b8f8',y:'#ffd94a'},[
+"kk..........kk","kvvk......kvvk",".kvvk.kk.kvvk.",".kvlvkyykvlvk.","..kvvkyykvvk..",".kvlvvyyvvlvk.","kvvvkyyyykvvvk","kvlvkyyyykvlvk",".kvvkkkkkkvvk.","..kk..yy..kk..","......kk......"]);
+  ESPR.ladronzuelo = mkSprite({k:K,m:'#a07850',d:'#3a3440',w:'#ffffff'},[
+"..kk......kk..",".kmmk....kmmk.",".kmmmkkkkmmmk.","kmmmmmmmmmmmmk","kddddddddddddk","kdwkddddddkwdk","kmmmmmmmmmmmmk",".kmmkwwwwkmmk.",".kmmmmmmmmmmk.","..kmmkmmkmmk..","..kk.k..k.kk..",".............."]);
+  ESPR.reyseto = mkSprite({k:K,r:'#d8574c',w:'#f6efe0',c:'#f0e0c0',y:'#ffd94a'},[
+"...y..y..y......","...k..k..k......","..kykkykkyk.....",".kkkkkkkkkkkk...",".krrwrrrrwrrrk..","krrrrrwrrrrrrrk.","krwrrrrrrrwrrrk.","kkkkkkkkkkkkkkk.",".kccccccccccck..",".kckcccccckck...",".kcccccccccck...",".kcckkkkkkck....","..kkk....kkk...."]);
   ESPR.sombrio = mkSprite({k:K,s:'#4a4460',r:'#e8574c',w:'#c8c0e0'},[
 "....kkkkkk....","..kksssssskk..",".kssssssssssk.",".kskrssssrksk.","kssssssssssssk","ksskwkwkwkwssk","kssssssssssssk",".kssssssssssk.","..kssksskssk..","..ks..ks..sk..","..k....k....k."]);
 }

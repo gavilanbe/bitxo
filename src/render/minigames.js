@@ -88,6 +88,10 @@ function drawBattle(t, dt){
     drawTextC(b.bigAtk?'¡¡CARGA!!':'!', 112, 150-espr.height-12, '#e2574c');
   }
 
+  /* esporas del REY SETO a la deriva */
+  if(b.quirk==='spore' && Math.random()<0.12){
+    b.fx.push({x:Math.random()*160, y:30+Math.random()*80, vx:-0.008, vy:0.012, life:1600, col:'rgba(201,116,58,0.8)', size:1});
+  }
   /* partículas del combate */
   for(const f of b.fx){
     ctx.fillStyle = f.col;
@@ -116,6 +120,9 @@ function drawBattle(t, dt){
   };
   plate(6, pd.name, b.php, b.phpShow, b.pmx, true);
   plate(88, (b.boss?'JEFE ':'')+b.name, b.ehp, b.ehpShow, b.emx, false);
+  drawText('N'+b.nv, 88+38, 184, b.elite ? '#ffd94a' : 'rgba(255,255,255,0.75)');
+  px(88+58, 170, 4, 4, ELEM_COLS[b.elem]||'#c8c0b0');
+  if(b.elite && Math.floor(t/300)%2===0) drawText('★', 88-6, 169, '#ffd94a');
 
   /* ----- zona de mando (abajo) ----- */
   px(0,196,160,76,'#12141f');
@@ -141,7 +148,9 @@ function drawBattle(t, dt){
     const mx = 20 + b.mk*116;
     px(mx,214,3,16,'#ffffff');
     px(mx+1,212,1,2,'#ffffff'); px(mx+1,230,1,2,'#ffffff');
-    drawTextC('CRITICO EN LA FRANJA DORADA', 80, 240, 'rgba(255,255,255,0.35)');
+    if(b.mult>1) drawTextC('VENTAJA DE LINEA: DAÑO +30%', 80, 240, '#7ac74f');
+    else if(b.mult<1) drawTextC('TE RESISTE: DAÑO -25%', 80, 240, '#e2574c');
+    else drawTextC('CRITICO EN LA FRANJA DORADA', 80, 240, 'rgba(255,255,255,0.35)');
   } else if(b.phase==='eTele' || b.phase==='eanim'){
     if(b.blocked) drawTextC('ESCUDO ARRIBA', 80, 210, '#5ec8d8');
     else if(blockWin && Math.floor(t/140)%2===0) drawTextC('¡¡BLOQUEA: TOCA YA!!', 80, 210, '#5ec8d8');

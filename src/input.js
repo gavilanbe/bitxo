@@ -37,8 +37,8 @@ function handleTap(x,y){
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }
   if(UI.mode==='battle'){ battleTap(); return; }
   if(UI.mode==='album'){
-    const r = Math.floor((y-38)/31);
-    if(r>=0 && r<LINE_KEYS.length && y>=38 && y<195){
+    const r = Math.floor((y-35)/31);
+    if(r>=0 && r<LINE_KEYS.length && y>=35 && y<221){
       UI.evoLine = r; UI.evoSel = 0; UI.mode='evotree'; SFX.tap(); return;
     }
     UI.mode='stats'; SFX.tap(); return;
@@ -66,8 +66,9 @@ function handleTap(x,y){
     } else { UI.mode='stats'; SFX.tap(); }
     return;
   }
+  if(UI.mode==='beast'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='stats'){
-    if(y>168 && y<184){ UI.mode = x<54 ? 'album' : (x<105 ? 'ach' : 'relics'); SFX.tap(); return; }
+    if(y>168 && y<184){ UI.mode = x<41 ? 'album' : (x<78 ? 'ach' : (x<115 ? 'relics' : 'beast')); SFX.tap(); return; }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
     UI.mode='main'; SFX.tap(); return;
   }

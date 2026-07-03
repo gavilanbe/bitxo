@@ -192,8 +192,15 @@ function drawWild(t){
   if(Math.floor(t/350)%2===0){
     drawText('!', w.x-1, 161-spr.height-9, '#e2574c');
   }
+  /* nivel visible: lee el peligro antes de entrar */
+  if(w.nv){
+    const pp = Math.max(...G.pets.filter(q=>q.stage>=STAGES.CHILD).map(playerPower));
+    const d = w.nv - pp;
+    const col = d<=-2 ? '#7ac74f' : (d<=1 ? '#f6efe0' : (d<=3 ? '#f0a04b' : '#e2574c'));
+    drawTextC((w.elite?'★':'')+'NV'+w.nv, w.x, 161-spr.height-17, w.elite ? '#ffd94a' : col);
+  }
   const left = Math.max(0, Math.ceil((w.stealAt-Date.now())/1000));
-  if(left<20) drawTextC(String(left), w.x, 161-spr.height-18, '#e2574c');
+  if(left<20) drawTextC(String(left), w.x, 161-spr.height-25, '#e2574c');
 }
 
 function drawPoops(t){

@@ -110,3 +110,14 @@ function checkDailyGift(){
   SFX.buy();
   saveGame();
 }
+
+/* poder de combate del bitxo: nivel + entreno + etapa */
+function playerPower(p){
+  return p.level + Math.floor(((p.str||0)+(p.def||0)+(p.spd||0))/6) + p.stage*2;
+}
+function playerElem(p){ return p.form==='grimo' ? 'sombra' : p.line; }
+function elemMult(pe, ee){
+  if(ELEM_BEATS[pe]===ee || (pe==='astro' && ee==='sombra')) return 1.3;
+  if(ELEM_BEATS[ee]===pe) return 0.75;
+  return 1;
+}

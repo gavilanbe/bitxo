@@ -201,14 +201,20 @@ function liveUpdate(dtMs){
     if(!G.wild && fighter){
       if(!nextWildAt) nextWildAt = now + 40000 + Math.random()*120000;
       if(now > nextWildAt){
-        const kinds = ['ratuco','pinchon','sombrio'];
-        let kind = kinds[Math.min(kinds.length-1, Math.floor(Math.random()*(1+Math.min(2, G.battlesWon/4))))];
-        if(WEATHER.kind==='fog' && Math.random()<0.5) kind='sombrio';
+        const pool = WILD_POOL.filter(e=>G.battlesWon>=e[1]).map(e=>e[0]);
+        let kind = pool[Math.floor(Math.random()*pool.length)];
+        if(WEATHER.kind==='fog' && pool.includes('sombrio') && Math.random()<0.5) kind='sombrio';
+        if(WEATHER.kind==='rain' && pool.includes('burbujon') && Math.random()<0.5) kind='burbujon';
         let boss = false;
-        if(G.bossDue){ kind='lobruno'; boss=true; }
-        G.wild = {kind, boss, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealAt: now+75000+(G.relics && G.relics.hueso?30000:0)};
+        if(G.bossDue){ kind = (G.bossesWon%2===0) ? 'lobruno' : 'reyseto'; boss=true; }
+        /* nivel del rival: contra tu MEJOR luchador, con varianza */
+        const pp = Math.max(...G.pets.filter(q=>q.stage>=STAGES.CHILD).map(playerPower));
+        let nv = Math.max(1, pp + (boss ? 3 : Math.floor(Math.random()*7)-2));
+        const elite = !boss && G.battlesWon>=8 && Math.random()<0.10;
+        if(elite) nv += 2;
+        G.wild = {kind, boss, elite, nv, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealAt: now+75000+(G.relics && G.relics.hueso?30000:0)};
         G.wild.dir = G.wild.x<80? 1:-1;
-        toast(boss? '¡EL JEFE LOBRUNO APARECE!' : '¡UN '+ENEMIES[kind].name+' SALVAJE!', 2600);
+        toast(boss? '¡EL JEFE '+ENEMIES[kind].name+'!' : (elite? '¡'+ENEMIES[kind].name+' ELITE NV'+nv+'!' : '¡UN '+ENEMIES[kind].name+' NV'+nv+'!'), 2600);
         SFX.nope(); vibrate([40,40,40]);
         for(const p of G.pets) if(p.trait==='TIMIDO' && p.stage>STAGES.EGG) p.happy=Math.max(0,p.happy-5);
       }

@@ -9,7 +9,8 @@ const MENU_DRAW = {
   exped:drawExped, ascendConfirm:drawAscendConfirm,
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
   quests:drawQuests, buho:drawBuhoShop,
-  train:drawTrainMenu, discos:drawDiscos, evotree:drawEvoTree
+  train:drawTrainMenu, discos:drawDiscos, evotree:drawEvoTree,
+  beast:drawBeast
 };
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -94,6 +95,7 @@ function frame(now){
     G.hats = G.hats||{}; G.daily = G.daily||null;
     G.buhoNextAt = G.buhoNextAt||0; G.buho = G.buho||null;
     G.discos = G.discos||{prado:true}; G.disco = G.disco||'prado'; G.games = G.games||{};
+    G.beast = G.beast||{};
     for(const p of G.pets){
       p.hat = p.hat||null;
       if(p.str===undefined) p.str = p.discipline||0;

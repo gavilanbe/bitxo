@@ -29,10 +29,11 @@ const ACH = [
  {id:'amig',  name:'MEJORES AMIGOS', cond:()=>(G.bond||0)>=20, m:300},
  {id:'expl',  name:'EXPLORADOR',     cond:()=>(G.expedsDone||0)>=5, m:300},
  {id:'caza',  name:'CAZAJEFES',      cond:()=>(G.bossesWon||0)>=3, s:1},
- {id:'gour',  name:'GOURMET',        cond:()=>Object.keys(G.foodsTried||{}).length>=8, m:250}
+ {id:'gour',  name:'GOURMET',        cond:()=>Object.keys(G.foodsTried||{}).length>=8, m:250},
+ {id:'natu',  name:'NATURALISTA',    cond:()=>BEAST_ORDER.every(k=>G.beast && G.beast[k] && G.beast[k].seen>0), s:1}
 ];
 const EXPEDS = [
- {id:'prado', name:'PRADO ALTO',    mins:20,  motas:30,  xp:10,  relic:0.10, egg:null,    eggP:0},
+ {id:'prado', name:'PRADO ALTO',    mins:20,  motas:30,  xp:10,  relic:0.10, egg:'fungo', eggP:0.15},
  {id:'pico',  name:'PICO ARDIENTE', mins:60,  motas:90,  xp:25,  relic:0.20, egg:'brasa', eggP:0.25},
  {id:'costa', name:'COSTA SALADA',  mins:180, motas:250, xp:60,  relic:0.35, egg:'marea', eggP:0.30},
  {id:'cima',  name:'CIMA ESTELAR',  mins:480, motas:700, xp:150, relic:0.55, egg:'astro', eggP:0.25}
@@ -59,7 +60,7 @@ const FOODS = [
  {id:'seta',   name:'SETA RARA', cost:15, spr:'setita', hunger:0,  happy:0,  energy:0,  weight:0, desc:'¿¿¿???', gamble:true},
  {id:'sopa',   name:'SOPA ASTRAL',cost:40,spr:'sopa',   hunger:15, happy:15, energy:15, weight:0, desc:'+TODO +XP', xp:10}
 ];
-const FAVES = {pradera:'fruta', brasa:'picante', marea:'pescado', petrea:'seta', astro:'sopa'};
+const FAVES = {pradera:'fruta', brasa:'picante', marea:'pescado', fungo:'seta', petrea:'seta', astro:'sopa'};
 const TOYS = [
  {id:'pelota',  name:'PELOTA',        desc:'LA CHUTAN Y JUEGAN', cost:60},
  {id:'caja',    name:'CAJA SORPRESA', desc:'PREMIO CADA 45 MIN', cost:100},
@@ -67,11 +68,23 @@ const TOYS = [
 ];
 
 const ENEMIES = {
-  ratuco: {name:'RATUCO',  base:3},
-  pinchon:{name:'PINCHON', base:6},
-  sombrio:{name:'SOMBRIO', base:10},
-  lobruno:{name:'LOBRUNO', base:14}
+  ratuco:     {name:'RATUCO',      elem:'neutral', quirk:null,     hpM:0.9,  atkM:0.9,  desc:'SIN TRUCOS, PURO DIENTE'},
+  pinchon:    {name:'PINCHON',     elem:'pradera', quirk:'thorns', hpM:1,    atkM:0.95, desc:'DEVUELVE PINCHOS SIN CRITICO'},
+  chispin:    {name:'CHISPIN',     elem:'brasa',   quirk:'burn',   hpM:0.95, atkM:1,    desc:'SU QUEMADURA DURA 2 TURNOS'},
+  burbujon:   {name:'BURBUJON',    elem:'marea',   quirk:'bubble', hpM:1.1,  atkM:0.9,  desc:'BURBUJA: ROMPELA CON CRITICO'},
+  sombrio:    {name:'SOMBRIO',     elem:'sombra',  quirk:'evade',  hpM:0.9,  atkM:1.05, desc:'SE ESFUMA ANTE GOLPES FLOJOS'},
+  roquijo:    {name:'ROQUIJO',     elem:'petrea',  quirk:'armor',  hpM:1.25, atkM:0.9,  desc:'CORAZA -2 PERO ES LENTO'},
+  polillux:   {name:'POLILLUX',    elem:'astro',   quirk:'double', hpM:0.9,  atkM:0.8,  desc:'PUEDE GOLPEAR DOS VECES'},
+  ladronzuelo:{name:'LADRONZUELO', elem:'neutral', quirk:'steal',  hpM:0.95, atkM:0.95, desc:'ROBA MOTAS: VENCE Y DOBLAS'},
+  lobruno:    {name:'LOBRUNO',     elem:'neutral', quirk:'charge', hpM:1,    atkM:1,    desc:'JEFE: CARGA CADA 3 TURNOS', boss:true},
+  reyseto:    {name:'REY SETO',    elem:'fungo',   quirk:'spore',  hpM:1.05, atkM:1,    desc:'JEFE: ESPORAS TE ACELERAN', boss:true}
 };
+/* orden del bestiario y desbloqueo del prado (victorias necesarias) */
+const BEAST_ORDER = ['ratuco','pinchon','chispin','burbujon','sombrio','roquijo','polillux','ladronzuelo','lobruno','reyseto'];
+const WILD_POOL = [['ratuco',0],['pinchon',3],['chispin',6],['burbujon',10],['sombrio',14],['roquijo',18],['polillux',24],['ladronzuelo',30]];
+/* la rueda elemental: dos triángulos (y la luz astral castiga a la sombra) */
+const ELEM_BEATS = {brasa:'pradera', pradera:'marea', marea:'brasa', astro:'petrea', petrea:'fungo', fungo:'astro'};
+const ELEM_COLS = {pradera:'#7ac74f', brasa:'#e8574c', marea:'#4a90d8', petrea:'#9a9aa4', astro:'#ffd94a', fungo:'#c9743a', sombra:'#9d7bd8', neutral:'#c8c0b0'};
 
 /* --- misiones del día: 3 rotan cada día en el cartel del prado --- */
 const QUESTS = [

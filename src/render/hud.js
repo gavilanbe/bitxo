@@ -109,13 +109,14 @@ function drawStats(){
   bar('ANIMO',p.happy,'#f0a04b');
   bar('PILAS',p.energy,'#5ec8d8');
   bar('LIMPIO',p.hygiene,'#7ac74f');
-  card(6,170,46,13);
-  drawTextC('ALBUM', 29, 174, K);
-  card(57,170,46,13);
-  drawTextC('LOGROS', 80, 174, K);
-  card(108,170,46,13);
-  let relN=0; for(const r of RELICS) if(G.relics[r.id]) relN++;
-  drawTextC('RELIQ '+relN, 131, 174, K);
+  card(6,170,34,13);
+  drawTextC('ALBUM', 23, 174, K);
+  card(43,170,34,13);
+  drawTextC('LOGROS', 60, 174, K);
+  card(80,170,34,13);
+  drawTextC('RELIQ', 97, 174, K);
+  card(117,170,37,13);
+  drawTextC('BESTIA', 135, 174, K);
   if(canAscend()){
     card(28,186,104,16);
     drawTextC('★ ASCENDER ★', 80, 191, '#8a6a10');
@@ -292,11 +293,11 @@ function drawExpReport(){
 }
 
 function drawAlbum(){
-  panel(4,26,152,196);
-  drawTextC('- ALBUM '+dexCount()+'/'+DEX_TOTAL+' -', 80, 31, K);
+  panel(4,24,152,232);
+  drawTextC('- ALBUM '+dexCount()+'/'+DEX_TOTAL+' -', 80, 29, K);
   for(let r=0;r<LINE_KEYS.length;r++){
     const ln = LINE_KEYS[r];
-    const y0 = 40 + r*31;
+    const y0 = 37 + r*31;
     drawText(LINES[ln].name, 10, y0, 'rgba(26,20,40,0.5)');
     for(let c=0;c<SLOT_KEYS.length;c++){
       const key = ln+'_'+SLOT_KEYS[c];
@@ -311,14 +312,50 @@ function drawAlbum(){
     }
   }
   const gs = SPR.grimo[0];
-  const gy = 196;
+  const gy = 224;
+  drawText('¿?', 10, 226, 'rgba(26,20,40,0.5)');
   if(G.dex.grimo){
     ctx.drawImage(gs, Math.round(80-gs.width/2), gy);
   } else {
     ctx.drawImage(darkSilhouette(gs), Math.round(80-gs.width/2), gy);
     drawTextC('?', 80, gy+5, 'rgba(246,239,224,0.85)');
   }
-  drawTextC('TOCA UNA LINEA: SU ARBOL', 80, 215, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA UNA LINEA: SU ARBOL', 80, 246, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- BESTIARIO ---------------- */
+function drawBeast(){
+  panel(4,24,152,224);
+  G.beast = G.beast || {};
+  let n=0; for(const k of BEAST_ORDER) if(G.beast[k] && G.beast[k].seen>0) n++;
+  drawTextC('- BESTIARIO '+n+'/'+BEAST_ORDER.length+' -', 80, 29, K);
+  for(let i=0;i<BEAST_ORDER.length;i++){
+    const k = BEAST_ORDER[i];
+    const E = ENEMIES[k];
+    const info = G.beast[k];
+    const seen = info && info.seen>0;
+    const y = 39 + i*20;
+    px(9,y,142,18, seen ? '#f6efe0' : '#d8d0ba');
+    px(9,y,142,1,K); px(9,y+17,142,1,K); px(9,y,1,18,K); px(150,y,1,18,K);
+    const spr = ESPR[k];
+    if(seen){
+      const sc = Math.min(1, 14/Math.max(spr.width,spr.height));
+      ctx.save();
+      ctx.translate(18, y+9);
+      ctx.scale(sc, sc);
+      ctx.drawImage(spr, -spr.width/2, -spr.height/2);
+      ctx.restore();
+    } else {
+      drawTextC('?', 18, y+6, 'rgba(26,20,40,0.4)');
+    }
+    px(28, y+3, 4, 4, seen ? (ELEM_COLS[E.elem]||'#c8c0b0') : 'rgba(26,20,40,0.2)');
+    drawText(seen ? E.name : '?????', 35, y+2, seen ? K : 'rgba(26,20,40,0.45)');
+    if(seen){
+      drawText(E.desc, 35, y+10, 'rgba(26,20,40,0.55)');
+      drawText('X'+info.wins, 132, y+2, '#3a7048');
+    }
+  }
+  drawTextC('TOCA PARA VOLVER', 80, 242, 'rgba(26,20,40,0.5)');
 }
 function drawOfflineReport(){
   const r = offlineReport;
@@ -341,7 +378,7 @@ function drawAch(){
   drawTextC('- LOGROS '+done+'/'+ACH.length+' -', 80, 31, K);
   for(let i=0;i<ACH.length;i++){
     const a = ACH[i], got = !!G.ach[a.id];
-    const y = 40 + i*11;
+    const y = 38 + i*11;
     px(10,y,7,7, got?'#7ac74f':'rgba(26,20,40,0.12)');
     px(10,y,7,1,K); px(10,y+6,7,1,K); px(10,y,1,7,K); px(16,y,1,7,K);
     drawText(a.name, 21, y+1, got? K : 'rgba(26,20,40,0.55)');

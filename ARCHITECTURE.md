@@ -114,6 +114,10 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   Se dibuja anclado a la cabeza en `drawOnePet` y en el combate.
 - **Nueva oferta del buhonero** — añádela al `pool` de `buhoOffers()` y su
   efecto en `buyBuhoOffer()` (`game/actions.js`).
+- **Nuevo enemigo** — entrada en `ENEMIES` (`data/content.js`) con `elem`,
+  `quirk` (o uno nuevo en `battle.js`), `hpM/atkM` y `desc` para el bestiario;
+  su sprite en `buildEnemySprites()`, su hueco en `BEAST_ORDER` y, si es
+  salvaje normal, el umbral de victorias en `WILD_POOL`.
 - **Nuevo disco para el BAILE** — entrada en `DISCOS` (`data/content.js`) con
   `step` (ms por paso), `pat` (16 pulsos), `tune` (16 semitonos sobre `base`) y
   `mult` (recompensa). La discoteca, la preview y el juego lo recogen solos.

@@ -23,7 +23,7 @@ function doFeed(fi){
   let hh=F.hunger, ha=F.happy, en=F.energy, xp = F.snack?4:6;
   if(F.gamble){
     let roll = Math.random();
-    if(p.line==='petrea' && roll>=0.75) roll = 0.2;
+    if((p.line==='petrea'||p.line==='fungo') && roll>=0.75) roll = 0.2;
     if(roll<0.45){ hh=25; ha=25; en=25; xp+=8; toast('¡SETA BUENA!', 2200); }
     else if(roll<0.75){ hh=15; toast('SABE A SETA.', 1800); }
     else { ha=-10; toast('¡PUAJ! SETA MALA', 2200); SFX.nope(); p.trainT=700; }
@@ -125,7 +125,7 @@ function sendExpedition(i){
   if(p.sleeping){ toast('SHHH... DUERME'); return; }
   if(p.energy<20){ toast('SIN ENERGIA'); SFX.nope(); return; }
   p.energy -= 15;
-  p.exped = {dest:i, until: Date.now() + E.mins*60000};
+  p.exped = {dest:i, until: Date.now() + Math.round(E.mins*60000*(p.line==='fungo'?0.8:1))};
   toast('¡'+currentNameOf(p)+' PARTE AL '+E.name+'!', 3000);
   SFX.train(); vibrate(30);
   UI.mode='main'; saveGame();

@@ -22,6 +22,9 @@ function run(){
     evotree: `G.dex = {pradera_babyA:true, pradera_childA:true, pradera_adultA:true}; _p.str=5; _p.def=2; _p.spd=1; UI.evoLine = 0; UI.evoSel = 5; UI.mode = 'evotree';`,
     playmenu: `UI.mode = 'play';`,
     salta: `G.games.salta = true; startJump(); UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
+    beastpanel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1}}; UI.mode='beast';`,
+    wildnv: `G.wild={kind:'roquijo', nv:playerPower(_p)+4, elite:true, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
+    breyseto: `_p.energy=90; G.wild={kind:'reyseto', nv:14, elite:false, boss:true, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.35; UI.bt.super=2; for(let i=0;i<26;i++){ UI.bt.fx.push({x:Math.random()*160, y:30+Math.random()*90, vx:-0.008, vy:0.012, life:1600, col:'rgba(201,116,58,0.8)', size:1}); }`,
     btiming: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.42; UI.bt.super=3;`,
     btele: `_p.energy=90; G.wild={kind:'lobruno',boss:true,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='eTele'; UI.bt.t=830; UI.bt.bigAtk=true;`,
     bsuper: `_p.energy=90; _p.line='brasa'; _p.form='adultA'; G.wild={kind:'sombrio',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='superAnim'; UI.bt.t=400; for(let i=0;i<24;i++) spawnSuperFx(UI.bt), UI.bt.t+=18; UI.bt.t=430;`,
@@ -37,11 +40,26 @@ function run(){
     const m2 = mode.slice(5);
     E(`(function(){ ${setup} ${visuals[m2]||''}
       const t = performance.now();
-      if(UI.mode==='mgJump'){ drawJump(t, 16); }
+      if('${m2}'==='sprites'){
+        ctx.fillStyle='#20242A'; ctx.fillRect(0,0,160,272);
+        const fungoKeys = ['fungo_babyA','fungo_babyB','fungo_childA','fungo_childB','fungo_adultA','fungo_adultB','fungo_adultC','fungo_adultD','fungo_adultS'];
+        fungoKeys.forEach((k2,i)=>{
+          const sp = SPR[k2][0];
+          ctx.drawImage(sp, 8+(i%5)*30, 16+Math.floor(i/5)*36);
+        });
+        const foes = ['chispin','burbujon','roquijo','polillux','ladronzuelo','reyseto'];
+        foes.forEach((k2,i)=>{
+          const sp = ESPR[k2];
+          ctx.drawImage(sp, 8+(i%5)*30, 120+Math.floor(i/5)*40);
+        });
+        drawText('FUNGO', 8, 4, '#f6efe0');
+        drawText('ENEMIGOS', 8, 108, '#f6efe0');
+      }
+      else if(UI.mode==='mgJump'){ drawJump(t, 16); }
       else if(UI.mode==='battle'){ UI.bt.stop=0; drawBattle(t, 0); drawParticles(16); }
       else {
         UI.menuKey = null; UI.menuAt = t-999;
-        drawScene(t); drawPoops(t); drawToys(t); drawSign(t); drawSparkles(t); drawPets(t); drawHUD(t);
+        drawScene(t); drawPoops(t); drawToys(t); drawSign(t); drawSparkles(t); drawWild(t); drawBuho(t); drawPets(t); drawHUD(t);
         drawModals(t);
       }
       const o = document.createElement('canvas'); o.width = cv.width*4; o.height = cv.height*4;
@@ -160,6 +178,59 @@ function run(){
       R.btSuperHit = UI.bt.ehp < ehp1 || UI.bt.phase === 'end';
       UI.bt = null; G.wild = null; UI.mode = 'main';
       R.versionCheck = typeof GAME_VERSION === 'string' && GAME_VERSION.length > 5;
+      // línea FUNGO
+      R.fungoLine = !!LINES.fungo && !!SPR.fungo_adultS && LINE_KEYS.length === 6;
+      G.nextEggLine = 'fungo'; const fp = spawnEgg();
+      R.fungoEgg = fp.line === 'fungo';
+      G.pets.pop();
+      // rueda elemental
+      R.elemAdv = elemMult('brasa','pradera') === 1.3 && elemMult('astro','sombra') === 1.3;
+      R.elemDis = elemMult('pradera','brasa') === 0.75 && elemMult('marea','neutral') === 1;
+      // aparición con NV y pool progresivo
+      G.battlesWon = 30; G.wild = null; UI.mode = 'main';
+      window.eval('nextWildAt = Date.now()-1');
+      liveUpdate(50);
+      R.wildNv = !!G.wild && G.wild.nv >= 1 && WILD_POOL.some(e=>e[0]===G.wild.kind);
+      // trucos: burbuja
+      G.wild = {kind:'burbujon', nv:6, elite:false, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      _p.energy = 90; startBattle();
+      let bb = UI.bt; bb.dmg = 10; bb.crit = false; const be0 = bb.ehp;
+      applyHitToEnemy(bb, false);
+      R.bubbleHalves = (be0 - bb.ehp === 5) && bb.bubble === true;
+      bb.dmg = 10; bb.crit = true; const be1 = bb.ehp;
+      applyHitToEnemy(bb, false);
+      R.bubblePops = bb.bubble === false && (be1 - bb.ehp === 10);
+      R.beastTracked = G.beast.burbujon.seen >= 1;
+      // coraza
+      G.wild = {kind:'roquijo', nv:6, elite:false, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      _p.energy = 90; startBattle();
+      bb = UI.bt; bb.dmg = 10; bb.crit = true; const re0 = bb.ehp;
+      applyHitToEnemy(bb, false);
+      R.armorReduces = (re0 - bb.ehp === 8);
+      // robo y recuperación
+      G.wild = {kind:'ladronzuelo', nv:6, elite:false, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      _p.energy = 90; _p.spd = 0; startBattle();
+      bb = UI.bt; bb.blocked = false; G.motas = 100;
+      resolveEnemyHit(bb);
+      R.stealWorks = G.motas < 100 && bb.stolen > 0;
+      endBattle(true);
+      R.stealRecovered = bb.recovered === bb.stolen*2;
+      // quemadura: arde al empezar tu turno
+      G.wild = {kind:'chispin', nv:6, elite:false, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      _p.energy = 90; startBattle();
+      bb = UI.bt; bb.burnT = 2; bb.php = 50; bb.phase = 'eanim'; bb.resolved = true; bb.resolved2 = true; bb.t = 641; bb.stop = 0;
+      battleStep(5);
+      R.burnTicks = bb.php < 50 && bb.burnT === 1 && bb.phase === 'timing';
+      UI.bt = null; G.wild = null; UI.mode = 'main';
+      // bestiario desde DATOS
+      UI.mode = 'stats'; handleTap(135, 175);
+      R.beastOpens = UI.mode === 'beast';
+      handleTap(80, 100);
+      R.beastCloses = UI.mode === 'stats';
+      // álbum con 6 líneas → árbol fungo
+      UI.mode = 'album'; handleTap(80, 37+3*31+10);
+      R.albumFungoRow = UI.mode === 'evotree' && UI.evoLine === 3 && LINE_KEYS[3] === 'fungo';
+      UI.mode = 'main';
       UI.mode = 'album'; handleTap(80, 50);
       R.albumToTree = UI.mode === 'evotree' && (UI.evoLine === 0);
       handleTap(150, 30);
