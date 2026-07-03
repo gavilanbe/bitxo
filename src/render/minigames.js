@@ -174,7 +174,7 @@ function drawBattle(t, dt){
 function drawMgEnd(){
   const m = UI.mg;
   panel(20,84,120,90);
-  drawTextC('- '+m.title+' -', 80, 91, K);
+  titleChip(80, 91, m.title);
   drawTextC('PUNTOS: '+m.scoreF, 80, 106, K);
   drawTextC('+'+fmt(m.rMotas)+'✦  +'+m.rXp+' XP', 80, 120, '#8a6a10');
   drawTextC(m.won? '¡VICTORIA!' : 'CASI...', 80, 136, m.won? '#3a7048':'#a03030');

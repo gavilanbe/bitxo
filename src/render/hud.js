@@ -9,17 +9,49 @@ function statBar(x,y,w,val,col,label){
   px(x, y+7, w, 1, 'rgba(26,20,40,0.12)');
 }
 
-/* ------ paneles ------ */
+/* ------ paneles: esquinas recortadas, brillo y sombra ------ */
 function panel(x,y,w,h){
-  px(x,y,w,h,'#e8e0c8');
-  px(x,y,w,1,K); px(x,y+h-1,w,1,K);
-  px(x,y,1,h,K); px(x+w-1,y,1,h,K);
-  px(x+1,y+h,w-1,1,'rgba(26,20,40,0.35)');
+  px(x+2,y+h,w-2,2,'rgba(26,20,40,0.28)');
+  px(x+w,y+3,1,h-2,'rgba(26,20,40,0.18)');
+  px(x+1,y,w-2,h,'#e8e0c8');
+  px(x,y+1,w,h-2,'#e8e0c8');
+  px(x+2,y,w-4,1,K); px(x+2,y+h-1,w-4,1,K);
+  px(x,y+2,1,h-4,K); px(x+w-1,y+2,1,h-4,K);
+  px(x+1,y+1,1,1,K); px(x+w-2,y+1,1,1,K);
+  px(x+1,y+h-2,1,1,K); px(x+w-2,y+h-2,1,1,K);
+  px(x+2,y+1,w-4,1,'#f8f2e0');
+  px(x+2,y+h-2,w-4,1,'#d6cdb4');
+  UI.panelRect = {x,y,w,h};
 }
 function card(x,y,w,h,disabled){
-  px(x,y,w,h, disabled ? '#d0c8b0' : '#f6efe0');
-  px(x,y,w,1,K); px(x,y+h-1,w,1,K);
-  px(x,y,1,h,K); px(x+w-1,y,1,h,K);
+  const bg = disabled ? '#d0c8b0' : '#f6efe0';
+  px(x+1,y,w-2,h,bg); px(x,y+1,w,h-2,bg);
+  px(x+1,y,w-2,1,K); px(x+1,y+h-1,w-2,1,K);
+  px(x,y+1,1,h-2,K); px(x+w-1,y+1,1,h-2,K);
+  if(!disabled) px(x+1,y+1,w-2,1,'#fffaf0');
+}
+/* chip oscuro de título: mismo baseline que el texto que sustituye */
+function titleChip(cx,y,text){
+  const w = textW(text)+12;
+  const x = Math.round(cx-w/2);
+  px(x+1,y-3,w-2,10,'#3b3552');
+  px(x,y-2,1,8,'#3b3552'); px(x+w-1,y-2,1,8,'#3b3552');
+  px(x+1,y-4,w-2,1,K); px(x+1,y+7,w-2,1,K);
+  px(x,y-3,1,1,K); px(x+w-1,y-3,1,1,K);
+  px(x,y+6,1,1,K); px(x+w-1,y+6,1,1,K);
+  drawTextC(text, cx, y, '#ffe9a8');
+}
+/* insignia X de cierre en la esquina del panel activo */
+function drawCloseBadge(){
+  const r = UI.panelRect; if(!r) return;
+  const bx = r.x + r.w - 6, by = r.y + 1;
+  px(bx-4,by-3,11,9,'#e2574c');
+  px(bx-3,by-4,9,11,'#e2574c');
+  px(bx-3,by-4,9,1,K); px(bx-3,by+6,9,1,K);
+  px(bx-4,by-3,1,9,K); px(bx+6,by-3,1,9,K);
+  px(bx-3,by-3,9,1,'#f08a80');
+  drawText('X', bx-1, by-1, '#ffffff');
+  UI.closeAt = {x:bx+1, y:by+1};
 }
 
 
@@ -82,7 +114,7 @@ function drawStats(){
   panel(8,26,144,214);
   const p = AP();
   const f = currentFormDef();
-  drawTextC('- '+ (p.stage===STAGES.EGG?'HUEVO':f.name) +' -', 80, 32, K);
+  titleChip(80, 32, p.stage===STAGES.EGG?'HUEVO':f.name);
   drawTextC('LINEA '+LINES[p.line].name+' - '+LINES[p.line].bonus, 80, 40, 'rgba(26,20,40,0.6)');
   const stageName = ['HUEVO','BEBE','JOVEN','ADULTO'][p.stage];
   const days = p.hatchedAt ? Math.floor((Date.now()-p.hatchedAt)/(24*3600*1000))+1 : 0;
@@ -145,7 +177,7 @@ function drawStats(){
 
 function drawShop(){
   panel(4,38,152,178);
-  drawTextC('- TIENDA -', 80, 42, K);
+  titleChip(64, 42, 'TIENDA');
   drawText('✦'+fmt(G.motas), 116, 42, '#8a6a10');
   const tab = UI.shopTab||0;
   const tabBtn = (x,label,on)=>{
@@ -231,7 +263,8 @@ function drawAscendConfirm(){
 
 function drawFeedMenu(){
   panel(6,32,148,184);
-  drawTextC('- DESPENSA -  ✦'+fmt(G.motas), 80, 37, K);
+  titleChip(62, 37, 'DESPENSA');
+  drawText('✦'+fmt(G.motas), 112, 37, '#8a6a10');
   for(let i=0;i<FOODS.length;i++){
     const F = FOODS[i];
     const col = i%2, row = Math.floor(i/2);
@@ -264,7 +297,7 @@ function drawPlayMenu(){
 }
 function drawExped(){
   panel(8,44,144,168);
-  drawTextC('- EXPEDICION -', 80, 49, K);
+  titleChip(80, 49, 'EXPEDICION');
   drawTextC('DESTINO PARA '+currentNameOf(AP()), 80, 58, 'rgba(26,20,40,0.6)');
   const mult = (1+0.3*G.ascensions)*legacyMult();
   for(let i=0;i<EXPEDS.length;i++){
@@ -282,7 +315,7 @@ function drawExped(){
 function drawRelics(){
   panel(4,26,152,196);
   let n=0; for(const r of RELICS) if(G.relics[r.id]) n++;
-  drawTextC('- RELIQUIAS '+n+'/'+RELICS.length+' -', 80, 31, K);
+  titleChip(80, 31, 'RELIQUIAS '+n+'/'+RELICS.length);
   for(let i=0;i<RELICS.length;i++){
     const r = RELICS[i], got = !!G.relics[r.id];
     const y = 42 + i*17;
@@ -309,7 +342,7 @@ function drawExpReport(){
 
 function drawAlbum(){
   panel(4,24,152,232);
-  drawTextC('- ALBUM '+dexCount()+'/'+DEX_TOTAL+' -', 80, 29, K);
+  titleChip(80, 29, 'ALBUM '+dexCount()+'/'+DEX_TOTAL);
   for(let r=0;r<LINE_KEYS.length;r++){
     const ln = LINE_KEYS[r];
     const y0 = 37 + r*31;
@@ -343,7 +376,7 @@ function drawBeast(){
   panel(4,24,152,224);
   G.beast = G.beast || {};
   let n=0; for(const k of BEAST_ORDER) if(G.beast[k] && G.beast[k].seen>0) n++;
-  drawTextC('- BESTIARIO '+n+'/'+BEAST_ORDER.length+' -', 80, 29, K);
+  titleChip(80, 29, 'BESTIARIO '+n+'/'+BEAST_ORDER.length);
   for(let i=0;i<BEAST_ORDER.length;i++){
     const k = BEAST_ORDER[i];
     const E = ENEMIES[k];
@@ -391,7 +424,7 @@ function drawOfflineReport(){
 function drawAch(){
   panel(4,26,152,196);
   let done=0; for(const a of ACH) if(G.ach[a.id]) done++;
-  drawTextC('- LOGROS '+done+'/'+ACH.length+' -', 80, 31, K);
+  titleChip(80, 31, 'LOGROS '+done+'/'+ACH.length);
   for(let i=0;i<ACH.length;i++){
     const a = ACH[i], got = !!G.ach[a.id];
     const y = 38 + i*11;
@@ -409,7 +442,7 @@ function drawAch(){
 function drawQuests(){
   ensureDaily();
   panel(10,58,140,134);
-  drawTextC('- MISIONES DEL DIA -', 80, 64, K);
+  titleChip(80, 64, 'MISIONES DEL DIA');
   for(let i=0;i<3;i++){
     const q = QUESTS[G.daily.ids[i]];
     const y = 76 + i*28;
@@ -434,7 +467,7 @@ function drawBuhoShop(){
   if(!b) return;
   panel(8,50,144,144);
   ctx.drawImage(SPR.grimo[0], 14, 54);
-  drawTextC('- EL BUHONERO -', 84, 56, K);
+  titleChip(84, 56, 'EL BUHONERO');
   drawTextC('RAREZAS DE PASO  ✦'+fmt(G.motas), 84, 65, 'rgba(26,20,40,0.6)');
   for(let i=0;i<b.offers.length;i++){
     const o = b.offers[i];
@@ -456,7 +489,7 @@ function drawBuhoShop(){
 function drawTrainMenu(){
   const p = AP();
   panel(12,66,136,124);
-  drawTextC('- ENTRENO -', 80, 72, K);
+  titleChip(80, 72, 'GYM DEL PRADO');
   drawTextC('PILAS: '+Math.round(p.energy)+'  (CADA SESION -15)', 80, 81, 'rgba(26,20,40,0.6)');
   const rows = [
     {kind:'str', name:'PESAS',   label:'FUERZA',    val:p.str||0, col:'#e2574c', hint:'PEGA MAS FUERTE'},
@@ -479,7 +512,8 @@ function drawTrainMenu(){
 /* ---------------- DISCOS DEL BAILE ---------------- */
 function drawDiscos(){
   panel(8,50,144,148);
-  drawTextC('- DISCOTECA -  ✦'+fmt(G.motas), 80, 56, K);
+  titleChip(64, 56, 'DISCOTECA');
+  drawText('✦'+fmt(G.motas), 112, 56, '#8a6a10');
   drawTextC('ELIGE DISCO Y A BAILAR', 80, 65, 'rgba(26,20,40,0.6)');
   for(let i=0;i<DISCOS.length;i++){
     const D = DISCOS[i];
@@ -527,7 +561,7 @@ function drawEvoTree(){
   const ln = LINE_KEYS[UI.evoLine||0];
   const L = LINES[ln];
   panel(2,24,156,236);
-  drawTextC('- LINEA '+L.name+' -', 80, 29, K);
+  titleChip(80, 29, 'LINEA '+L.name);
   drawText('<', 8, 29, '#8a6a10');
   drawText('>', 148, 29, '#8a6a10');
   const lc = 'rgba(26,20,40,0.35)';

@@ -64,6 +64,13 @@ function handleTap(x,y){
     }
     UI.mode='main'; SFX.tap(); return;
   }
+  /* insignia X: cierra cualquier panel hacia su pantalla madre */
+  if(MENU_PARENT[UI.mode] && UI.closeAt &&
+     Math.abs(x-UI.closeAt.x)<=8 && Math.abs(y-UI.closeAt.y)<=8){
+    UI.mode = MENU_PARENT[UI.mode];
+    SFX.tap(); vibrate(10);
+    return;
+  }
   if(UI.mode==='ascendConfirm'){
     if(y>150 && y<175){
       if(x<80){ doAscend(); } else { UI.mode='stats'; SFX.tap(); }

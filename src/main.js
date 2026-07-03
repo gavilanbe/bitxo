@@ -4,6 +4,13 @@
    ========================================================= */
 /* ---------------- BUCLE ---------------- */
 /* pantallas modales sobre el prado: fondo atenuado + deslizamiento al abrir */
+/* a dónde vuelve cada pantalla al cerrarse con la X */
+const MENU_PARENT = {
+  stats:'main', album:'stats', ach:'stats', relics:'stats', beast:'stats',
+  ascendConfirm:'stats', shop:'main', feed:'main', play:'main',
+  quests:'main', buho:'main', train:'play', discos:'games',
+  games:'play', exped:'play'
+};
 const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
   exped:drawExped, ascendConfirm:drawAscendConfirm,
@@ -24,7 +31,11 @@ function drawModals(now){
   ctx.fillRect(0, 0, LW, LH);
   ctx.save();
   ctx.translate(0, Math.round((1-e)*8));
-  if(menuFn) menuFn();
+  if(menuFn){
+    menuFn();
+    if(MENU_PARENT[UI.mode]) drawCloseBadge();
+    else UI.closeAt = null;
+  } else UI.closeAt = null;
   if(repFn) repFn();
   ctx.restore();
 }
