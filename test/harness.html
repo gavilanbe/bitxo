@@ -17,6 +17,11 @@ function run(){
     _p.stage = 3; _p.form = 'adultA'; _p.level = 9; _p.energy = 90; _p.hunger = 70; _p.sleeping = false; _p.rx = 80; _p.tx = 80;
     G.motas = 1000;`;
   const visuals = {
+    train: `UI.mode = 'train';`,
+    discos: `G.motas = 500; G.discos.verbena = true; UI.mode = 'discos';`,
+    evotree: `G.dex = {pradera_babyA:true, pradera_childA:true, pradera_adultA:true}; _p.str=5; _p.def=2; _p.spd=1; UI.evoLine = 0; UI.evoSel = 5; UI.mode = 'evotree';`,
+    playmenu: `UI.mode = 'play';`,
+    salta: `G.games.salta = true; startJump(); UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
     hat: `G.hats.corona = true; _p.hat = 'corona'; UI.mode = 'main';`,
     buhoprado: `G.buho = {until: Date.now()+120000, x: 120, tx: 122, dir: -1, offers: buhoOffers()}; UI.mode = 'main';`,
     quests: `ensureDaily(); G.daily.prog[QUESTS[G.daily.ids[0]].id] = 99; UI.mode = 'quests';`,
@@ -24,6 +29,25 @@ function run(){
     gorros: `G.hats.lazo = true; _p.hat = 'lazo'; UI.mode = 'shop'; UI.shopTab = 2;`
   };
   if(visuals[mode]){ E(`(function(){ ${setup} ${visuals[mode]} })()`); document.title = 'VISUAL'; return; }
+  if(mode.startsWith('shot-')){
+    const m2 = mode.slice(5);
+    E(`(function(){ ${setup} ${visuals[m2]||''}
+      const t = performance.now();
+      if(UI.mode==='mgJump'){ drawJump(t, 16); }
+      else {
+        UI.menuKey = null; UI.menuAt = t-999;
+        drawScene(t); drawPoops(t); drawToys(t); drawSign(t); drawSparkles(t); drawPets(t); drawHUD(t);
+        drawModals(t);
+      }
+      const o = document.createElement('canvas'); o.width = cv.width*4; o.height = cv.height*4;
+      const g = o.getContext('2d'); g.imageSmoothingEnabled = false;
+      g.drawImage(cv, 0, 0, o.width, o.height);
+      window.__shot = o.toDataURL('image/png');
+    })()`);
+    document.body.innerHTML = '<img src="' + E('window.__shot') + '" style="display:block">';
+    document.body.style.margin = 0;
+    document.title = 'SHOT'; return;
+  }
   const out = E(`(function(){
     const R = {};
     try{
@@ -68,6 +92,51 @@ function run(){
       const m2 = G.motas;
       handleTap(45, 60);
       R.feedWorks = (m2 - G.motas === 5) && UI.mode === 'main';
+      // entreno por stat
+      _p.energy = 90; const d0 = _p.def;
+      UI.mode = 'train'; handleTap(80, 125);
+      R.trainDef = _p.def === d0+1 && _p.energy === 75 && UI.mode === 'main';
+      // evolución por stats (estilo digimon)
+      const evo = (stage, form, st, df, sp, games, care) => {
+        const q = makePet('pradera', 1);
+        q.stage = stage; q.form = form;
+        q.hatchedAt = Date.now() - (stage===1 ? 30*60*1000 : 5*3600*1000);
+        q.str = st; q.def = df; q.spd = sp; q.gamesWon = games||0;
+        q.mistakes = 0; q.weight = 20; q.discipline = 0;
+        if(care!==undefined){ q.mistakes = 9; } // fuerza cuidado bajo
+        checkEvolution(q, true);
+        return q.form;
+      };
+      R.evoChildA = evo(1, 'babyA', 2, 1, 1) === 'childA';
+      R.evoChildB = evo(1, 'babyA', 0, 0, 0) === 'childB';
+      R.evoAdultA = evo(2, 'childA', 5, 2, 0) === 'adultA';
+      R.evoAdultB = evo(2, 'childA', 2, 6, 0) === 'adultB';
+      R.evoAdultC = evo(2, 'childB', 0, 0, 5) === 'adultC';
+      R.evoAdultD = evo(2, 'childB', 0, 0, 0, 0) === 'adultD';
+      R.evoGrimo  = evo(2, 'childA', 0, 0, 0, 0, 'mal') === 'grimo';
+      { const q = makePet('pradera',1); q.stage=2; q.form='childA'; q.hatchedAt=Date.now()-5*3600*1000;
+        q.str=7; q.def=7; q.spd=7; q.gamesWon=6; q.mistakes=0; q.weight=20; q.discipline=9;
+        checkEvolution(q, true); R.evoAdultS = q.form === 'adultS'; }
+      // discos: comprar y bailar
+      G.motas = 1000;
+      const md0 = G.motas;
+      buyDisco(1);
+      R.discoBought = !!G.discos.verbena && (md0 - G.motas === DISCOS[1].cost);
+      UI.mode = 'discos'; handleTap(60, 82);
+      R.danceStarts = UI.mode === 'mgDance' && UI.mg.disco.id === 'prado';
+      // salta: comprar y jugar
+      UI.mode = 'play'; G.motas = 1000; _p.energy = 90;
+      handleTap(30, 150);
+      R.saltaBought = !!G.games.salta;
+      handleTap(30, 150);
+      R.saltaStarts = UI.mode === 'mgJump';
+      if(UI.mode === 'mgJump'){ jumpTap(); R.saltaJumps = UI.mg.vy < 0; }
+      // álbum → árbol evolutivo
+      UI.mode = 'album'; handleTap(80, 50);
+      R.albumToTree = UI.mode === 'evotree' && (UI.evoLine === 0);
+      handleTap(150, 30);
+      R.treeArrows = UI.evoLine === 1;
+      UI.mode = 'main';
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);

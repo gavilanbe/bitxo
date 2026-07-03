@@ -58,7 +58,7 @@ function markDex(key){ if(G && !G.dex[key]) G.dex[key]=true; }
 function careScore(p){
   let s = 60;
   s -= p.mistakes*8;
-  s += Math.min(20, p.discipline*2);
+  s += Math.min(20, (p.str||0)+(p.def||0)+(p.spd||0));
   s -= Math.max(0, p.weight-40)/2;
   s += Math.min(10, p.gamesWon);
   return Math.max(0, Math.min(100, s));
@@ -68,7 +68,7 @@ function checkEvolution(p, silent){
   const age = Date.now() - p.hatchedAt;
   if(p.stage===STAGES.BABY && age > T_CHILD){
     p.stage = STAGES.CHILD;
-    p.form = (p.discipline>=2 || careScore(p)>=65) ? 'childA' : 'childB';
+    p.form = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
     markDex(p.line+'_'+p.form);
     if(!silent){ G.sel = G.pets.indexOf(p); startEvolveFX(); } else UI.pendingEvoNote = true;
   }
@@ -76,9 +76,9 @@ function checkEvolution(p, silent){
     p.stage = STAGES.ADULT;
     const cs = careScore(p);
     if(p.mistakes>=5 || cs<35) p.form='grimo';
-    else if(cs>=85 && p.discipline>=8 && p.gamesWon>=5 && p.mistakes===0) p.form='adultS';
-    else if(p.form==='childA') p.form = (cs>=70 && p.discipline>=5) ? 'adultA' : 'adultB';
-    else p.form = (p.gamesWon>=3) ? 'adultC' : 'adultD';
+    else if(cs>=85 && p.str>=6 && p.def>=6 && p.spd>=6 && p.gamesWon>=5 && p.mistakes===0) p.form='adultS';
+    else if(p.form==='childA') p.form = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
+    else p.form = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
     markDex(p.form==='grimo' ? 'grimo' : p.line+'_'+p.form);
     if(!silent){ G.sel = G.pets.indexOf(p); startEvolveFX(); } else UI.pendingEvoNote = true;
   }

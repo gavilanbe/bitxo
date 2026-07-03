@@ -12,7 +12,7 @@ function makePet(line, gen){
     stage: STAGES.EGG, form: null,
     bornAt: Date.now(), hatchedAt: null,
     hunger:100, happy:100, energy:100, hygiene:100,
-    weight:10, discipline:0, mistakes:0,
+    weight:10, discipline:0, str:0, def:0, spd:0, mistakes:0,
     hungerZeroSince:null, happyZeroSince:null,
     sleeping:false, tapsOnEgg:0,
     fedMeals:0, fedSnacks:0, gamesWon:0,
@@ -57,6 +57,7 @@ function freshGame(){
     relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null,
     toys:{}, ballX:80, ballVX:0, cajaReadyAt:0, foodsTried:{},
     hats:{}, daily:null, buhoNextAt:0, buho:null,
+    discos:{prado:true}, disco:'prado', games:{},
     poops:[], lastSeen:Date.now(),
     hints:{sparkle:false, shop:false}
   };
@@ -74,6 +75,7 @@ function migrateOld(o){
   for(const k of ['stage','form','bornAt','hatchedAt','hunger','happy','energy','hygiene','weight','discipline','mistakes','sleeping','tapsOnEgg','fedMeals','fedSnacks','gamesWon','level','xp']){
     if(o[k]!==undefined) p[k]=o[k];
   }
+  p.str = p.discipline||0;
   if(p.form==='baby') p.form='babyA';
   if(p.form==='adultC' && (o.v||1)<3) p.form='grimo';
   const nd={}; for(const k in g.dex) nd[k.endsWith('_baby')? k+'A':k]=true; g.dex=nd;

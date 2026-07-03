@@ -41,7 +41,7 @@ function doFeed(fi){
   p.happy  = Math.max(0, Math.min(100, p.happy + ha));
   p.energy = Math.max(0, Math.min(100, p.energy + en));
   p.weight = Math.max(5, Math.min(99, p.weight + F.weight));
-  if(F.str) p.discipline = Math.min(99, p.discipline + F.str);
+  if(F.str) p.str = Math.min(99, p.str + F.str);
   if(F.xp) xp += F.xp;
   if(F.snack){ p.fedSnacks++; if(p.fedSnacks%6===0) p.mistakes++; }
   else p.fedMeals++;
@@ -67,14 +67,19 @@ function doSleepToggle(){
   else { p.sleeping=true; SFX.sleep(); toast('A DORMIR...'); }
   saveGame();
 }
-function doTrain(){
+/* afinidad de línea: cada una entrena mejor una stat */
+const TRAIN_AFFINITY = {brasa:'str', petrea:'def', marea:'spd'};
+function doTrain(kind){
   const p = AP();
   if(p.sleeping){ toast('SHHH... DUERME'); return; }
   if(p.energy<15){ toast('SIN ENERGIA'); SFX.nope(); return; }
   p.energy=Math.max(0,p.energy-15);
-  p.discipline=Math.min(99,p.discipline+(p.line==='brasa'?2:1));
+  const gain = TRAIN_AFFINITY[p.line]===kind ? 2 : 1;
+  p[kind] = Math.min(99, (p[kind]||0) + gain);
   p.weight=Math.max(5,p.weight-1); p.happy=Math.max(0,p.happy-3);
   p.trainT = 1500; gainXP(12);
+  const label = {str:'FUE', def:'DEF', spd:'VEL'}[kind];
+  UI.floats.push({x:p.rx, y:128, s:'+'+gain+' '+label, col:'#7ac74f', life:1000, vy:-0.025});
   questProg('entrena', 1);
   SFX.train(); vibrate(30); UI.mode='main'; saveGame();
 }
@@ -269,4 +274,34 @@ function tapHat(i){
   G.motas -= H.cost; G.hats[H.id] = true; p.hat = H.id;
   UI.shopFlash[H.id] = performance.now();
   toast('¡GORRO NUEVO PUESTO!'); SFX.buy(); vibrate(25); saveGame();
+}
+
+/* ---------------- DISCOS Y JUEGOS NUEVOS ---------------- */
+function buyDisco(i){
+  const D = DISCOS[i];
+  if(G.discos[D.id]){ return false; }
+  if(G.motas < D.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return true; }
+  G.motas -= D.cost;
+  G.discos[D.id] = true; G.disco = D.id;
+  toast('¡DISCO NUEVO! DALE AL BAILE');
+  SFX.buy(); vibrate(25); saveGame();
+  return true;
+}
+function previewDisco(i){
+  const D = DISCOS[i];
+  audio();
+  for(let n=0;n<8;n++){
+    if(!D.pat[n]) continue;
+    const off = n*D.step/1000;
+    tone({f:NOTE(D.base, D.tune[n]), at:sfxAt(off), d:0.16, type:'p25', vol:0.05, send:0.2});
+    kick(sfxAt(off), 0.06);
+  }
+  SFX.tap();
+}
+function buySalta(){
+  if(G.motas < COST_SALTA){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= COST_SALTA;
+  G.games.salta = true;
+  toast('¡LA COMBA ES TUYA!');
+  SFX.buy(); vibrate(25); saveGame();
 }

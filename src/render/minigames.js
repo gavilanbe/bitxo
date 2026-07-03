@@ -158,7 +158,7 @@ function drawDance(t, dt){
       if(!b.sched && b.t-now<420){
         b.sched = true;
         const off = Math.max(0,(b.t-now)/1000);
-        tone({f:NOTE(349.23, DANCE_TUNE[b.i%16]), at:sfxAt(off), d:0.17, type:'p25', vol:0.055, send:0.15});
+        tone({f:NOTE(m.disco.base, m.disco.tune[b.i%16]), at:sfxAt(off), d:0.17, type:'p25', vol:0.055, send:0.15});
         kick(sfxAt(off), 0.08);
         nz(sfxAt(off+0.14), 0.03, 0.015, 9000, 3);
       }
@@ -167,7 +167,7 @@ function drawDance(t, dt){
     }
     if(now > m.end){
       const max = m.beats.length*3;
-      finishMg('BAILE', m.score, m.score, 12+m.score, m.score >= max*0.55);
+      finishMg('BAILE', m.score, Math.round(m.score*(m.disco?m.disco.mult:1)), 12+m.score, m.score >= max*0.55);
     }
   }
   /* pista */
@@ -191,7 +191,7 @@ function drawDance(t, dt){
   ctx.scale((Math.floor(now/560)%2? -1:1)*(1-amp*0.08), 1+amp*0.12);
   ctx.drawImage(spr, -w/2, -h);
   ctx.restore();
-  drawTextC('- BAILE -', 80, 8, '#ffffff');
+  drawTextC('- '+(m.disco?m.disco.name.replace('DISCO ',''):'BAILE')+' -', 80, 8, '#ffffff');
   drawTextC('✦'+m.score+'  COMBO X'+m.combo, 80, 18, '#ffd94a');
   if(m.judge && now-m.judgeT<500){
     drawTextC(m.judge, 80, 60, m.judge==='¡PERFECTO!'?'#ffd94a':(m.judge==='BIEN'?'#7ac74f':'#e2574c'));
@@ -237,6 +237,71 @@ function drawSimon(t, dt){
   }
   if(m.ph==='input') drawTextC('¡REPITE LA SECUENCIA!', 80, 216, '#ffffff');
   if(m.ph==='show') drawTextC('MIRA CON ATENCION...', 80, 216, 'rgba(255,255,255,0.6)');
+  drawParticles(dt);
+  if(m.ph==='end') drawMgEnd();
+}
+
+/* ---------------- SALTA: DIBUJO ---------------- */
+function drawJump(t, dt){
+  const m = UI.mg;
+  drawScene(t);
+  if(m.ph==='play'){
+    m.t += dt;
+    /* física del salto */
+    if(m.y<0 || m.vy!==0){
+      m.vy += 0.0009*dt;
+      m.y = Math.min(0, m.y + m.vy*dt);
+      if(m.y===0) m.vy = 0;
+    }
+    /* obstáculos que llegan más rápido cada vez */
+    const speed = 0.055 + Math.min(0.05, m.t*0.0000022);
+    if(m.t<m.end && m.t>m.next){
+      m.obs.push({x:172, h:8+Math.random()*5, bad:Math.random()<0.3});
+      m.next = m.t + Math.max(520, 1150 - m.t*0.02);
+    }
+    if(m.inv>0) m.inv -= dt;
+    for(let i=m.obs.length-1;i>=0;i--){
+      const o = m.obs[i];
+      o.x -= speed*dt;
+      if(!o.passed && o.x < 40-6){
+        o.passed = true;
+        if(-m.y > o.h){
+          m.combo++; m.score++;
+          SFX.coin();
+          UI.floats.push({x:44, y:140, s:'+1', col:'#ffd94a', life:500, vy:-0.03});
+        } else if(m.inv<=0){
+          m.combo=0; m.score=Math.max(0,m.score-1); m.inv=700;
+          SFX.nope(); vibrate(40);
+        }
+      }
+      if(o.x<-12) m.obs.splice(i,1);
+    }
+    if(m.t>=m.end && m.obs.length===0) jumpFinish();
+  }
+  /* obstáculos */
+  for(const o of m.obs){
+    const ox = Math.round(o.x), oh = Math.round(o.h);
+    px(ox-4, 161-oh, 8, oh, o.bad ? '#6a6a78' : '#8a6a3a');
+    px(ox-4, 161-oh, 8, 1, K); px(ox-4, 161-oh, 1, oh, K); px(ox+3, 161-oh, 1, oh, K);
+    if(o.bad){ px(ox-2, 161-oh-3, 4, 3, '#9a9aa4'); }
+  }
+  /* el bitxo corre en el sitio y salta */
+  const spr = currentSprite(), w=spr.width, h=spr.height;
+  const run = m.y===0 ? Math.abs(Math.sin(t/110))*2 : 0;
+  const blink2 = m.inv>0 && Math.floor(t/80)%2===0;
+  px(40-w/2+2, 161, w-4, 2, 'rgba(0,0,0,0.25)');
+  if(!blink2){
+    ctx.save();
+    ctx.translate(40, Math.round(161 + m.y - run));
+    ctx.drawImage(spr, -w/2, -h);
+    ctx.restore();
+  }
+  px(0,0,160,20,'rgba(14,16,48,0.55)');
+  drawText('✦'+m.score, 5, 4, '#ffd94a');
+  if(m.combo>2) drawTextC('RACHA X'+m.combo, 80, 4, '#7ac74f');
+  drawText(Math.ceil(Math.max(0,(m.end-m.t))/1000)+'S', 138, 4, '#ffffff');
+  px(0,20,Math.round(160*Math.max(0,1-m.t/m.end)),2,'#5ec8d8');
+  if(m.t<2600 && m.ph==='play') drawTextC('TOCA PARA SALTAR', 80, 34, '#ffffff');
   drawParticles(dt);
   if(m.ph==='end') drawMgEnd();
 }

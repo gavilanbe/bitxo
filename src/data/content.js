@@ -93,3 +93,39 @@ const HATS = [
  {id:'corona', name:'CORONA',     cost:400, desc:'PARA LEYENDAS'},
  {id:'buho',   name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true}
 ];
+
+/* --- discos para el BAILE: cada uno una canción distinta --- */
+const DISCOS = [
+ {id:'prado',   name:'DISCO PRADO',   cost:0,   desc:'LA DE SIEMPRE',
+  step:280, base:349.23, mult:1,
+  pat:[1,0,1,0,1,1,0,1,1,0,1,1,0,1,0,1],
+  tune:[12,0,9,0,7,9,0,12,14,0,12,9,0,7,4,7]},
+ {id:'verbena', name:'DISCO VERBENA', cost:120, desc:'FIESTA DEL PUEBLO',
+  step:235, base:392, mult:1.15,
+  pat:[1,1,0,1,1,0,1,1,1,1,0,1,1,0,1,1],
+  tune:[0,4,7,4,9,7,4,0,2,5,9,5,11,9,5,2]},
+ {id:'luna',    name:'DISCO LUNA',    cost:200, desc:'VALS PARA SOÑAR',
+  step:340, base:330, mult:1.1,
+  pat:[1,0,0,1,0,1,1,0,0,1,0,1,1,0,1,0],
+  tune:[0,3,7,10,7,3,12,7,0,3,7,3,10,8,7,3]},
+ {id:'maquina', name:'DISCO MAQUINA', cost:350, desc:'CHIPTUNE A TOPE',
+  step:200, base:262, mult:1.3,
+  pat:[1,0,1,1,0,1,1,0,1,0,1,1,0,1,1,1],
+  tune:[0,0,3,0,5,3,0,7,0,0,3,0,10,7,5,3]}
+];
+const COST_SALTA = 250;
+
+/* --- árbol evolutivo: requisitos visibles (estilo Digimon World) --- */
+const EVO_REQS = {
+ egg:   ['TODO EMPIEZA AQUI', 'CUIDA LO QUE SALGA'],
+ babyA: ['AL ECLOSIONAR: 50%', 'PURA SUERTE'],
+ babyB: ['AL ECLOSIONAR: 50%', 'PURA SUERTE'],
+ childA:['BEBE CON ENTRENO TOTAL 4+', 'O CUIDADO 65+'],
+ childB:['BEBE CON POCO ENTRENO', 'Y CUIDADO REGULAR'],
+ adultA:['JOVEN {cA} + FUERZA 5+', 'CON MAS FUE QUE DEF'],
+ adultB:['JOVEN {cA} SIN FUERZA 5', 'O CON MAS DEF QUE FUE'],
+ adultC:['JOVEN {cB} + VELOCIDAD 5+', 'O 3 JUEGOS GANADOS'],
+ adultD:['JOVEN {cB} TRANQUILO:', 'SIN VELOCIDAD NI JUEGOS'],
+ adultS:['TODAS LAS STATS 6+ Y 0 FALLOS', 'CUIDADO 85+ Y JUEGOS 5+'],
+ grimo: ['5 FALLOS O CUIDADO PESIMO', 'EL ABANDONO TIENE PRECIO']
+};

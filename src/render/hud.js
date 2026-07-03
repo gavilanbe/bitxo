@@ -87,7 +87,7 @@ function drawStats(){
   line('EDAD', days+' DIAS');
   line('NIVEL', p.level+' ('+fmt(p.xp)+'/'+fmt(xpNeed(p.level))+')');
   line('PESO', p.weight+' KG');
-  line('FUERZA', p.discipline);
+  line('FUE·DEF·VEL', (p.str||0)+' · '+(p.def||0)+' · '+(p.spd||0));
   line('JUEGOS', p.gamesWon);
   line('FALLOS', p.mistakes);
   line('COMBATES', G.battlesWon);
@@ -228,14 +228,18 @@ function drawFeedMenu(){
   drawTextC('TOCA FUERA PARA SALIR', 80, 220, 'rgba(26,20,40,0.5)');
 }
 function drawPlayMenu(){
-  panel(8,88,144,102);
-  drawTextC('¿QUE HACEIS?', 80, 93, K);
-  card(12,102,42,38); drawTextC('✦', 33, 107, '#8a6a10'); drawTextC('MOTAS', 33, 118, K); drawTextC('ATRAPA', 33, 128, 'rgba(26,20,40,0.55)');
-  card(59,102,42,38); drawTextC('♥', 80, 107, '#e2574c'); drawTextC('BAILE', 80, 118, K); drawTextC('RITMO', 80, 128, 'rgba(26,20,40,0.55)');
-  card(106,102,42,38); drawTextC('?', 127, 107, '#6db1ff'); drawTextC('SIMON', 127, 118, K); drawTextC('MEMORIA', 127, 128, 'rgba(26,20,40,0.55)');
-  card(14,146,62,30); drawTextC('ENTRENO', 45, 152, K); drawTextC('+FUERZA', 45, 163, 'rgba(26,20,40,0.55)');
-  card(84,146,62,30); drawTextC('VIAJE >>', 115, 152, K); drawTextC('TESOROS', 115, 163, 'rgba(26,20,40,0.55)');
-  drawTextC('TOCA FUERA PARA SALIR', 80, 181, 'rgba(26,20,40,0.5)');
+  panel(8,80,144,118);
+  drawTextC('¿QUE HACEIS?', 80, 85, K);
+  card(12,94,42,38);  drawTextC('✦', 33, 99, '#8a6a10'); drawTextC('MOTAS', 33, 110, K); drawTextC('ATRAPA', 33, 120, 'rgba(26,20,40,0.55)');
+  card(59,94,42,38);  drawTextC('♥', 80, 99, '#e2574c'); drawTextC('BAILE', 80, 110, K); drawTextC('DISCOS', 80, 120, 'rgba(26,20,40,0.55)');
+  card(106,94,42,38); drawTextC('?', 127, 99, '#6db1ff'); drawTextC('SIMON', 127, 110, K); drawTextC('+DEF', 127, 120, 'rgba(26,20,40,0.55)');
+  const salta = !!G.games.salta;
+  card(12,136,42,38, !salta);
+  if(salta){ drawTextC('>>', 33, 141, '#5ec8d8'); drawTextC('SALTA', 33, 152, K); drawTextC('+VEL', 33, 162, 'rgba(26,20,40,0.55)'); }
+  else { drawTextC('SALTA', 33, 143, 'rgba(26,20,40,0.6)'); drawTextC('✦'+COST_SALTA, 33, 153, G.motas>=COST_SALTA?'#8a6a10':'#a03030'); drawTextC('COMPRAR', 33, 162, 'rgba(26,20,40,0.55)'); }
+  card(59,136,42,38);  drawTextC('!', 80, 141, '#e2574c'); drawTextC('ENTRENO', 80, 152, K); drawTextC('STATS', 80, 162, 'rgba(26,20,40,0.55)');
+  card(106,136,42,38); drawTextC('>', 127, 141, '#8a6a10'); drawTextC('VIAJE', 127, 152, K); drawTextC('TESOROS', 127, 162, 'rgba(26,20,40,0.55)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 187, 'rgba(26,20,40,0.5)');
 }
 function drawExped(){
   panel(8,44,144,168);
@@ -309,7 +313,7 @@ function drawAlbum(){
     ctx.drawImage(darkSilhouette(gs), Math.round(80-gs.width/2), gy);
     drawTextC('?', 80, gy+5, 'rgba(246,239,224,0.85)');
   }
-  drawTextC('TOCA PARA VOLVER', 80, 215, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA UNA LINEA: SU ARBOL', 80, 215, 'rgba(26,20,40,0.5)');
 }
 function drawOfflineReport(){
   const r = offlineReport;
@@ -388,4 +392,139 @@ function drawBuhoShop(){
   const left = Math.max(0, Math.ceil((b.until-Date.now())/1000));
   drawTextC('SE VA EN '+(left>60? Math.ceil(left/60)+' MIN' : left+'S'), 80, 172, '#a03030');
   drawTextC('TOCA FUERA PARA SALIR', 80, 184, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- ENTRENO POR STAT ---------------- */
+function drawTrainMenu(){
+  const p = AP();
+  panel(12,66,136,124);
+  drawTextC('- ENTRENO -', 80, 72, K);
+  drawTextC('PILAS: '+Math.round(p.energy)+'  (CADA SESION -15)', 80, 81, 'rgba(26,20,40,0.6)');
+  const rows = [
+    {kind:'str', name:'PESAS',   label:'FUERZA',    val:p.str||0, col:'#e2574c', hint:'PEGA MAS FUERTE'},
+    {kind:'def', name:'MURO',    label:'DEFENSA',   val:p.def||0, col:'#8a6a3a', hint:'ENCAJA LOS GOLPES'},
+    {kind:'spd', name:'CARRERA', label:'VELOCIDAD', val:p.spd||0, col:'#5ec8d8', hint:'ESQUIVA Y APUNTA'}
+  ];
+  for(let i=0;i<3;i++){
+    const r = rows[i], y = 92 + i*28;
+    const afin = TRAIN_AFFINITY[p.line]===r.kind;
+    px(18,y,124,25,'#f6efe0');
+    px(18,y,124,1,K); px(18,y+24,124,1,K); px(18,y,1,25,K); px(141,y,1,25,K);
+    drawText(r.name, 22, y+4, K);
+    drawText(r.hint, 22, y+14, 'rgba(26,20,40,0.55)');
+    drawText(r.label.slice(0,3)+' '+r.val, 104, y+4, r.col);
+    if(afin) drawText('X2', 104, y+14, '#3a7048');
+  }
+  drawTextC('TOCA FUERA PARA SALIR', 80, 182, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- DISCOS DEL BAILE ---------------- */
+function drawDiscos(){
+  panel(8,50,144,148);
+  drawTextC('- DISCOTECA -  ✦'+fmt(G.motas), 80, 56, K);
+  drawTextC('ELIGE DISCO Y A BAILAR', 80, 65, 'rgba(26,20,40,0.6)');
+  for(let i=0;i<DISCOS.length;i++){
+    const D = DISCOS[i];
+    const owned = !!G.discos[D.id];
+    const y = 76 + i*27;
+    const afford = G.motas>=D.cost;
+    px(14,y,132,24, owned ? '#f6efe0' : (afford ? '#efe6d0' : '#d8d0ba'));
+    px(14,y,132,1,K); px(14,y+23,132,1,K); px(14,y,1,24,K); px(145,y,1,24,K);
+    /* vinilo */
+    px(18,y+6,11,11, owned ? '#2a2438' : 'rgba(42,36,56,0.4)');
+    px(22,y+10,3,3, owned ? '#e2574c' : 'rgba(226,87,76,0.4)');
+    drawText(D.name.replace('DISCO ',''), 34, y+4, owned ? K : 'rgba(26,20,40,0.6)');
+    drawText(D.desc, 34, y+14, 'rgba(26,20,40,0.55)');
+    if(owned) drawText('BAILAR', 104, y+9, '#3a7048');
+    else drawText('✦'+D.cost, 106, y+9, afford ? '#8a6a10' : '#a03030');
+    /* botón OIR */
+    px(128,y+4,16,16,'#ffd94a');
+    px(128,y+4,16,1,K); px(128,y+19,16,1,K); px(128,y+4,1,16,K); px(143,y+4,1,16,K);
+    drawTextC('♥', 136, y+9, K);
+  }
+  drawTextC('TOCA ♥ PARA OIRLO ANTES', 80, 188, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- ARBOL EVOLUTIVO (estilo Digimon World) ---------------- */
+const EVO_NODES = [
+  {slot:'egg',    x:17,  y:106},
+  {slot:'babyA',  x:53,  y:66}, {slot:'babyB',  x:53,  y:146},
+  {slot:'childA', x:89,  y:66}, {slot:'childB', x:89,  y:146},
+  {slot:'adultA', x:133, y:40}, {slot:'adultB', x:133, y:76},
+  {slot:'adultS', x:133, y:112},
+  {slot:'adultC', x:133, y:148}, {slot:'adultD', x:133, y:184},
+  {slot:'grimo',  x:17,  y:180}
+];
+function evoSprite(ln, slot){
+  if(slot==='egg') return SPR['egg_'+ln][0];
+  if(slot==='grimo') return SPR.grimo[0];
+  return SPR[ln+'_'+slot][0];
+}
+function evoKey(ln, slot){
+  if(slot==='egg') return null;
+  if(slot==='grimo') return 'grimo';
+  return ln+'_'+slot;
+}
+function drawEvoTree(){
+  const ln = LINE_KEYS[UI.evoLine||0];
+  const L = LINES[ln];
+  panel(2,24,156,236);
+  drawTextC('- LINEA '+L.name+' -', 80, 29, K);
+  drawText('<', 8, 29, '#8a6a10');
+  drawText('>', 148, 29, '#8a6a10');
+  const lc = 'rgba(26,20,40,0.35)';
+  /* conexiones huevo → bebés */
+  px(24,106,10,1,lc); px(34,66,1,41,lc); px(34,66,11,1,lc); px(34,146,11,1,lc); px(34,106,1,41,lc);
+  /* bebés → jóvenes */
+  px(60,66,22,1,lc); px(60,146,22,1,lc);
+  px(70,66,1,81,lc);
+  /* jóvenes → adultos */
+  px(96,66,14,1,lc); px(110,40,1,73,lc);
+  px(110,40,15,1,lc); px(110,76,15,1,lc); px(110,112,15,1,lc);
+  px(96,146,14,1,lc); px(109,112,1,73,lc);
+  px(109,148,16,1,lc); px(109,184,16,1,lc);
+  /* nodos */
+  const sel = UI.evoSel||0;
+  for(let i=0;i<EVO_NODES.length;i++){
+    const nd = EVO_NODES[i];
+    const key = evoKey(ln, nd.slot);
+    const seen = !key || !!G.dex[key];
+    const spr = evoSprite(ln, nd.slot);
+    const dx = Math.round(nd.x - spr.width/2), dy = Math.round(nd.y - spr.height/2);
+    if(seen) ctx.drawImage(spr, dx, dy);
+    else {
+      ctx.drawImage(darkSilhouette(spr), dx, dy);
+      drawTextC('?', nd.x, nd.y-2, 'rgba(246,239,224,0.85)');
+    }
+    if(i===sel && Math.floor(performance.now()/300)%2===0){
+      const r = Math.ceil(Math.max(spr.width,spr.height)/2)+2;
+      px(nd.x-r, nd.y-r, 3, 1, '#a03030'); px(nd.x-r, nd.y-r, 1, 3, '#a03030');
+      px(nd.x+r-2, nd.y-r, 3, 1, '#a03030'); px(nd.x+r, nd.y-r, 1, 3, '#a03030');
+      px(nd.x-r, nd.y+r, 3, 1, '#a03030'); px(nd.x-r, nd.y+r-2, 1, 3, '#a03030');
+      px(nd.x+r-2, nd.y+r, 3, 1, '#a03030'); px(nd.x+r, nd.y+r-2, 1, 3, '#a03030');
+    }
+  }
+  /* ficha del nodo elegido */
+  const nd = EVO_NODES[sel];
+  const key = evoKey(ln, nd.slot);
+  const seen = !key || !!G.dex[key];
+  const secret = (nd.slot==='adultS' || nd.slot==='grimo') && !seen;
+  px(6,200,148,1,'rgba(26,20,40,0.25)');
+  let nm = 'HUEVO '+L.name;
+  if(nd.slot==='grimo') nm = seen ? 'GRIMO' : '?????';
+  else if(nd.slot!=='egg') nm = seen ? L.names[nd.slot] : '?????';
+  drawTextC(nm, 80, 205, K);
+  const reqs = EVO_REQS[nd.slot];
+  const cA = G.dex[ln+'_childA'] ? L.names.childA : '???';
+  const cB = G.dex[ln+'_childB'] ? L.names.childB : '???';
+  if(secret){
+    drawTextC('? ? ?', 80, 216, 'rgba(26,20,40,0.5)');
+    drawTextC('UN SECRETO POR DESCUBRIR', 80, 225, 'rgba(26,20,40,0.5)');
+  } else {
+    drawTextC(reqs[0].replace('{cA}',cA).replace('{cB}',cB), 80, 216, 'rgba(26,20,40,0.7)');
+    drawTextC(reqs[1].replace('{cA}',cA).replace('{cB}',cB), 80, 225, 'rgba(26,20,40,0.7)');
+  }
+  const p = AP();
+  drawTextC('TU BITXO: FUE '+(p.str||0)+' DEF '+(p.def||0)+' VEL '+(p.spd||0), 80, 238, '#3a7048');
+  drawTextC('TOCA FORMAS · < > CAMBIA LINEA', 80, 250, 'rgba(26,20,40,0.45)');
 }

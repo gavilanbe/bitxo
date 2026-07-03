@@ -36,7 +36,13 @@ function handleTap(x,y){
   if(UI.mode==='evolve'){ if(UI.evoT>2600) UI.mode='main'; return; }
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }
   if(UI.mode==='battle'){ battleTap(); return; }
-  if(UI.mode==='album'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='album'){
+    const r = Math.floor((y-38)/31);
+    if(r>=0 && r<LINE_KEYS.length && y>=38 && y<195){
+      UI.evoLine = r; UI.evoSel = 0; UI.mode='evotree'; SFX.tap(); return;
+    }
+    UI.mode='stats'; SFX.tap(); return;
+  }
   if(UI.mode==='ach'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='relics'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='quests'){
@@ -90,12 +96,13 @@ function handleTap(x,y){
     SFX.tap(); return;
   }
   if(UI.mode==='play'){
-    if(y>100 && y<142){
+    if(y>=94 && y<132){
       if(x<56) startCatch();
-      else if(x<104) startDance();
+      else if(x<104) UI.mode='discos';
       else startSimon();
-    } else if(y>=144 && y<180){
-      if(x<80) doTrain();
+    } else if(y>=136 && y<174){
+      if(x<56){ if(G.games.salta) startJump(); else buySalta(); }
+      else if(x<104) UI.mode='train';
       else {
         if(AP().stage<STAGES.CHILD){ toast('AUN ES MUY PEQUENO'); SFX.nope(); }
         else UI.mode='exped';
@@ -104,6 +111,38 @@ function handleTap(x,y){
     else { UI.mode='main'; }
     SFX.tap(); return;
   }
+  if(UI.mode==='train'){
+    if(x>=18 && x<=142 && y>=92 && y<176){
+      const i = Math.floor((y-92)/28);
+      if(i>=0 && i<3){ doTrain(['str','def','spd'][i]); return; }
+    }
+    UI.mode='play'; SFX.tap(); return;
+  }
+  if(UI.mode==='discos'){
+    if(x>=14 && x<=146 && y>=76 && y<184){
+      const i = Math.floor((y-76)/27);
+      if(i>=0 && i<DISCOS.length){
+        if(x>=126){ previewDisco(i); return; }
+        if(G.discos[DISCOS[i].id]){ G.disco = DISCOS[i].id; startDance(i); saveGame(); return; }
+        buyDisco(i); return;
+      }
+    }
+    UI.mode='play'; SFX.tap(); return;
+  }
+  if(UI.mode==='evotree'){
+    if(y<40){
+      if(x<30){ UI.evoLine = ((UI.evoLine||0)+LINE_KEYS.length-1)%LINE_KEYS.length; UI.evoSel=0; SFX.tap(); return; }
+      if(x>130){ UI.evoLine = ((UI.evoLine||0)+1)%LINE_KEYS.length; UI.evoSel=0; SFX.tap(); return; }
+    }
+    let best=-1, bd=15;
+    for(let i=0;i<EVO_NODES.length;i++){
+      const d = Math.abs(x-EVO_NODES[i].x)+Math.abs(y-EVO_NODES[i].y);
+      if(d<bd){ bd=d; best=i; }
+    }
+    if(best>=0){ UI.evoSel=best; SFX.tap(); return; }
+    UI.mode='album'; SFX.tap(); return;
+  }
+  if(UI.mode==='mgJump'){ jumpTap(); return; }
   if(UI.mode==='exped'){
     if(x>14 && x<146 && y>68 && y<196){
       const i = Math.floor((y-68)/32);

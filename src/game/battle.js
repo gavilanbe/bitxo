@@ -30,7 +30,7 @@ function battleTap(){
     const p = AP();
     const dist = Math.abs(b.mk-0.5)*2;
     const mult = 0.6 + 1.7*(1-dist);
-    const atk = (4 + p.discipline*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
+    const atk = (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
     b.dmg = Math.max(1, Math.round(atk*mult));
     b.crit = dist<0.18;
     b.phase='panim'; b.t=0;
@@ -46,7 +46,7 @@ function battleStep(dt){
   const b = UI.bt; if(!b) return;
   b.t += dt;
   if(b.phase==='timing'){
-    b.mk += b.mdir * dt/650;
+    b.mk += b.mdir * dt/(650*(1 + Math.min(0.35, (AP().spd||0)*0.015)));
     if(b.mk>1){ b.mk=1; b.mdir=-1; }
     if(b.mk<0){ b.mk=0; b.mdir=1; }
   } else if(b.phase==='panim'){
@@ -60,11 +60,16 @@ function battleStep(dt){
   } else if(b.phase==='eanim'){
     if(b.t>450){
       const p = AP();
-      const dmg = Math.max(1, Math.round(b.eatk * (0.7+Math.random()*0.6)));
-      b.php = Math.max(0, b.php - dmg);
-      b.shake = performance.now();
-      UI.floats.push({x:46, y:96, s:'-'+dmg, col:'#e2574c', life:800, vy:-0.03});
-      SFX.hurt(); vibrate(30);
+      if(Math.random() < Math.min(0.25, (p.spd||0)*0.012)){
+        UI.floats.push({x:46, y:96, s:'¡ESQUIVA!', col:'#5ec8d8', life:800, vy:-0.03});
+        SFX.tap();
+      } else {
+        const dmg = Math.max(1, Math.round(b.eatk * (0.7+Math.random()*0.6) - (p.def||0)*0.6));
+        b.php = Math.max(0, b.php - dmg);
+        b.shake = performance.now();
+        UI.floats.push({x:46, y:96, s:'-'+dmg, col:'#e2574c', life:800, vy:-0.03});
+        SFX.hurt(); vibrate(30);
+      }
       if(b.php<=0){ endBattle(false); return; }
       b.phase='timing'; b.t=0; b.mk=Math.random(); 
     }
@@ -79,7 +84,7 @@ function endBattle(win){
     b.reward = reward;
     gainMotas(reward);
     gainXP(15);
-    p.discipline = Math.min(99, p.discipline+1);
+    p.str = Math.min(99, p.str+1);
     p.happy = Math.min(100, p.happy+10);
     G.battlesWon++;
     questProg('combate', 1);

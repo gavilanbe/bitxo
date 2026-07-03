@@ -35,12 +35,22 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
 
 - 🧬 **5 líneas** (PRADERA, BRASA, MAREA, PETREA, ASTRO) × 9 formas + 1 forma
   oculta = **46 bitxos** para el álbum. Cómo lo cuides decide en qué evoluciona.
+- 💪 **Entrenamiento con 3 stats**: FUERZA, DEFENSA y VELOCIDAD (pesas, muro y
+  carrera). Pegan más, encajan mejor y esquivan en combate — y **deciden la
+  evolución**: el guerrero, el tanque o el ágil según lo que entrenes.
+- 🌳 **Árbol evolutivo estilo Digimon World**: toca una línea en el álbum y verás
+  su árbol completo con los **requisitos de cada forma** — y las que te faltan,
+  en silueta.
+- 💿 **Discoteca**: el BAILE tiene 4 discos con canciones distintas — escúchalos
+  antes de comprarlos y baila el que te pida el cuerpo.
 - 🎭 **6 caracteres** (glotón, valiente, dormilón, juguetón, tímido, curioso) que
   cambian de verdad las reglas.
 - 🌦️ **Mundo vivo**: día/noche con tu reloj real, lluvia, viento, niebla,
   estrellas fugaces a las que pedir deseos, y una constelación que crece con cada
   ascensión de tu dinastía.
-- 🎮 **3 minijuegos** (atrapa-motas, baile rítmico, simón floral) y **entrenamiento**.
+- 🎮 **4 minijuegos**: atrapa-motas, baile rítmico, simón floral y SALTA (la
+  comba, se compra ✦250). Cada uno alimenta algo: el combate da FUERZA, el simón
+  DEFENSA y la comba VELOCIDAD.
 - ⚔️ **Combate**: bichos salvajes que vienen a robarte motas y un jefe cada 10
   victorias.
 - 🗺️ **Expediciones** de hasta 8 horas que traen motas, XP, **10 reliquias** con
@@ -77,6 +87,10 @@ Todo con el dedo (o el ratón). Diseñado para móvil en vertical.
 | El prado | La despensa | La tienda | Combate |
 |:--:|:--:|:--:|:--:|
 | ![prado](docs/screenshots/01-prado.png) | ![despensa](docs/screenshots/02-despensa.png) | ![tienda](docs/screenshots/03-tienda.png) | ![combate](docs/screenshots/04-combate.png) |
+
+| Árbol evolutivo | La discoteca | SALTA | Datos |
+|:--:|:--:|:--:|:--:|
+| ![árbol](docs/screenshots/06-arbol.png) | ![discoteca](docs/screenshots/07-discoteca.png) | ![salta](docs/screenshots/08-salta.png) | ![datos](docs/screenshots/05-datos.png) |
 
 ## 🚀 Ejecutar en local
 

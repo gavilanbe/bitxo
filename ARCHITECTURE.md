@@ -114,6 +114,14 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   Se dibuja anclado a la cabeza en `drawOnePet` y en el combate.
 - **Nueva oferta del buhonero** — añádela al `pool` de `buhoOffers()` y su
   efecto en `buyBuhoOffer()` (`game/actions.js`).
+- **Nuevo disco para el BAILE** — entrada en `DISCOS` (`data/content.js`) con
+  `step` (ms por paso), `pat` (16 pulsos), `tune` (16 semitonos sobre `base`) y
+  `mult` (recompensa). La discoteca, la preview y el juego lo recogen solos.
+- **Cambiar la evolución** — las reglas viven en `checkEvolution()`
+  (`game/economy.js`) y su descripción visible en `EVO_REQS`
+  (`data/content.js`). **Mantenlas sincronizadas**: lo que promete el árbol
+  del álbum es lo que debe ejecutar el código. Stats entrenables: `p.str`,
+  `p.def`, `p.spd` (el antiguo `discipline` migra a `str` al cargar).
 
 ## Pruebas
 

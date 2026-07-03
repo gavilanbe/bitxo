@@ -8,7 +8,8 @@ const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
   exped:drawExped, ascendConfirm:drawAscendConfirm,
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
-  quests:drawQuests, buho:drawBuhoShop
+  quests:drawQuests, buho:drawBuhoShop,
+  train:drawTrainMenu, discos:drawDiscos, evotree:drawEvoTree
 };
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -51,6 +52,8 @@ function frame(now){
     drawDance(now, dt);
   } else if(UI.mode==='mgSimon'){
     drawSimon(now, dt);
+  } else if(UI.mode==='mgJump'){
+    drawJump(now, dt);
   } else {
     drawScene(now);
     drawShoot(now);
@@ -90,7 +93,12 @@ function frame(now){
     G.giftStreak = G.giftStreak||0; G.lastGift = G.lastGift||null;
     G.hats = G.hats||{}; G.daily = G.daily||null;
     G.buhoNextAt = G.buhoNextAt||0; G.buho = G.buho||null;
-    for(const p of G.pets){ p.hat = p.hat||null; }
+    G.discos = G.discos||{prado:true}; G.disco = G.disco||'prado'; G.games = G.games||{};
+    for(const p of G.pets){
+      p.hat = p.hat||null;
+      if(p.str===undefined) p.str = p.discipline||0;
+      p.def = p.def||0; p.spd = p.spd||0;
+    }
     for(const p of G.pets){ if(!p.trait) p.trait = TRAIT_KEYS[Math.floor(Math.random()*TRAIT_KEYS.length)]; }
     for(const p of G.pets){ p.rx = p.rx||80; p.dropT=0; p.eatT=0; p.trainT=0; p.petT=0; p.joyAt=0; p.blinkAt=0; }
     const away = Date.now() - (G.lastSeen||Date.now());
