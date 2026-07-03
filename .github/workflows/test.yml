@@ -1,0 +1,35 @@
+# Batería del arnés en cada push: si algo se rompe, se sabe al minuto.
+name: pruebas
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  bateria:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Servir el juego y ejecutar la batería
+        run: |
+          python3 -m http.server 8765 &
+          sleep 1
+          google-chrome --headless=new --disable-gpu --no-sandbox \
+            --virtual-time-budget=15000 --dump-dom \
+            "http://localhost:8765/test/harness.html" \
+            | grep -o 'RESULTS::{[^<]*' > results.txt || true
+          cat results.txt
+      - name: Evaluar resultados
+        run: |
+          python3 - <<'PYEOF'
+          import json, sys
+          raw = open('results.txt').read().replace('RESULTS::','').strip()
+          if not raw:
+              print('::error::La batería no produjo resultados'); sys.exit(1)
+          r = json.loads(raw)
+          fails = {k:v for k,v in r.items() if v is False}
+          print(f'TOTAL: {len(r)} | FALLOS: {fails if fails else "ninguno"}')
+          if fails:
+              for k in fails: print(f'::error::Prueba en rojo: {k}')
+              sys.exit(1)
+          PYEOF
