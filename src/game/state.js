@@ -56,6 +56,7 @@ function freshGame(){
     ach:{}, bond:0, lastGift:null, giftStreak:0,
     relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null,
     toys:{}, ballX:80, ballVX:0, cajaReadyAt:0, foodsTried:{},
+    hats:{}, daily:null, buhoNextAt:0, buho:null,
     poops:[], lastSeen:Date.now(),
     hints:{sparkle:false, shop:false}
   };

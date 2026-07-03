@@ -82,6 +82,7 @@ function endBattle(win){
     p.discipline = Math.min(99, p.discipline+1);
     p.happy = Math.min(100, p.happy+10);
     G.battlesWon++;
+    questProg('combate', 1);
     if(b.boss){
       G.bossesWon = (G.bossesWon||0)+1;
       G.bossDue = false;

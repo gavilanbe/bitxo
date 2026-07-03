@@ -47,6 +47,12 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
   bonus pasivos y huevos de otras líneas.
 - 🏪 **Economía idle completa**: 8 mejoras, 8 comidas (cada línea tiene su
   favorita), 3 juguetes que viven en el prado, 15 logros y regalo diario con racha.
+- 📜 **Misiones del día**: el cartel del prado trae 3 encargos que rotan cada
+  día — cóbralos en motas y XP.
+- 🎩 **El Buhonero**: un mercader errante que aparece cada pocas horas con
+  rarezas: pociones, reliquias sueltas y un gorro que solo vende él.
+- 👒 **Gorros**: cosmética de verdad — tu bitxo lleva puesto el lazo, la seta o
+  la corona en el prado y hasta en combate.
 - 😴 **Progreso offline** de hasta 14 h — pero ojo: si lo dejas con hambre
   demasiado tiempo, se irá en busca de comida...
 - 🎵 **Banda sonora procedural**: canciones distintas para el día, la noche, la

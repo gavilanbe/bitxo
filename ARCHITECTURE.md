@@ -107,6 +107,28 @@ van aparte con `setInterval`, planificando notas por delante del reloj de audio
   dibujo en `render/minigames.js`, rama de modo en `frame()` y toques en
   `handleTap`, y su tarjeta en `drawPlayMenu`.
 - **Nuevo SFX** — método en el objeto `SFX` componiendo `tone()`/`nz()`/`kick()`.
+- **Nueva misión diaria** — entrada en `QUESTS` (`data/content.js`) + su hook
+  `questProg(id, n)` donde ocurra la acción. La selección diaria es determinista
+  (LCG sembrado por la fecha) en `ensureDaily()`.
+- **Nuevo gorro** — entrada en `HATS` + sprite `hat_<id>` en `buildAllSprites()`.
+  Se dibuja anclado a la cabeza en `drawOnePet` y en el combate.
+- **Nueva oferta del buhonero** — añádela al `pool` de `buhoOffers()` y su
+  efecto en `buyBuhoOffer()` (`game/actions.js`).
+
+## Pruebas
+
+`test/harness.html` carga el juego en un iframe y ejecuta una batería de
+comprobaciones (arranque, misiones, buhonero, gorros, toques, regresiones).
+Con el servidor local levantado:
+
+```bash
+"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new \
+  --virtual-time-budget=8000 --dump-dom http://localhost:4321/test/harness.html \
+  | grep -o 'RESULTS::{[^<]*'
+```
+
+Con `?mode=hat|buhoprado|quests|buho|gorros` fuerza estados visuales para
+capturarlos con `--screenshot`.
 
 ## Deuda conocida / decisiones
 

@@ -128,12 +128,13 @@ function drawShop(){
   drawText('✦'+fmt(G.motas), 116, 42, '#8a6a10');
   const tab = UI.shopTab||0;
   const tabBtn = (x,label,on)=>{
-    px(x,50,70,11, on?'#ffd94a':'#d8d0ba');
-    px(x,50,70,1,K); px(x,60,70,1,K); px(x,50,1,11,K); px(x+69,50,1,11,K);
-    drawTextC(label, x+35, 53, K);
+    px(x,50,46,11, on?'#ffd94a':'#d8d0ba');
+    px(x,50,46,1,K); px(x,60,46,1,K); px(x,50,1,11,K); px(x+45,50,1,11,K);
+    drawTextC(label, x+23, 53, K);
   };
   tabBtn(10,'MEJORAS',tab===0);
-  tabBtn(80,'JUGUETES',tab===1);
+  tabBtn(57,'JUGUETES',tab===1);
+  tabBtn(104,'GORROS',tab===2);
   if(tab===0){
     for(let i=0;i<SHOP.length;i++){
       const item = SHOP[i];
@@ -171,6 +172,27 @@ function drawShop(){
       else drawText('✦'+fmt(T.cost), 118, y+8, afford?'#8a6a10':'#a03030');
     }
     drawTextC('VIVEN EN EL PRADO', 80, 152, 'rgba(26,20,40,0.45)');
+  }
+  if(tab===2){
+    for(let i=0;i<HATS.length;i++){
+      const H = HATS[i];
+      const owned = !!G.hats[H.id];
+      const worn = AP().hat===H.id;
+      const afford = G.motas>=H.cost && !owned && !H.buhoOnly;
+      const y = 64 + i*24;
+      const flash = UI.shopFlash[H.id] && performance.now()-UI.shopFlash[H.id]<250;
+      px(10,y,140,21, flash ? '#ffd94a' : (worn ? '#ffe9a8' : (owned ? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba'))));
+      px(10,y,140,1,K); px(10,y+20,140,1,K); px(10,y,1,21,K); px(149,y,1,21,K);
+      const hs = SPR['hat_'+H.id];
+      if(owned || !H.buhoOnly) ctx.drawImage(hs, 17-Math.floor(hs.width/2), y+Math.round((21-hs.height)/2));
+      else drawText('?', 15, y+7, 'rgba(26,20,40,0.45)');
+      drawText(owned || !H.buhoOnly ? H.name : '?????', 28, y+3, K);
+      drawText(H.desc, 28, y+12, 'rgba(26,20,40,0.55)');
+      if(worn) drawText('PUESTO', 116, y+7, '#8a6a10');
+      else if(owned) drawText('TUYO', 124, y+7, '#3a7048');
+      else if(!H.buhoOnly) drawText('✦'+fmt(H.cost), 118, y+7, afford?'#8a6a10':'#a03030');
+    }
+    drawTextC('TOCA PARA PONER O QUITAR', 80, 209, 'rgba(26,20,40,0.45)');
   }
   drawTextC('TOCA FUERA PARA SALIR', 80, 222, 'rgba(26,20,40,0.55)');
 }
@@ -318,4 +340,52 @@ function drawAch(){
     drawText(rw, 122, y+1, got? '#3a7048' : '#8a6a10');
   }
   drawTextC('TOCA PARA VOLVER', 80, 214, 'rgba(26,20,40,0.5)');
+}
+
+
+/* ---------------- MISIONES DEL DIA ---------------- */
+function drawQuests(){
+  ensureDaily();
+  panel(10,58,140,134);
+  drawTextC('- MISIONES DEL DIA -', 80, 64, K);
+  for(let i=0;i<3;i++){
+    const q = QUESTS[G.daily.ids[i]];
+    const y = 76 + i*28;
+    const done = !!G.daily.claimed[q.id];
+    const prog = Math.min(q.n, G.daily.prog[q.id]||0);
+    const ready = !done && prog>=q.n;
+    px(16,y,128,25, done ? '#d0e8d0' : (ready ? '#ffe9a8' : '#f6efe0'));
+    px(16,y,128,1,K); px(16,y+24,128,1,K); px(16,y,1,25,K); px(143,y,1,25,K);
+    drawText(q.name, 20, y+4, K);
+    if(done) drawText('HECHA', 20, y+14, '#3a7048');
+    else drawText(prog+'/'+q.n, 20, y+14, ready ? '#8a6a10' : 'rgba(26,20,40,0.55)');
+    if(ready) drawTextC('¡COBRAR!', 88, y+14, '#a03030');
+    drawText('+'+q.m+'✦', 118, y+14, '#8a6a10');
+  }
+  drawTextC('NUEVAS CADA DIA', 80, 168, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 186, 'rgba(26,20,40,0.5)');
+}
+
+/* ---------------- TIENDA DEL BUHONERO ---------------- */
+function drawBuhoShop(){
+  const b = G.buho;
+  if(!b) return;
+  panel(8,50,144,144);
+  ctx.drawImage(SPR.grimo[0], 14, 54);
+  drawTextC('- EL BUHONERO -', 84, 56, K);
+  drawTextC('RAREZAS DE PASO  ✦'+fmt(G.motas), 84, 65, 'rgba(26,20,40,0.6)');
+  for(let i=0;i<b.offers.length;i++){
+    const o = b.offers[i];
+    const y = 78 + i*30;
+    const afford = G.motas>=o.cost && !o.sold;
+    px(14,y,132,27, o.sold ? '#d0e8d0' : (afford ? '#f6efe0' : '#d8d0ba'));
+    px(14,y,132,1,K); px(14,y+26,132,1,K); px(14,y,1,27,K); px(145,y,1,27,K);
+    drawText(o.name, 18, y+4, K);
+    drawText(o.desc, 18, y+14, 'rgba(26,20,40,0.55)');
+    if(o.sold) drawText('VENDIDO', 110, y+9, '#3a7048');
+    else drawText('✦'+fmt(o.cost), 116, y+9, afford ? '#8a6a10' : '#a03030');
+  }
+  const left = Math.max(0, Math.ceil((b.until-Date.now())/1000));
+  drawTextC('SE VA EN '+(left>60? Math.ceil(left/60)+' MIN' : left+'S'), 80, 172, '#a03030');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 184, 'rgba(26,20,40,0.5)');
 }

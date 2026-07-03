@@ -7,7 +7,8 @@
 const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
   exped:drawExped, ascendConfirm:drawAscendConfirm,
-  shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu
+  shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
+  quests:drawQuests, buho:drawBuhoShop
 };
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -55,8 +56,10 @@ function frame(now){
     drawShoot(now);
     drawPoops(now);
     drawToys(now);
+    drawSign(now);
     drawSparkles(now);
     drawWild(now);
+    drawBuho(now);
     drawPets(now);
     drawWeather(now);
     if(AP().sleeping) px(0,0,160,200,'rgba(10,8,30,0.35)');
@@ -85,6 +88,9 @@ function frame(now){
     G.ballVX = 0; G.cajaReadyAt = G.cajaReadyAt||0;
     for(const p of G.pets){ p.swingT=0; p.kickAt=0; }
     G.giftStreak = G.giftStreak||0; G.lastGift = G.lastGift||null;
+    G.hats = G.hats||{}; G.daily = G.daily||null;
+    G.buhoNextAt = G.buhoNextAt||0; G.buho = G.buho||null;
+    for(const p of G.pets){ p.hat = p.hat||null; }
     for(const p of G.pets){ if(!p.trait) p.trait = TRAIT_KEYS[Math.floor(Math.random()*TRAIT_KEYS.length)]; }
     for(const p of G.pets){ p.rx = p.rx||80; p.dropT=0; p.eatT=0; p.trainT=0; p.petT=0; p.joyAt=0; p.blinkAt=0; }
     const away = Date.now() - (G.lastSeen||Date.now());

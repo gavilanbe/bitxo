@@ -72,3 +72,24 @@ const ENEMIES = {
   sombrio:{name:'SOMBRIO', base:10},
   lobruno:{name:'LOBRUNO', base:14}
 };
+
+/* --- misiones del día: 3 rotan cada día en el cartel del prado --- */
+const QUESTS = [
+ {id:'chispas', name:'RECOGE 12 CHISPAS',  n:12, m:60, xp:10},
+ {id:'comidas', name:'DA 3 COMIDAS',       n:3,  m:40, xp:8},
+ {id:'juegos',  name:'JUEGA 2 MINIJUEGOS', n:2,  m:50, xp:10},
+ {id:'combate', name:'GANA 1 COMBATE',     n:1,  m:70, xp:12},
+ {id:'limpia',  name:'LIMPIA 3 CACAS',     n:3,  m:40, xp:8},
+ {id:'mimos',   name:'ACARICIA 5 VECES',   n:5,  m:30, xp:6},
+ {id:'entrena', name:'ENTRENA 2 VECES',    n:2,  m:45, xp:8}
+];
+
+/* --- gorros: cosmética que tu bitxo lleva puesta de verdad --- */
+const HATS = [
+ {id:'lazo',   name:'LAZO',       cost:100, desc:'UN TOQUE MONO'},
+ {id:'flor',   name:'FLOR',       cost:120, desc:'HUELE A PRADO'},
+ {id:'seta',   name:'SETA',       cost:150, desc:'MUY CAMPESTRE'},
+ {id:'copa',   name:'COPA',       cost:250, desc:'ELEGANCIA PURA'},
+ {id:'corona', name:'CORONA',     cost:400, desc:'PARA LEYENDAS'},
+ {id:'buho',   name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true}
+];

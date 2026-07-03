@@ -97,6 +97,10 @@ function drawOnePet(p, i, t){
   ctx.translate(x, baseY - lift);
   ctx.scale(p.dir*sx, sy);
   ctx.drawImage(spr, -w/2, p.sleeping ? -h+3 : -h);
+  if(p.hat && SPR['hat_'+p.hat]){
+    const hs = SPR['hat_'+p.hat];
+    ctx.drawImage(hs, -Math.floor(hs.width/2), (p.sleeping ? -h+3 : -h) - hs.height + 2);
+  }
   ctx.restore();
 
   const yTop = baseY - lift - Math.round(h*sy);
@@ -204,4 +208,36 @@ function drawPoops(t){
     const k = (performance.now()-UI.sweepT)/500;
     px(160-k*180, 150, 14, 14, 'rgba(190,240,245,0.6)');
   }
+}
+
+
+/* ---------------- CARTEL DE MISIONES Y BUHONERO ---------------- */
+function drawSign(t){
+  px(149,148,2,13,'#5a4632');
+  px(143,138,14,11,'#8a6a3a');
+  px(143,138,14,1,K); px(143,148,14,1,K);
+  px(143,138,1,11,K); px(156,138,1,11,K);
+  if(questClaimable() && Math.floor(t/400)%2===0) drawTextC('!', 150, 141, '#ffd94a');
+  else drawTextC('M', 150, 141, '#f6efe0');
+}
+function drawBuho(t){
+  if(!G.buho) return;
+  const b = G.buho;
+  const spr = SPR.grimo[0];
+  const bx = Math.round(b.x);
+  px(bx-6, 161, 12, 2, 'rgba(0,0,0,0.25)');
+  /* hatillo al hombro */
+  const hx = bx + (b.dir<0 ? 8 : -10);
+  px(hx, 143, 2, 9, '#5a4632');
+  px(hx-2, 139, 6, 5, '#c8a04b');
+  px(hx-2, 139, 6, 1, K); px(hx-2, 143, 6, 1, K);
+  px(hx-2, 139, 1, 5, K); px(hx+3, 139, 1, 5, K);
+  ctx.save();
+  ctx.translate(bx, 161);
+  ctx.scale(b.dir<0 ? -1 : 1, 1 + Math.sin(t/420)*0.015);
+  ctx.drawImage(spr, -spr.width/2, -spr.height);
+  ctx.restore();
+  if(Math.floor(t/600)%3!==2) drawTextC('✦', bx, 138, '#ffd94a');
+  const left = Math.max(0, Math.ceil((b.until-Date.now())/1000));
+  if(left<30) drawTextC(String(left), bx, 130, '#e2574c');
 }

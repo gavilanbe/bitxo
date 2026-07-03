@@ -1,0 +1,77 @@
+<!-- Arnés de pruebas: sirve la raíz (make) y abre /test/harness.html
+     Modos visuales: ?mode=hat|buhoprado|quests|buho|gorros
+     Sin modo: batería de pruebas, resultado en RESULTS::{...} -->
+<!DOCTYPE html><html><body style="margin:0;background:#333">
+<iframe id="f" src="../index.html" width="380" height="680" style="border:0"></iframe>
+<pre id="out"></pre>
+<script>
+const q = new URLSearchParams(location.search);
+const f = document.getElementById('f');
+f.onload = () => setTimeout(run, 900);
+function run(){
+  const E = f.contentWindow.eval;
+  const mode = q.get('mode') || 'tests';
+  const setup = `
+    localStorage.removeItem('bitxo-save');
+    const _p = G.pets[0];
+    _p.stage = 3; _p.form = 'adultA'; _p.level = 9; _p.energy = 90; _p.hunger = 70; _p.sleeping = false; _p.rx = 80; _p.tx = 80;
+    G.motas = 1000;`;
+  const visuals = {
+    hat: `G.hats.corona = true; _p.hat = 'corona'; UI.mode = 'main';`,
+    buhoprado: `G.buho = {until: Date.now()+120000, x: 120, tx: 122, dir: -1, offers: buhoOffers()}; UI.mode = 'main';`,
+    quests: `ensureDaily(); G.daily.prog[QUESTS[G.daily.ids[0]].id] = 99; UI.mode = 'quests';`,
+    buho: `G.buho = {until: Date.now()+90000, x: 120, tx: 122, dir: 1, offers: buhoOffers()}; UI.mode = 'buho';`,
+    gorros: `G.hats.lazo = true; _p.hat = 'lazo'; UI.mode = 'shop'; UI.shopTab = 2;`
+  };
+  if(visuals[mode]){ E(`(function(){ ${setup} ${visuals[mode]} })()`); document.title = 'VISUAL'; return; }
+  const out = E(`(function(){
+    const R = {};
+    try{
+      ${setup}
+      R.booted = !!G && UI.mode === 'main';
+      const t0 = performance.now();
+      const pix = () => Array.from(ctx.getImageData(80,197,1,1).data).slice(0,3).join(',');
+      UI.mode = 'shop'; UI.menuKey = null; UI.menuAt = t0-999;
+      drawScene(t0); drawHUD(t0); drawModals(t0);
+      R.stripDuringModal = pix();
+      UI.mode = 'main'; drawScene(t0);
+      R.stripAfter = pix();
+      ensureDaily();
+      R.dailyIds = G.daily.ids.length;
+      const q0 = QUESTS[G.daily.ids[0]];
+      questProg(q0.id, q0.n);
+      R.claimable = questClaimable();
+      const m0 = G.motas;
+      claimQuest(0);
+      R.claimPaid = (G.motas - m0) === q0.m;
+      R.claimed = !!G.daily.claimed[q0.id];
+      G.buhoNextAt = Date.now() - 1; UI.mode = 'main';
+      liveUpdate(50);
+      R.buhoSpawned = !!G.buho;
+      R.buhoOffers = G.buho ? G.buho.offers.length : 0;
+      if(G.buho){
+        const m1 = G.motas;
+        buyBuhoOffer(0);
+        R.buhoSold = G.buho.offers[0].sold === true && G.motas < m1;
+      }
+      tapHat(0);
+      R.hatBought = !!G.hats.lazo && _p.hat === 'lazo';
+      tapHat(0);
+      R.hatToggledOff = _p.hat === null;
+      UI.mode = 'shop'; handleTap(120, 55);
+      R.tabGorros = UI.shopTab === 2;
+      UI.mode = 'main'; handleTap(150, 150);
+      R.signOpensQuests = UI.mode === 'quests';
+      UI.mode = 'main';
+      if(G.buho){ G.buho.x = 126; handleTap(126, 150); R.buhoTap = UI.mode === 'buho'; }
+      UI.mode = 'feed';
+      const m2 = G.motas;
+      handleTap(45, 60);
+      R.feedWorks = (m2 - G.motas === 5) && UI.mode === 'main';
+    }catch(e){ R.exception = String(e && e.stack || e); }
+    return JSON.stringify(R);
+  })()`);
+  document.getElementById('out').textContent = 'RESULTS::' + out;
+  document.title = 'DONE';
+}
+</script></body></html>

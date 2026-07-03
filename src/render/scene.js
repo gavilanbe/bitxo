@@ -73,6 +73,9 @@ function drawScene(t){
   for(let x=4;x<160;x+=10){ const hh = 3+Math.round(2*Math.sin(x/12+2)); px(x,116-hh,10,hh,S.hill); }
   px(0,124,160,72,S.grass);
   for(let x=0;x<160;x+=6){ px(x,124,3,2,S.grass2); }
+  /* franja 196-199: única zona que nadie más repinta por frame —
+     sin esto acumula restos de paneles y del atenuado modal */
+  px(0,196,160,4,K);
 
   /* decoración base + jardín */
   const deco = [[14,182,'#e2574c'],[52,190,'#ffd94a'],[96,186,'#f2a2b8'],[136,180,'#e2574c']];

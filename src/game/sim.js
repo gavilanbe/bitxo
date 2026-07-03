@@ -228,8 +228,31 @@ function liveUpdate(dtMs){
     }
   }
 
+  /* el buhonero llega y se va */
+  if(UI.mode==='main' || UI.mode==='buho'){
+    if(!G.buhoNextAt) G.buhoNextAt = now + 20*60*1000;
+    if(!G.buho && now > G.buhoNextAt && UI.mode==='main'){
+      G.buho = {until: now + 150000, x: -14, tx: 128, dir: 1, offers: buhoOffers()};
+      toast('¡EL BUHONERO HA LLEGADO!', 3000);
+      SFX.buy(); vibrate(30);
+    }
+    if(G.buho){
+      const b = G.buho;
+      const d = b.tx - b.x;
+      if(Math.abs(d)>1){ b.x += Math.sign(d)*dtMs*0.015; b.dir = Math.sign(d)||1; }
+      else if(Math.random() < dtMs*0.0003){ b.tx = 118 + Math.random()*20; }
+      if(now > b.until){
+        G.buho = null;
+        G.buhoNextAt = now + (2 + Math.random()*3)*3600*1000;
+        if(UI.mode==='buho') UI.mode = 'main';
+        toast('EL BUHONERO SE MARCHA...', 2400);
+        saveGame();
+      }
+    }
+  }
+
   achTimer += dtMs;
-  if(achTimer > 3000){ achTimer=0; checkAchievements(); }
+  if(achTimer > 3000){ achTimer=0; checkAchievements(); ensureDaily(); }
 
   saveTimer += dtMs;
   if(saveTimer > 12000){ saveTimer=0; saveGame(); }

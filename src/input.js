@@ -39,6 +39,21 @@ function handleTap(x,y){
   if(UI.mode==='album'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='ach'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='relics'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='quests'){
+    if(x>=16 && x<=144 && y>=76 && y<160){
+      const i = Math.floor((y-76)/28);
+      if(i>=0 && i<3){ claimQuest(i); return; }
+    }
+    UI.mode='main'; SFX.tap(); return;
+  }
+  if(UI.mode==='buho'){
+    if(!G.buho){ UI.mode='main'; return; }
+    if(x>=14 && x<=146 && y>=78 && y<168){
+      const i = Math.floor((y-78)/30);
+      if(i>=0 && i<G.buho.offers.length){ buyBuhoOffer(i); return; }
+    }
+    UI.mode='main'; SFX.tap(); return;
+  }
   if(UI.mode==='ascendConfirm'){
     if(y>150 && y<175){
       if(x<80){ doAscend(); } else { UI.mode='stats'; SFX.tap(); }
@@ -51,14 +66,18 @@ function handleTap(x,y){
     UI.mode='main'; SFX.tap(); return;
   }
   if(UI.mode==='shop'){
-    if(y>=50 && y<=61 && x>=10 && x<=150){ UI.shopTab = x<80?0:1; SFX.tap(); return; }
+    if(y>=50 && y<=61 && x>=10 && x<=150){ UI.shopTab = x<57?0:(x<104?1:2); SFX.tap(); return; }
     if(y<38 || y>216){ UI.mode='main'; SFX.tap(); return; }
-    if((UI.shopTab||0)===0){
+    const tab = UI.shopTab||0;
+    if(tab===0){
       const i = Math.floor((y-64)/19);
       if(i>=0 && i<SHOP.length) buyUpgrade(i);
-    } else {
+    } else if(tab===1){
       const i = Math.floor((y-64)/26);
       if(i>=0 && i<TOYS.length) buyToy(i);
+    } else {
+      const i = Math.floor((y-64)/24);
+      if(i>=0 && i<HATS.length) tapHat(i);
     }
     return;
   }
@@ -179,15 +198,22 @@ function handleTap(x,y){
     }
     return;
   }
+  /* cartel de misiones */
+  if(x>141 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
   /* chispas */
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
     if(Math.abs(x-s.x)<11 && Math.abs(y-s.y)<11){
       gainMotas(tapYield(), s.x, s.y);
       gainXP(AP().trait==='CURIOSO'?4:2); SFX.coin(); vibrate(10);
+      questProg('chispas', 1);
       UI.sparkles.splice(i,1);
       return;
     }
+  }
+  /* el buhonero */
+  if(G.buho && y>118 && y<175 && Math.abs(x-G.buho.x)<13){
+    UI.mode='buho'; SFX.tap(); vibrate(10); return;
   }
   /* bicho salvaje */
   if(G.wild && y>120 && y<175 && Math.abs(x-G.wild.x)<16){
@@ -214,6 +240,7 @@ function handleTap(x,y){
       } else if(!p.sleeping){
         p.happy = Math.min(100, p.happy+2);
         spawnHearts(1); petVoice(p); p.petT = now;
+        questProg('mimos', 1);
       }
     }
   }

@@ -46,6 +46,7 @@ function doFeed(fi){
   if(F.snack){ p.fedSnacks++; if(p.fedSnacks%6===0) p.mistakes++; }
   else p.fedMeals++;
   gainXP(xp);
+  questProg('comidas', 1);
   p.eatT = 1600; p.feedKind = F.spr;
   SFX.eatFood(F.id); if(ha>0) spawnHearts(1);
   UI.mode='main'; saveGame();
@@ -57,6 +58,7 @@ function doClean(){
   for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+40);
   UI.sweepT = performance.now();
   gainXP(6*n); gainMotas(2*n, 80, 150);
+  questProg('limpia', n);
   SFX.clean(); toast('¡LIMPIO! +'+(2*n)+'✦'); saveGame();
 }
 function doSleepToggle(){
@@ -73,6 +75,7 @@ function doTrain(){
   p.discipline=Math.min(99,p.discipline+(p.line==='brasa'?2:1));
   p.weight=Math.max(5,p.weight-1); p.happy=Math.max(0,p.happy-3);
   p.trainT = 1500; gainXP(12);
+  questProg('entrena', 1);
   SFX.train(); vibrate(30); UI.mode='main'; saveGame();
 }
 
@@ -174,4 +177,96 @@ function finishAscend(){
   G.sel = i;
   UI.sparkles=[]; UI.mode='main';
   saveGame();
+}
+
+/* ---------------- MISIONES DEL DÍA ---------------- */
+function dayKey(){ const d = new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function ensureDaily(){
+  const key = dayKey();
+  if(G.daily && G.daily.key===key) return;
+  /* 3 misiones al día, elegidas con un LCG sembrado por la fecha:
+     todos ven las mismas y no se pueden re-tirar */
+  let s = 0; for(const c of key) s = (s*31 + c.charCodeAt(0)) >>> 0;
+  const idx = QUESTS.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){
+    s = (s*1664525 + 1013904223) >>> 0;
+    const j = s % (i+1);
+    const tmp = idx[i]; idx[i] = idx[j]; idx[j] = tmp;
+  }
+  G.daily = {key, ids: idx.slice(0,3), prog:{}, claimed:{}};
+}
+function questProg(id, n){
+  if(!G || !G.daily) return;
+  if(!G.daily.ids.some(i=>QUESTS[i].id===id)) return;
+  if(G.daily.claimed[id]) return;
+  G.daily.prog[id] = (G.daily.prog[id]||0) + n;
+}
+function questClaimable(){
+  ensureDaily();
+  return G.daily.ids.some(i=>{
+    const q = QUESTS[i];
+    return !G.daily.claimed[q.id] && (G.daily.prog[q.id]||0) >= q.n;
+  });
+}
+function claimQuest(i){
+  const q = QUESTS[G.daily.ids[i]];
+  if(G.daily.claimed[q.id]){ SFX.tap(); return; }
+  if((G.daily.prog[q.id]||0) < q.n){ SFX.tap(); return; }
+  G.daily.claimed[q.id] = true;
+  gainMotas(q.m); gainXP(q.xp);
+  toast('¡MISION LISTA! +'+q.m+'✦', 2600);
+  SFX.buy(); vibrate(25);
+  for(let j=0;j<8;j++) UI.particles.push({x:60+Math.random()*40,y:100+Math.random()*20,vy:0.02,life:1000,ch:'.',col:'#ffd94a'});
+  saveGame();
+}
+
+/* ---------------- EL BUHONERO ---------------- */
+function buhoOffers(){
+  const offers = [];
+  if(!G.hats.buho) offers.push({kind:'hat', id:'buho', name:'GORRO BUHO', desc:'SOLO AQUI', cost:250});
+  const rl = relicRoll();
+  if(rl && Math.random()<0.4) offers.push({kind:'relic', id:rl.id, name:rl.name, desc:rl.desc, cost:500});
+  const pool = [
+    {kind:'boost',  id:'boost',  name:'BOTIN X1.5',   desc:'30 MIN DE MOTAS',   cost:100},
+    {kind:'xp',     id:'xp',     name:'POCION SABIA', desc:'+60 XP AL INSTANTE',cost:90},
+    {kind:'siesta', id:'siesta', name:'CAFE DEL ALBA',desc:'PILAS AL MAXIMO',   cost:60},
+    {kind:'festin', id:'festin', name:'FESTIN',       desc:'TODOS COMEN Y RIEN',cost:80}
+  ];
+  while(offers.length<3 && pool.length){
+    const i = Math.floor(Math.random()*pool.length);
+    offers.push(pool.splice(i,1)[0]);
+  }
+  return offers.slice(0,3);
+}
+function buyBuhoOffer(i){
+  const o = G.buho && G.buho.offers[i];
+  if(!o || o.sold){ SFX.tap(); return; }
+  if(G.motas < o.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= o.cost; o.sold = true;
+  if(o.kind==='hat'){ G.hats[o.id] = true; AP().hat = o.id; toast('¡GORRO NUEVO PUESTO!'); }
+  else if(o.kind==='relic'){ G.relics[o.id] = true; toast('RELIQUIA: '+o.name, 2800); }
+  else if(o.kind==='boost'){ G.boostUntil = Date.now() + 30*60*1000; toast('¡BOTIN ACTIVADO 30 MIN!'); }
+  else if(o.kind==='xp'){ gainXP(60); toast('+60 XP'); }
+  else if(o.kind==='siesta'){ for(const p of G.pets){ if(p.stage>STAGES.EGG) p.energy = 100; } toast('¡PILAS A TOPE!'); }
+  else if(o.kind==='festin'){
+    for(const p of G.pets){ if(p.stage>STAGES.EGG){ p.hunger = Math.min(100, p.hunger+50); p.happy = Math.min(100, p.happy+20); } }
+    toast('¡FESTIN PARA TODOS!'); spawnHearts(3);
+  }
+  SFX.buy(); vibrate(25); saveGame();
+}
+
+/* ---------------- GORROS ---------------- */
+function tapHat(i){
+  const H = HATS[i];
+  const p = AP();
+  if(G.hats[H.id]){
+    p.hat = (p.hat===H.id) ? null : H.id;
+    toast(p.hat ? '¡'+H.name+' PUESTO!' : 'GORRO GUARDADO');
+    SFX.tap(); saveGame(); return;
+  }
+  if(H.buhoOnly){ toast('SOLO LO VENDE EL BUHONERO'); SFX.nope(); return; }
+  if(G.motas < H.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= H.cost; G.hats[H.id] = true; p.hat = H.id;
+  UI.shopFlash[H.id] = performance.now();
+  toast('¡GORRO NUEVO PUESTO!'); SFX.buy(); vibrate(25); saveGame();
 }

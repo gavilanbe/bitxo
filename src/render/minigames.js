@@ -26,6 +26,10 @@ function drawBattle(t, dt){
   ctx.save();
   ctx.translate(Math.round(46+pox+shk), 150);
   ctx.drawImage(pspr, -pspr.width/2, -pspr.height);
+  if(p.hat && SPR['hat_'+p.hat]){
+    const hs = SPR['hat_'+p.hat];
+    ctx.drawImage(hs, -Math.floor(hs.width/2), -pspr.height - hs.height + 2);
+  }
   ctx.restore();
   /* enemigo (der) mirando al jugador */
   ctx.save();

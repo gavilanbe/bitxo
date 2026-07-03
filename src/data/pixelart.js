@@ -190,6 +190,19 @@ function buildAllSprites(){
 "..kkk..",".krrwk.","krrrwwk","krrwwwk","krwwwwk",".krwwk.","..kkk.."]);
   SPR.caja = mkSprite({k:K,p:'#9d7bd8',y:'#ffd94a'},[
 "kkkkkkkkkk","kppyyppyyk","kppppppppk","kyyppppyyk","kppppppppk","kppyyppyyk","kkkkkkkkkk"]);
+  /* gorros */
+  SPR.hat_lazo = mkSprite({k:K,p:'#f78fb3',d:'#d8578a'},[
+"kk...kk","kppkppk","kpdkdpk",".kk.kk."]);
+  SPR.hat_flor = mkSprite({k:K,y:'#ffd94a',p:'#f2a2b8'},[
+".kpk.","kpypk",".kpk."]);
+  SPR.hat_seta = mkSprite({k:K,r:'#d8574c',w:'#f6efe0'},[
+"..kkkk..",".krwrrk.","krrrrwrk","kkkkkkkk"]);
+  SPR.hat_copa = mkSprite({k:K,n:'#2a2438',r:'#e2574c'},[
+"..kkkk..","..knnk..","..krrk..","kkkkkkkk"]);
+  SPR.hat_corona = mkSprite({k:K,y:'#ffd94a',r:'#e2574c'},[
+"k.k.k.k","kykykyk","kyyryyk","kkkkkkk"]);
+  SPR.hat_buho = mkSprite({k:K,u:'#9d7bd8',y:'#ffd94a'},[
+"...k...","..kuk..",".kuuuk.","kuyuyuk",".kkkkk."]);
 }
 
 const IC = {};
