@@ -59,6 +59,9 @@ function freshGame(){
     hats:{}, daily:null, buhoNextAt:0, buho:null,
     discos:{prado:true}, disco:'prado', games:{}, beast:{}, best:{},
     tower:null, towerNextAt:0, weekly:null, legacy:[],
+    decor:{owned:{}, flores:'clasico', valla:false, camino:false, cielo:false},
+    diary:[],
+    zone:'prado', zonesOpen:{},
     poops:[], lastSeen:Date.now(),
     hints:{sparkle:false, shop:false}
   };

@@ -12,13 +12,38 @@ const stars = []; for(let i=0;i<26;i++) stars.push({x:Math.random()*160,y:Math.r
 const clouds = [{x:20,y:22,s:1},{x:100,y:40,s:0.7},{x:-40,y:12,s:1.2}];
 const fireflies = []; for(let i=0;i<9;i++) fireflies.push({x:Math.random()*160,y:130+Math.random()*55,a:Math.random()*7});
 const butterflies = []; for(let i=0;i<6;i++) butterflies.push({x:Math.random()*160,y:126+Math.random()*50,a:Math.random()*7,c:['#f2a2b8','#fff8d0','#ffd94a'][i%3]});
+/* mezcla gradual entre fases del día: nada de saltos de color */
+function lerpHexCol(a, b, t){
+  const pa = [parseInt(a.slice(1,3),16), parseInt(a.slice(3,5),16), parseInt(a.slice(5,7),16)];
+  const pb = [parseInt(b.slice(1,3),16), parseInt(b.slice(3,5),16), parseInt(b.slice(5,7),16)];
+  const f = v=>('0'+Math.round(v).toString(16)).slice(-2);
+  return '#'+f(pa[0]+(pb[0]-pa[0])*t)+f(pa[1]+(pb[1]-pa[1])*t)+f(pa[2]+(pb[2]-pa[2])*t);
+}
+function skyNow(){
+  const d = new Date();
+  const h = d.getHours() + d.getMinutes()/60;
+  const ph = dayPhase();
+  /* primeros 40 min de cada fase: fundido desde la anterior */
+  const edges = [[6.5,'night','dawn'],[9,'dawn','day'],[18.5,'day','dusk'],[21,'dusk','night']];
+  for(const e of edges){
+    if(h>=e[0] && h<e[0]+0.66){
+      const t = (h-e[0])/0.66;
+      const A = SKY[e[1]], B = SKY[e[2]];
+      const mix = {bands:[]};
+      for(let i=0;i<3;i++) mix.bands[i] = lerpHexCol(A.bands[i], B.bands[i], t);
+      for(const k of ['hill','hill2','grass','grass2']) mix[k] = lerpHexCol(A[k], B[k], t);
+      return mix;
+    }
+  }
+  return SKY[ph];
+}
 /* estrellas de ascensos anteriores: posiciones deterministas */
 function legacyStarPos(i){
   return { x: (i*53+23)%150+5, y: (i*37+11)%70+8 };
 }
 
 function drawScene(t){
-  const ph = dayPhase(), S = SKY[ph];
+  const ph = dayPhase(), S = skyNow();
   px(0,0,160,50,S.bands[0]);
   px(0,50,160,35,S.bands[1]);
   px(0,85,160,35,S.bands[2]);
@@ -26,6 +51,13 @@ function drawScene(t){
   if(ph==='night'){
     for(const st of stars){
       if(Math.sin(t/600 + st.t)>0.2) px(st.x, st.y, 1,1, '#dfe8ff');
+    }
+    if(G.decor && G.decor.cielo){
+      for(let i=0;i<16;i++){
+        const ex = (i*61+37)%158, ey = (i*29+13)%86;
+        if(Math.sin(t/500+i*2)>0) px(ex, ey, 1, 1, i%3 ? '#aab6e8' : '#ffd3e2');
+      }
+      px(30,34,3,1,'#8a92c8'); px(60,20,4,1,'#8a92c8'); px(110,44,3,1,'#8a92c8');
     }
     /* constelación de la dinastía */
     for(let i=0;i<Math.min(24, G.ascensions);i++){
@@ -78,16 +110,34 @@ function drawScene(t){
      sin esto acumula restos de paneles y del atenuado modal */
   px(0,196,160,4,K);
 
-  /* decoración base + jardín */
-  const deco = [[14,182,'#e2574c'],[52,190,'#ffd94a'],[96,186,'#f2a2b8'],[136,180,'#e2574c']];
-  if(G.up.jardin>=1) deco.push([30,166,'#ffd94a'],[118,168,'#f2a2b8'],[70,176,'#6db1ff'],[144,192,'#ffd94a'],[8,170,'#f2a2b8']);
-  for(const d of deco){
-    px(d[0],d[1]-3,1,3,S.grass2);
-    px(d[0]-1,d[1]-5,3,2,d[2]);
-    px(d[0],d[1]-6,1,1,d[2]);
-  }
   for(let i=0;i<8;i++){ px((i*37+11)%160, 130+(i*23)%60, 2,1, S.grass2); }
 
+  /* escenografía propia de cada zona */
+  if(G.zone==='parque') drawParqueProps(t, S);
+
+  /* decoración base + jardín (paleta de flores elegible) */
+  if(G.zone==='prado'){
+    const fp = FLOWER_PALS[(G.decor && G.decor.flores) || 'clasico'] || FLOWER_PALS.clasico;
+    const deco = [[14,182,fp[0]],[52,190,fp[1]],[96,186,fp[2]],[136,180,fp[3]]];
+    if(G.up.jardin>=1) deco.push([30,166,fp[1]],[118,168,fp[2]],[70,176,fp[4]],[144,192,fp[1]],[8,170,fp[2]]);
+    for(const d of deco){
+      px(d[0],d[1]-3,1,3,S.grass2);
+      px(d[0]-1,d[1]-5,3,2,d[2]);
+      px(d[0],d[1]-6,1,1,d[2]);
+    }
+  }
+
+  /* valla y caminito comprados */
+  if(G.zone==='prado' && G.decor && G.decor.valla){
+    for(let x=6;x<160;x+=22){ px(x,112,3,12,'#8a6a3a'); px(x,112,3,1,K); }
+    px(0,115,160,2,'#a4834e'); px(0,120,160,2,'#a4834e');
+  }
+  if(G.zone==='prado' && G.decor && G.decor.camino){
+    for(let x=4;x<156;x+=14){
+      px(x, 168+((x/14)%2)*3, 8, 4, 'rgba(190,182,160,0.85)');
+      px(x+1, 167+((x/14)%2)*3, 6, 1, 'rgba(220,214,196,0.85)');
+    }
+  }
   /* mariposas al sol (más con jardín) */
   if(ph==='day' || ph==='dawn'){
     const nB = 3 + Math.min(3, G.up.jardin);
@@ -102,15 +152,15 @@ function drawScene(t){
       else px(b.x, b.y-1, 1, 1, b.c);
     }
   }
-  if(G.up.jardin>=2){ ctx.drawImage(SPR.shroom, 134, 128); }
-  if(G.up.jardin>=3){
+  if(G.zone==='prado' && G.up.jardin>=2){ ctx.drawImage(SPR.shroom, 134, 128); }
+  if(G.zone==='prado' && G.up.jardin>=3){
     /* estanque */
     px(8,178,34,12,'#3a6bb0'); px(10,176,30,2,'#3a6bb0'); px(10,190,30,2,'#3a6bb0');
     px(12,180,26,8,'#5e9be0');
     const sh = Math.floor(t/700)%2;
     px(16+sh*6,182,6,1,'#bde8f8'); px(26,186,5,1,'#bde8f8');
   }
-  if(G.up.jardin>=4){
+  if(G.zone==='prado' && G.up.jardin>=4){
     /* farolillos */
     for(const lx of [22, 126]){
       px(lx,138,2,18,'#5a4632');
@@ -128,10 +178,72 @@ function drawScene(t){
       }
     }
   }
+  drawZoneEdges(t);
+}
+
+/* ---------------- EL PARQUE: escenografía propia ---------------- */
+function drawParqueProps(t, S){
+  /* arco de entrada: la puerta de vuelta al prado */
+  px(0,128,3,32,'#8a6a3a'); px(9,128,3,32,'#8a6a3a');
+  px(0,124,12,4,'#a4834e');
+  px(0,124,12,1,K); px(0,127,12,1,K);
+  /* el gran árbol: copa con borde oscuro para leerse sobre las colinas */
+  const sway = Math.round(Math.sin(t/1400));
+  px(74,120,8,40,'#6a4e2e');
+  px(75,122,2,36,'#8a6a3a');
+  px(70,158,16,3,'#5a3e24');
+  const rim = 'rgba(18,26,22,0.55)';
+  px(55+sway,105,48,18,rim);
+  px(61+sway,96,36,12,rim);
+  px(67+sway,90,24,9,rim);
+  px(56+sway,106,46,16,S.grass2);
+  px(62+sway,97,34,10,S.grass2);
+  px(68+sway,91,22,7,S.grass2);
+  px(61+sway,103,14,5,S.grass);
+  px(82+sway,96,12,5,S.grass);
+  px(72+sway,112,10,4,S.grass);
+  /* banco de madera */
+  px(104,127,22,3,'#a4834e');
+  px(104,127,22,1,'#c8a04b');
+  px(106,130,2,5,'#5a4632'); px(122,130,2,5,'#5a4632');
+}
+
+/* aviso en la flecha: algo pasa en la zona a la que apunta */
+function zoneAlertCol(target){
+  if(G.wild && (G.wild.zone||'prado')===target) return '#e2574c';
+  if(G.buho && target==='prado') return '#ffd94a';
+  return null;
+}
+/* sendero cerrado, o flechas para ir y volver */
+function drawZoneEdges(t){
+  const blink = Math.floor(t/450)%2===0;
+  if(G.zone==='prado'){
+    if(G.zonesOpen.parque){
+      /* caminito que sale a la derecha */
+      px(146,178,14,4,'rgba(190,182,160,0.75)');
+      px(150,184,10,3,'rgba(190,182,160,0.55)');
+      drawText('>', 152, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
+      const al = zoneAlertCol('parque');
+      if(al && blink) drawTextC('!', 154, 158, al);
+    } else if(Object.keys(G.toys).length>=1){
+      /* el sendero cerrado: un cartelito misterioso */
+      px(151,177,2,9,'#5a4632');
+      px(146,168,12,9,'#8a6a3a');
+      px(146,168,12,1,K); px(146,176,12,1,K);
+      px(146,168,1,9,K); px(157,168,1,9,K);
+      drawTextC('?', 152, 170, blink ? '#ffd94a' : '#f6efe0');
+      px(148,188,12,3,'rgba(190,182,160,0.4)');
+    }
+  } else if(G.zone==='parque'){
+    drawText('<', 4, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
+    const al = zoneAlertCol('prado');
+    if(al && blink) drawTextC('!', 6, 158, al);
+  }
 }
 
 function drawSparkles(t){
   for(const s of UI.sparkles){
+    if((s.zone||'prado')!==G.zone) continue;
     const bob = Math.sin(t/300 + s.t)*2;
     const y = s.y + bob;
     const blink = Math.floor(t/200 + s.t)%3;
@@ -180,6 +292,12 @@ function drawSeason(t){
 function drawWeather(t){
   if(WEATHER.kind==='rain'){
     ctx.fillStyle='rgba(20,30,70,0.15)'; ctx.fillRect(0,0,160,196);
+    /* salpicaduras en el estanque */
+    if(G.up.jardin>=3 && Math.floor(t/120)%3===0){
+      const rx2 = 14+((t*0.37)|0)%22, ry2 = 180+((t*0.13)|0)%8;
+      px(rx2-1, ry2, 3, 1, 'rgba(190,232,248,0.7)');
+      px(rx2, ry2-1, 1, 1, 'rgba(190,232,248,0.7)');
+    }
     for(const d of rainDrops){
       const y = (d.y + t*0.14*d.s)%200;
       const x = ((d.x - t*0.02*d.s)%160+160)%160;

@@ -11,8 +11,9 @@ function energyRate(p){ return R_ENERGY * (p.line==='marea'?0.8:1) * (p.trait===
 function hungerRate(p){ return R_HUNGER * (p.trait==='GLOTON'?1.25:1); }
 function poopEvery(p){ return POOP_EVERY * (p.line==='petrea'?1.6:1); }
 function hygMult(p){ return p.line==='petrea'?0.7:1; }
-function happyDecayRate(p){ return ratePerMs(6) * (1 - 0.1*G.up.juguete) * (p.trait==='JUGUETON'?0.8:1) * weatherHappyMult(p) * (G.relics && G.relics.corona?0.9:1) * (G.toys && G.toys.cometa && WEATHER.kind==='wind' ? 0.65 : 1); }
-function sleepRegen(p){ return R_SLEEPREGEN * (1 + 0.15*G.up.cama) * (p.trait==='DORMILON'?1.3:1); }
+function happyDecayRate(p){ return ratePerMs(6) * (1 - 0.1*G.up.juguete) * (p.trait==='JUGUETON'?0.8:1) * weatherHappyMult(p) * (G.relics && G.relics.corona?0.9:1) * (G.toys && G.toys.cometa && WEATHER.kind==='wind' ? 0.65 : 1) * (p.sick?1.5:1); }
+function petName(p){ return p.nick || (p.form==='grimo' ? 'GRIMO' : (p.stage===STAGES.EGG ? 'HUEVO' : LINES[p.line].names[p.form||'babyA'])); }
+function sleepRegen(p){ return R_SLEEPREGEN * (1 + 0.15*G.up.cama) * (p.trait==='DORMILON'?1.3:1) * (p.sick?0.6:1); }
 function gardenMult(){ return 1 + 0.25*G.up.jardin + (G.relics && G.relics.seta ? 0.1 : 0); }
 function legacyMult(){ return 1 + 0.1*G.stars; }
 function boostMult(){ return Date.now() < G.boostUntil ? 1.5 : 1; }
@@ -21,6 +22,7 @@ function petRate(p){
   const mood = 0.5 + (p.happy/100);
   const stageM = [0,1,1.5,2.2][p.stage]||1;
   let r = (0.15 + 0.25*G.up.aura) * mood * gardenMult() * legacyMult() * stageM * (1+0.04*(p.level-1)) * (p.line==='pradera'?1.15:1) * traitWeatherMult(p);
+  if(p.sick) r *= 0.5;
   if(p.sleeping) r *= 0.3;
   return r;
 }

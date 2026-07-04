@@ -33,6 +33,7 @@ function playNextEvo(){
       swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false
     };
     UI.evoT = 0; UI.mode = 'evolve';
+    diaryLog(UI.evo.fromName+' EVOLUCIONO EN '+UI.evo.toName);
     SFX.evolve(); vibrate([60,60,60,60,120]);
     return true;
   }

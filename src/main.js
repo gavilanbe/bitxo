@@ -7,18 +7,20 @@
 /* a dónde vuelve cada pantalla al cerrarse con la X */
 const MENU_PARENT = {
   stats:'main', album:'stats', ach:'stats', relics:'stats', beast:'stats',
-  ascendConfirm:'stats', shop:'main', feed:'main', play:'main',
+  ascendConfirm:'stats', parqueConfirm:'main', shop:'main', feed:'main', play:'main',
   quests:'main', buho:'main', discos:'games',
-  games:'play', exped:'play', tower:'play', legacy:'main'
+  games:'play', exped:'play', tower:'play', legacy:'main',
+  diary:'stats', rename:'stats'
 };
 const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
-  exped:drawExped, ascendConfirm:drawAscendConfirm,
+  exped:drawExped, ascendConfirm:drawAscendConfirm, parqueConfirm:drawParqueConfirm,
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
   quests:drawQuests, buho:drawBuhoShop,
   discos:drawDiscos, evotree:drawEvoTree,
   beast:drawBeast, games:drawGames,
-  tower:drawTower, legacy:drawLegacy
+  tower:drawTower, legacy:drawLegacy,
+  diary:drawDiary, rename:drawRename
 };
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -114,6 +116,12 @@ function normalizeSave(g){
   g.tower = g.tower||null; g.towerNextAt = g.towerNextAt||0;
   if(g.sound===undefined) g.sound = g.muted ? 0 : 2;
   g.weekly = g.weekly||null; g.legacy = g.legacy||[];
+  g.decor = g.decor||{owned:{}, flores:'clasico', valla:false, camino:false, cielo:false};
+  g.diary = g.diary||[];
+  g.zonesOpen = g.zonesOpen||{};
+  if(!g.zone || (g.zone!=='prado' && !g.zonesOpen[g.zone])) g.zone = 'prado';
+  g.poops = g.poops||[];
+  for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
     p.swingT=0; p.kickAt=0;
     p.hat = p.hat||null;

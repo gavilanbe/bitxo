@@ -102,7 +102,8 @@ function drawOnePet(p, i, t){
   }
   if(p.sleeping){ sy*=0.94; sx*=1.03; lift=0; }
 
-  const x = Math.round(p.rx);
+  const tremble = (p.scaredT && Date.now()<p.scaredT) ? Math.round(Math.sin(t/30)) : 0;
+  const x = Math.round(p.rx) + tremble;
   const shw = Math.max(6, Math.round((w-4)*sx * (1 - lift*0.04)));
   px(x-shw/2, 161, shw, 2, 'rgba(0,0,0,0.25)');
   ctx.save();
@@ -117,6 +118,12 @@ function drawOnePet(p, i, t){
   ctx.restore();
 
   const yTop = baseY - lift - Math.round(h*sy);
+
+  if(p.sick){
+    /* gota verde de fiebre */
+    const gy2 = yTop + 2 + Math.round(Math.sin(t/260)*1.5);
+    px(x - Math.round(w/2) - 2, gy2, 2, 3, '#8ac77a');
+  }
 
   if(sel && Math.floor(t/400)%2===0){
     px(x-1, yTop-8, 2, 2, '#ffd94a');
@@ -135,10 +142,12 @@ function drawOnePet(p, i, t){
       px(x-3, yTop+6+dy, 1, 2, '#6db1ff');
     }
     let icon = null;
-    if(p.hunger<25) icon='meal';
+    if(p.sick) icon='sick';
+    else if(p.hunger<25) icon='meal';
     else if(G.poops.length>0 && p.hygiene<50) icon='poo';
     else if(p.happy<25) icon='sad';
     else if(p.energy<15) icon='zzz';
+    else if(p.thought && performance.now()<p.thought.until) icon = p.thought.icon;
     if(icon && Math.floor(t/600)%3!==2){
       const bx = x+10, by = yTop-14;
       px(bx-2,by-2,14,13,'#f6efe0');
@@ -149,6 +158,9 @@ function drawOnePet(p, i, t){
       if(icon==='poo')  ctx.drawImage(SPR.poop, bx+1, by+1);
       if(icon==='sad')  drawText('♥', bx+3, by+2, '#8a8a9a');
       if(icon==='zzz')  drawText('Z', bx+3, by+2, '#5a6aa0');
+      if(icon==='ball') ctx.drawImage(SPR.pelota, bx+1, by+1);
+      if(icon==='que')  drawText('?', bx+3, by+2, '#6db1ff');
+      if(icon==='sick'){ px(bx+2,by+2,5,5,'#8ac77a'); px(bx+3,by+1,3,1,'#8ac77a'); px(bx+4,by+4,1,1,'#3a7048'); }
     }
   }
   if(p.eatT>0){
@@ -166,7 +178,7 @@ function drawOnePet(p, i, t){
 }
 function drawToys(t){
   if(!G.toys) return;
-  if(G.toys.columpio){
+  if(G.toys.columpio && toyZone('columpio')===G.zone){
     px(15,128,2,32,'#5a4632');
     px(38,128,2,32,'#5a4632');
     px(13,126,29,3,'#8a6a3a');
@@ -175,11 +187,11 @@ function drawToys(t){
     px(Math.round(31+sw),131,1,17,'#3b2f2f');
     px(Math.round(20+sw),148,14,3,'#8a6a3a');
   }
-  if(G.toys.pelota && G.ballX!==undefined){
+  if(G.toys.pelota && G.ballX!==undefined && toyZone('pelota')===G.zone){
     px(Math.round(G.ballX)-3,160,7,2,'rgba(0,0,0,0.25)');
     ctx.drawImage(SPR.pelota, Math.round(G.ballX)-3, 153);
   }
-  if(G.toys.cometa && WEATHER.kind==='wind'){
+  if(G.toys.cometa && WEATHER.kind==='wind' && toyZone('cometa')===G.zone){
     const kx = 118 + Math.sin(t/1200)*18;
     const ky = 34 + Math.sin(t/700)*6;
     /* estaca y cuerda */
@@ -195,14 +207,14 @@ function drawToys(t){
     px(kx-1+Math.sin(t/220)*3, ky+7, 2, 2, '#f0a04b');
     px(kx+1+Math.sin(t/220+1)*3, ky+11, 2, 2, '#f0a04b');
   }
-  if(G.toys.fuente){
+  if(G.toys.fuente && toyZone('fuente')===G.zone){
     px(2,151,14,4,'#9a9aa4'); px(2,151,14,1,K); px(2,154,14,1,K);
     px(6,141,5,10,'#8a8a94'); px(6,141,1,10,K); px(10,141,1,10,K);
     px(5,138,8,3,'#5e9be0');
     const dp = Math.floor(t/160)%3;
     px(3, 143+dp*3, 1, 2, '#9adcf0'); px(13, 145+((dp+1)%3)*3, 1, 2, '#9adcf0');
   }
-  if(G.toys.robot){
+  if(G.toys.robot && toyZone('robot')===G.zone){
     if(UI.robotX===undefined) UI.robotX = 60;
     const rx2 = Math.round(UI.robotX);
     px(rx2-4,159,9,2,'rgba(0,0,0,0.25)');
@@ -213,15 +225,15 @@ function drawToys(t){
     px(rx2-5,158,11,2,'#3a3448');
     px(rx2-1,148,1,2,'#5ec8d8');
   }
-  if(G.toys.banera){
+  if(G.toys.banera && toyZone('banera')===G.zone){
     px(51,159,16,2,'rgba(0,0,0,0.25)');
     ctx.drawImage(SPR.banera, 51, 149);
   }
-  if(G.toys.tambor){
+  if(G.toys.tambor && toyZone('tambor')===G.zone){
     px(121,159,12,2,'rgba(0,0,0,0.25)');
     ctx.drawImage(SPR.tambor, 121, 151);
   }
-  if(G.toys.huerto){
+  if(G.toys.huerto && toyZone('huerto')===G.zone){
     const left = Math.max(0, (G.huertoReadyAt||0) - Date.now());
     const total = 2*3600*1000;
     px(74,157,22,6,'#5a4632');
@@ -234,7 +246,7 @@ function drawToys(t){
       if(Math.floor(t/300)%2===0) drawText('!', 85, 136, '#ffd94a');
     }
   }
-  if(G.toys.caja){
+  if(G.toys.caja && toyZone('caja')===G.zone){
     const ready = Date.now() >= (G.cajaReadyAt||0);
     const hop = ready? Math.abs(Math.sin(t/200))*2 : 0;
     px(100,159,12,2,'rgba(0,0,0,0.25)');
@@ -247,7 +259,7 @@ function drawPets(t){
   for(const i of order) drawOnePet(G.pets[i], i, t);
 }
 function drawWild(t){
-  if(!G.wild) return;
+  if(!G.wild || (G.wild.zone||'prado')!==G.zone) return;
   const w = G.wild;
   const spr = ESPR[w.kind];
   const shake = Math.sin(t/60)*0.8;
@@ -274,6 +286,7 @@ function drawWild(t){
 
 function drawPoops(t){
   for(const p of G.poops){
+    if((p.zone||'prado')!==G.zone) continue;
     ctx.drawImage(SPR.poop, Math.round(p.x)-4, 156);
     if(Math.floor(t/400)%2===0){
       px(p.x-1, 150,1,1,'#8a9b6a');
@@ -289,6 +302,7 @@ function drawPoops(t){
 
 /* ---------------- CARTEL DE MISIONES Y BUHONERO ---------------- */
 function drawSign(t){
+  if(G.zone!=='prado') return;
   px(149,148,2,13,'#5a4632');
   px(143,138,14,11,'#8a6a3a');
   px(143,138,14,1,K); px(143,148,14,1,K);
@@ -297,7 +311,7 @@ function drawSign(t){
   else drawTextC('M', 150, 141, '#f6efe0');
 }
 function drawBuho(t){
-  if(!G.buho) return;
+  if(!G.buho || G.zone!=='prado') return;
   const b = G.buho;
   const spr = SPR.grimo[0];
   const bx = Math.round(b.x);

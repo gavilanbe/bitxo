@@ -307,6 +307,7 @@ function endBattle(win){
     questProg('combate', 1);
     weeklyProg('combates', 1);
     if(b.elite) weeklyProg('elites', 1);
+    if(b.elite && !G.diary.some(e=>e.txt.includes('PRIMER ELITE'))) diaryLog(petName(p)+' VENCIO A SU PRIMER ELITE');
     if(b.boss){
       G.bossesWon = (G.bossesWon||0)+1;
       G.bossDue = false;

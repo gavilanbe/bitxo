@@ -57,6 +57,7 @@ function applyElapsed(ms){
   if(ms > 2*60*1000) offlineReport = rep;
 }
 function currentNameOf(p){
+  if(p.nick) return p.nick;
   if(p.form==='grimo') return 'GRIMO';
   if(p.stage===STAGES.EGG) return 'EL HUEVO';
   return LINES[p.line].names[p.form||'babyA'];

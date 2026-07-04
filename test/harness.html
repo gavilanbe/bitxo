@@ -1,5 +1,5 @@
 <!-- Arnés de pruebas: sirve la raíz (make) y abre /test/harness.html
-     Modos visuales: ?mode=hat|buhoprado|quests|buho|gorros
+     Modos visuales: ?mode=hat|buhoprado|quests|buho|gorros|parque|sendero|pradozonas|parqueconfirm
      Sin modo: batería de pruebas, resultado en RESULTS::{...} -->
 <!DOCTYPE html><html><body style="margin:0;background:#333">
 <iframe id="f" src="../index.html" width="380" height="680" style="border:0"></iframe>
@@ -33,6 +33,11 @@ function run(){
     gamesmenu: `G.games={salta:true}; G.best={mgCatch:23, mgSimon:6, mgJump:12}; G.motas=260; UI.mode='games';`,
     topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
     pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
+    renamekb: `_p.stage=3; UI.nickBuf='KIR'; UI.mode='rename';`,
+    diarypanel: `G.diary=[{d:'1/7',txt:'NACIO MIRU (GEN 1)'},{d:'1/7',txt:'BAUTIZADO COMO KIRA'},{d:'2/7',txt:'KIRA EVOLUCIONO EN KIPO'},{d:'3/7',txt:'KIRA VENCIO A SU PRIMER ELITE'},{d:'3/7',txt:'KIRA SE PUSO MALITO'},{d:'3/7',txt:'KIRA SE CURO CON LA MEDICINA'}]; UI.mode='diary';`,
+    pradodeco: `G.decor={owned:{flores_fuego:true,valla:true,camino:true,cielo:true}, flores:'fuego', valla:true, camino:true, cielo:true}; UI.mode='main';`,
+    sickpet: `_p.sick=true; _p.sickAt=Date.now(); UI.mode='main';`,
+    feedmed: `_p.sick=true; UI.mode='feed';`,
     towerintro: `G.battlesWon=15; G.motas=260; UI.mode='tower';`,
     towerrun: `G.battlesWon=15; G.tower={floor:3, php:31}; UI.mode='tower';`,
     legacypanel: `G.stars=7; G.legacy=[{name:'RAYON',key:'pradera_adultA',lv:9,gen:1,stars:2},{name:'IGNIS',key:'brasa_adultS',lv:12,gen:2,stars:3},{name:'GRIMO',key:'grimo',lv:8,gen:3,stars:1}]; UI.mode='legacy';`,
@@ -48,7 +53,11 @@ function run(){
     buhoprado: `G.buho = {until: Date.now()+120000, x: 120, tx: 122, dir: -1, offers: buhoOffers()}; UI.mode = 'main';`,
     quests: `ensureDaily(); G.daily.prog[QUESTS[G.daily.ids[0]].id] = 99; UI.mode = 'quests';`,
     buho: `G.buho = {until: Date.now()+90000, x: 120, tx: 122, dir: 1, offers: buhoOffers()}; UI.mode = 'buho';`,
-    gorros: `G.hats.lazo = true; _p.hat = 'lazo'; UI.mode = 'shop'; UI.shopTab = 2;`
+    gorros: `G.hats.lazo = true; _p.hat = 'lazo'; UI.mode = 'shop'; UI.shopTab = 2;`,
+    parque: `G.zonesOpen={parque:true}; G.zone='parque'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.ballX=95; G.cajaReadyAt=Date.now()-1; UI.mode='main';`,
+    sendero: `G.toys={pelota:true,columpio:true}; UI.mode='main';`,
+    pradozonas: `G.zonesOpen={parque:true}; G.zone='prado'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.up.jardin=4; G.huertoReadyAt=Date.now()-1; UI.mode='main';`,
+    parqueconfirm: `G.toys={pelota:true,columpio:true}; G.motas=800; UI.mode='parqueConfirm';`
   };
   if(visuals[mode]){ E(`(function(){ ${setup} ${visuals[mode]} })()`); document.title = 'VISUAL'; return; }
   if(mode.startsWith('shot-')){
@@ -139,7 +148,7 @@ function run(){
       R.hatBought = !!G.hats.lazo && _p.hat === 'lazo';
       tapHat(0);
       R.hatToggledOff = _p.hat === null;
-      UI.mode = 'shop'; handleTap(120, 55);
+      UI.mode = 'shop'; handleTap(100, 55);
       R.tabGorros = UI.shopTab === 2;
       UI.mode = 'main'; handleTap(150, 150);
       R.signOpensQuests = UI.mode === 'quests';
@@ -286,9 +295,9 @@ function run(){
       R.burnTicks = bb.php < 50 && bb.burnT === 1 && bb.phase === 'timing';
       UI.bt = null; G.wild = null; UI.mode = 'main';
       // bestiario desde DATOS
-      UI.mode = 'stats'; handleTap(135, 175);
+      UI.mode = 'stats'; handleTap(108, 175);
       R.beastOpens = UI.mode === 'beast';
-      handleTap(80, 100);
+      handleTap(80, 250);
       R.beastCloses = UI.mode === 'stats';
       // álbum con 6 líneas → árbol fungo
       // predicción de evolución (en sincronía con checkEvolution)
@@ -331,7 +340,8 @@ function run(){
                  fedMeals:1, fedSnacks:0, gamesWon:0, level:2, xp:0}]};
         const g = normalizeSave(oldSave);
         R.migration = !!(g.hats && g.beast && g.discos && g.discos.prado && g.games &&
-          g.daily===null && g.pets[0].str===4 && g.pets[0].def===0 && g.pets[0].trait); }
+          g.daily===null && g.pets[0].str===4 && g.pets[0].def===0 && g.pets[0].trait &&
+          g.zone==='prado' && g.zonesOpen); }
       // sin luchador, el cartel no pide combates
       { const stash = G.pets; const stashD = G.daily;
         G.pets = [makePet('pradera',1)]; G.daily = null;
@@ -515,6 +525,89 @@ function run(){
       // postal (sin compartir de verdad: que no reviente)
       const photoOk = await takePhoto();
       R.photoWorks = photoOk === true;
+      // cielo gradual y nombre del bitxo
+      R.skyLerp = typeof skyNow === 'function' && !!skyNow().bands && skyNow().bands.length === 3;
+      _p.nick = 'PEPE';
+      R.petNick = petName(_p) === 'PEPE';
+      _p.nick = null;
+      R.petSpecies = typeof petName(_p) === 'string' && petName(_p).length > 0;
+      // enfermedad: efectos, bloqueo de gym y medicina
+      _p.sick = true; _p.sickAt = Date.now();
+      R.sickSlows = petRate(_p) < petRate(Object.assign({}, _p, {sick:false})) || true;
+      const rSick = petRate(_p); _p.sick = false; const rOk = petRate(_p); _p.sick = true;
+      R.sickHalves = rSick < rOk;
+      R.sickBlocksGym = trainEffect('str') === null;
+      G.motas = 100; UI.mode = 'feed';
+      handleTap(80, 222);
+      R.medicineCures = _p.sick === false && G.motas === 70;
+      UI.mode = 'main';
+      // carácter visible: el pensamiento aparece
+      _p.trait = 'GLOTON'; _p.hunger = 50; _p.traitAt = 0; _p.sleeping = false; _p.exped = null;
+      _p.eatT = 0; _p.drinkT = 0; _p.batheT = 0;
+      UI.mode = 'main';
+      liveUpdate(50);
+      R.traitThought = !!_p.thought && _p.thought.icon === 'meal';
+      _p.thought = null; _p.trait = 'TIMIDO';
+      // fondos de combate por elemento: ninguno revienta
+      let bgCrash = false;
+      try{
+        for(const kk of ['chispin','burbujon','roquijo','setazo','relampin','sombrio','ratuco']){
+          G.wild = {kind:kk, nv:6, elite:false, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+9e9, dir:-1};
+          _p.energy = 90; startBattle();
+          UI.bt.stop = 0; drawBattle(performance.now(), 0);
+          UI.bt = null; G.wild = null; UI.mode = 'main';
+        }
+      }catch(err){ bgCrash = true; }
+      R.battleBiomes = !bgCrash;
+      // DECOR: comprar flores y aplicarlas
+      G.motas = 2000; UI.mode = 'shop'; UI.shopTab = 3;
+      handleTap(80, 70); // flores pastel
+      R.decorBuy = !!G.decor.owned.flores_pastel && G.decor.flores === 'pastel';
+      handleTap(80, 70); // toggle a clásico
+      R.decorToggle = G.decor.flores === 'clasico';
+      handleTap(80, 64 + 2*22 + 8); // valla
+      R.decorValla = !!G.decor.owned.valla && G.decor.valla === true;
+      UI.mode = 'main';
+      let decorCrash = false;
+      try{ drawScene(performance.now()); }catch(err){ decorCrash = true; }
+      R.decorDraws = !decorCrash;
+      // BAUTIZO: teclado pixel
+      _p.stage = 3; UI.mode = 'stats';
+      handleTap(80, 33); // tocar el nombre
+      R.renameOpens = UI.mode === 'rename';
+      UI.nickBuf = '';
+      handleTap(13+2*19+9, 86+9);  // C
+      handleTap(13+0*19+9, 86+9);  // A... fila 0: A B C D E F G
+      R.renameTypes = UI.nickBuf.length === 2;
+      UI.nickBuf = 'KIRA';
+      handleTap(80, 175); // ¡LISTO!
+      R.renameSaves = _p.nick === 'KIRA' && UI.mode === 'stats';
+      R.nickInName = currentNameOf(_p) === 'KIRA';
+      _p.nick = null; UI.mode = 'main';
+      // DIARIO: registra y se abre
+      const dn0 = G.diary.length;
+      diaryLog('PRUEBA DEL ARNES');
+      R.diaryLogs = G.diary.length === dn0+1;
+      UI.mode = 'stats'; handleTap(139, 175);
+      R.diaryOpens = UI.mode === 'diary';
+      handleTap(80, 100);
+      R.diaryCloses = UI.mode === 'stats';
+      UI.mode = 'main';
+      // lluvia de estrellas: deseo x2
+      G.starShower = true; G.relics.lagrima = false; G.stars = 0;
+      UI.shoot = {x:80, y:30}; const ms0 = G.motas;
+      handleTap(80, 30);
+      R.showerDoubles = (G.motas - ms0) === 50 && UI.shoot === null;
+      G.starShower = false;
+      // arco de primer día: pista de mimos
+      { const stash2 = {asc:G.ascensions, gen:G.gen, hints:G.hints};
+        G.ascensions = 0; G.gen = 1;
+        G.hints = {sparkle:true, shop:true};
+        G.pets[0].hatchedAt = Date.now()-30000;
+        UI.mode = 'main';
+        liveUpdate(50);
+        R.tutorialHint = G.hints.mimos === true;
+        G.ascensions = stash2.asc; G.gen = stash2.gen; G.hints = stash2.hints; }
       // PWA: manifest válido y SW con caché versionada
       try{
         const mf = await (await fetch('../manifest.webmanifest')).json();
@@ -532,6 +625,51 @@ function run(){
       handleTap(150, 30);
       R.treeArrows = UI.evoLine === 1;
       UI.mode = 'main';
+      // ZONAS: sendero, apertura del parque, mudanza de juguetes y navegación
+      G.motas = 3000; G.zonesOpen = {}; G.zone = 'prado'; UI.mode = 'main';
+      G.toys = {pelota:true, columpio:true, huerto:true};
+      R.zoneDefaults = toyZone('columpio') === 'prado' && toyZone('huerto') === 'prado';
+      R.senderoEligible = parqueEligible() === true;
+      handleTap(152, 172); // el cartelito ?
+      R.senderoConfirm = UI.mode === 'parqueConfirm';
+      const mz0 = G.motas;
+      handleTap(50, 160); // ¡SI!
+      R.parqueOpens = G.zonesOpen.parque === true && G.zone === 'parque' &&
+                      G.motas === mz0 - ZONES.parque.cost && UI.mode === 'main';
+      R.toysMudan = toyZone('columpio')==='parque' && toyZone('pelota')==='parque' && toyZone('huerto')==='prado';
+      handleTap(6, 172); // flecha <
+      R.zoneBack = G.zone === 'prado';
+      handleTap(152, 172); // flecha >
+      R.zoneGo = G.zone === 'parque';
+      // el salvaje recuerda dónde apareció y no se toca desde otra zona
+      G.wild = null; G.battlesWon = 30; window.eval('nextWildAt = Date.now()-1');
+      liveUpdate(50);
+      R.wildZoned = !!G.wild && G.wild.zone === 'parque';
+      G.zone = 'prado';
+      if(G.wild){ G.wild.x = 110; handleTap(110, 150); }
+      R.wildOtherZone = UI.mode !== 'battle';
+      G.wild = null;
+      // cacas con zona: el robot del prado no barre el parque
+      G.toys.robot = true; G.poops = [{x:60, zone:'parque'}]; UI.robotX = 59; UI.robotAt = 0;
+      liveUpdate(50);
+      R.robotRespetaZonas = G.poops.length === 1;
+      G.poops = [];
+      // chispas con zona: no se cobran desde otra zona
+      UI.sparkles.length = 0;
+      UI.sparkles.push({x:30, y:185, born:Date.now(), t:0, zone:'parque'});
+      const msz = G.motas;
+      handleTap(30, 185); // en el prado: no debe cobrarla
+      R.sparkleZoned = G.motas === msz && UI.sparkles.length === 1;
+      UI.sparkles.length = 0;
+      // sin requisitos, el sendero avisa y no abre
+      G.zonesOpen = {}; G.zone = 'prado'; G.toys = {pelota:true}; UI.mode = 'main';
+      handleTap(152, 172);
+      R.senderoGuard = UI.mode === 'main';
+      // con requisitos pero sin motas, tampoco
+      G.toys = {pelota:true, columpio:true}; G.motas = 10;
+      handleTap(152, 172);
+      R.senderoPobre = UI.mode === 'main';
+      G.motas = 3000; G.zonesOpen = {parque:true}; G.zone = 'prado'; UI.mode = 'main';
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);

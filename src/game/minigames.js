@@ -172,6 +172,7 @@ function pescaStep(dt){
       SFX.nope(); vibrate(50); m.ph='wait'; m.fish=null; m.biteAt = m.t + 1400+Math.random()*2000; m.biteT=0;
     } else if(m.holdT>3400){
       m.caught.push(f); m.score += f.v; m.splashT = performance.now();
+      if(f.id==='dorado') diaryLog(petName(AP())+' PESCO UN PEZ DORADO');
       UI.floats.push({x:100, y:104, s:'¡'+f.name+'!', col:f.col, life:1100, vy:-0.025});
       SFX.yay(); vibrate([20,20,40]);
       m.ph='wait'; m.fish=null; m.biteAt = m.t + 1200+Math.random()*2200; m.biteT=0;

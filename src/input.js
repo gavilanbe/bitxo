@@ -78,6 +78,12 @@ function handleTap(x,y){
     } else { UI.mode='stats'; SFX.tap(); }
     return;
   }
+  if(UI.mode==='parqueConfirm'){
+    if(y>150 && y<174){
+      if(x<80){ openParque(); } else { UI.mode='main'; SFX.tap(); }
+    } else { UI.mode='main'; SFX.tap(); }
+    return;
+  }
   if(UI.mode==='beast'){
     if(x>=9 && x<=151 && y>=35 && y<217){
       const i = Math.floor((y-35)/14);
@@ -86,7 +92,7 @@ function handleTap(x,y){
         if(G.beast && G.beast[k] && G.beast[k].seen>0){
           /* revancha: a tu nivel actual +1 */
           const pp2 = playerPower(AP());
-          G.wild = {kind:k, nv:Math.max(1,pp2+1), elite:false, boss:!!ENEMIES[k].boss, revenge:true,
+          G.wild = {kind:k, nv:Math.max(1,pp2+1), elite:false, boss:!!ENEMIES[k].boss, revenge:true, zone:G.zone,
                     x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+9e9, dir:-1};
           startBattle();
           if(UI.mode!=='battle'){ G.wild = null; UI.mode = 'beast'; }
@@ -97,7 +103,14 @@ function handleTap(x,y){
     UI.mode='stats'; SFX.tap(); return;
   }
   if(UI.mode==='stats'){
-    if(y>168 && y<184){ UI.mode = x<41 ? 'album' : (x<78 ? 'ach' : (x<115 ? 'relics' : 'beast')); SFX.tap(); return; }
+    if(y>168 && y<184){
+      UI.mode = x<33 ? 'album' : (x<63 ? 'ach' : (x<93 ? 'relics' : (x<123 ? 'beast' : 'diary')));
+      SFX.tap(); return;
+    }
+    if(y>=26 && y<=40 && x>40 && x<120 && AP().stage>STAGES.EGG){
+      UI.nickBuf = AP().nick || '';
+      UI.mode = 'rename'; SFX.tap(); return;
+    }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
     if(y>=205 && y<=222){
       if(x>=12 && x<56){ exportSave(); return; }
@@ -107,7 +120,7 @@ function handleTap(x,y){
     UI.mode='main'; SFX.tap(); return;
   }
   if(UI.mode==='shop'){
-    if(y>=50 && y<=61 && x>=10 && x<=150){ UI.shopTab = x<57?0:(x<104?1:2); SFX.tap(); return; }
+    if(y>=50 && y<=61 && x>=8 && x<=154){ UI.shopTab = x<45?0:(x<82?1:(x<119?2:3)); SFX.tap(); return; }
     if(y<38 || y>216){ UI.mode='main'; SFX.tap(); return; }
     const tab = UI.shopTab||0;
     if(tab===0){
@@ -116,15 +129,19 @@ function handleTap(x,y){
     } else if(tab===1){
       const i = Math.floor((y-64)/16);
       if(i>=0 && i<TOYS.length) buyToy(i);
-    } else {
+    } else if(tab===2){
       const col = x<80 ? 0 : 1;
       const row = Math.floor((y-64)/25);
       const i = row*2 + col;
       if(row>=0 && i>=0 && i<HATS.length) tapHat(i);
+    } else {
+      const i = Math.floor((y-64)/22);
+      if(i>=0 && i<DECOR.length) tapDecor(i);
     }
     return;
   }
   if(UI.mode==='feed'){
+    if(y>=216 && y<=229 && x>=10 && x<=150){ giveMedicine(); return; }
     const col = x>=10 && x<78 ? 0 : (x>=82 && x<150 ? 1 : -1);
     const row = Math.floor((y-46)/42);
     if(col>=0 && row>=0 && row<4 && y>=46 && y<214){
@@ -158,6 +175,34 @@ function handleTap(x,y){
     UI.mode='play'; SFX.tap(); return;
   }
   if(UI.mode==='legacy'){ UI.mode='main'; SFX.tap(); return; }
+  if(UI.mode==='diary'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='rename'){
+    const buf = UI.nickBuf||'';
+    if(y>=86 && y<162 && x>=13 && x<=146){
+      /* teclas */
+      if(y<143){
+        const col = Math.floor((x-13)/19), row = Math.floor((y-86)/19);
+        const i = row*7 + col;
+        if(col>=0 && col<7 && i<26 && buf.length<8){
+          UI.nickBuf = buf + RENAME_KEYS[i];
+          SFX.tap(); vibrate(8);
+        }
+        return;
+      }
+      if(y>=143 && y<=159 && x>=89 && x<=115){
+        UI.nickBuf = buf.slice(0,-1); SFX.tap(); return;
+      }
+      return;
+    }
+    if(y>=168 && y<=186 && x>=24 && x<=136){
+      AP().nick = buf.length ? buf : null;
+      toast(buf.length ? '¡SE LLAMA '+buf+'!' : 'NOMBRE DE ESPECIE');
+      if(buf.length) diaryLog('BAUTIZADO COMO '+buf);
+      SFX.yay(); saveGame();
+      UI.mode = 'stats'; return;
+    }
+    UI.mode='stats'; SFX.tap(); return;
+  }
   if(UI.mode==='games'){
     if(x>=10 && x<=151 && y>=72 && y<192){
       const col = Math.floor((x-10)/47), row = Math.floor((y-72)/62);
@@ -304,7 +349,7 @@ function handleTap(x,y){
   }
   /* estrella fugaz */
   if(UI.shoot && Math.abs(x-UI.shoot.x)<15 && Math.abs(y-UI.shoot.y)<15){
-    const g = Math.round(25*legacyMult()) * (G.relics.lagrima?2:1);
+    const g = Math.round(25*legacyMult()) * (G.relics.lagrima?2:1) * (G.starShower?2:1);
     gainMotas(g, UI.shoot.x, UI.shoot.y);
     toast('¡DESEO CONCEDIDO! +'+g+'✦', 2800);
     SFX.wish(); vibrate([20,20,40]);
@@ -312,12 +357,12 @@ function handleTap(x,y){
     return;
   }
   /* juguetes */
-  if(G.toys && G.toys.pelota && Math.abs(x-G.ballX)<10 && y>140 && y<170){
+  if(G.toys && G.toys.pelota && toyZone('pelota')===G.zone && Math.abs(x-G.ballX)<10 && y>140 && y<170){
     G.ballVX = (x < G.ballX ? 1 : -1) * (0.09+Math.random()*0.05);
     SFX.ballKick(); vibrate(12);
     return;
   }
-  if(G.toys && G.toys.caja && x>96 && x<116 && y>134 && y<166){
+  if(G.toys && G.toys.caja && toyZone('caja')===G.zone && x>96 && x<116 && y>134 && y<166){
     if(Date.now() >= (G.cajaReadyAt||0)){ openCaja(); }
     else {
       const mns = Math.ceil((G.cajaReadyAt-Date.now())/60000);
@@ -326,7 +371,7 @@ function handleTap(x,y){
     return;
   }
   /* huerto: cosechar la fruta */
-  if(G.toys && G.toys.huerto && x>72 && x<98 && y>134 && y<166 &&
+  if(G.toys && G.toys.huerto && toyZone('huerto')===G.zone && x>72 && x<98 && y>134 && y<166 &&
      !G.pets.some(q=>q.stage>STAGES.EGG && Math.abs(x-q.rx)<9)){
     if(Date.now() >= (G.huertoReadyAt||0)){
       const p2 = AP();
@@ -347,10 +392,25 @@ function handleTap(x,y){
     return;
   }
   /* cartel de misiones */
-  if(x>141 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
+  if(G.zone==='prado' && x>141 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
+  /* sendero y flechas: ir y volver del parque */
+  if(y>166 && y<198){
+    if(G.zone==='prado' && x>=144){
+      if(G.zonesOpen.parque){
+        gotoZone('parque'); toast(ZONES.parque.name, 1300); SFX.tap(); vibrate(10);
+        return;
+      }
+      if(Object.keys(G.toys).length>=1){ tapSendero(); return; }
+    }
+    if(G.zone==='parque' && x<=14){
+      gotoZone('prado'); toast(ZONES.prado.name, 1300); SFX.tap(); vibrate(10);
+      return;
+    }
+  }
   /* chispas */
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
+    if((s.zone||'prado')!==G.zone) continue;
     if(Math.abs(x-s.x)<11 && Math.abs(y-s.y)<11){
       gainMotas(tapYield() * (AP().line==='voltio' && AP().stage>STAGES.EGG ? 2 : 1), s.x, s.y);
       gainXP(AP().trait==='CURIOSO'?4:2); SFX.coin(); vibrate(10);
@@ -360,11 +420,11 @@ function handleTap(x,y){
     }
   }
   /* el buhonero */
-  if(G.buho && y>118 && y<175 && Math.abs(x-G.buho.x)<13){
+  if(G.buho && G.zone==='prado' && y>118 && y<175 && Math.abs(x-G.buho.x)<13){
     UI.mode='buho'; SFX.tap(); vibrate(10); return;
   }
   /* bicho salvaje */
-  if(G.wild && y>120 && y<175 && Math.abs(x-G.wild.x)<16){
+  if(G.wild && (G.wild.zone||'prado')===G.zone && y>120 && y<175 && Math.abs(x-G.wild.x)<16){
     startBattle();
     return;
   }
@@ -405,6 +465,12 @@ document.addEventListener('keydown', ev=>{
     SFX.tap(); BTNS[i].fn();
   } else if(k==='m' || k==='M'){
     handleTap(150, 8);
+  } else if(k==='ArrowRight' && UI.mode==='main' && G.zone==='prado' && G.zonesOpen.parque){
+    audio();
+    gotoZone('parque'); toast(ZONES.parque.name, 1300); SFX.tap();
+  } else if(k==='ArrowLeft' && UI.mode==='main' && G.zone==='parque'){
+    audio();
+    gotoZone('prado'); toast(ZONES.prado.name, 1300); SFX.tap();
   } else if(k==='Escape' && MENU_PARENT[UI.mode]){
     UI.mode = MENU_PARENT[UI.mode];
     SFX.tap();

@@ -19,6 +19,16 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   minijuegos o entreno) en el cartel, bajo las diarias.
 - ✅ **🏆 Revancha del bestiario** — toca la ficha de cualquier enemigo visto
   y peleas contra él a tu nivel +1.
+- ✅ **🤒 Enfermedad y medicina** — la lluvia sin cometa y la mugre pasan
+  factura: gota de fiebre, todo más lento, gym cerrado; MEDICINA en la
+  despensa (✦30) o se cura solo tras 10h (con castigo a las 4h).
+- ✅ **🎭 Caracteres visibles** — el GLOTÓN sueña comida, el JUGUETÓN persigue
+  mariposas, el VALIENTE encara a los salvajes, el TÍMIDO tiembla y huye,
+  el CURIOSO investiga chispas, el DORMILÓN bosteza.
+- ✅ **📖 Diario del prado** — nacimientos, bautizos, evoluciones, primeras
+  hazañas y sustos, escritos solos; 5º botón de DATOS.
+- ✅ **🎓 Arco de primer día** — el prado te enseña a jugar paso a paso
+  (mimos, comer, limpiar, luz, gym, combate).
 
 ## 🐾 Contenido
 
@@ -34,14 +44,29 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   mérito (LAUREL de la torre) · ideas: gorro estacional.
 - **Más juguetes** — ✅ 9 · ideas: cama elástica (minijuego improvisado),
   espejo (posan con el gorro), casita (duermen mejor sin CAMA máxima).
+- ✅ **Decorar el prado** — pestaña PRADO en la tienda: flores pastel o fuego,
+  valla de madera, caminito de piedras y cielo astral.
 
 ## 🌦 Mundo
 
+- **🗺 Zonas del mundo** — ✅ primera fase: EL PARQUE, pantalla nueva a la
+  derecha con sendero desbloqueable (2 juguetes + un joven + ✦500); los
+  juguetes de jugar (pelota, caja, columpio, tambor, cometa) se mudan allí
+  y cada compra futura va a su zona; los salvajes y las chispas recuerdan
+  dónde aparecen y las flechas avisan con «!» · pendiente: LA HUERTA
+  (huerto, fuente, bañera), dejar bitxos residentes por zona (en brazos,
+  máx. 2), bonus pasivos por zona y el GYM viviendo en el parque.
 - **Estaciones reales** — ✅ primera fase: el prado respira el calendario
   (nieve en invierno, hojas en otoño, pétalos en primavera) · pendiente:
   bufandas, comida y enemigo de temporada.
 - **Clima extremo raro** — tormenta con truenos (corren a refugiarse a la
   casita), arcoíris tras la lluvia con mota dorada.
+- ✅ **Citas del prado** — mercadillo del buhonero fijo a mediodía y lluvia
+  de estrellas a las 22:00 (deseos ×2).
+- ✅ **Cielo gradual** — el color del día ya no salta: amaneceres y
+  atardeceres se funden en 40 minutos reales.
+- ✅ **Fondos de combate por elemento** — charca contra marea, brasas contra
+  brasa, rocas, setas, nubes de tormenta con relámpagos...
 - **Eventos de fecha** — cumpleaños del bitxo (tarta gratis), año nuevo
   (fuegos artificiales sobre el prado).
 
@@ -51,8 +76,8 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   con logros, se cambian en DATOS.
 - ✅ **📸 Postales** — FOTO en DATOS: PNG enmarcado con nombre y fecha, por
   la hoja de compartir del móvil (o descarga).
-- **✏️ Nombres propios** — teclado pixel en pantalla para bautizarlo; el
-  nombre viaja por HUD, combate y dinastía.
+- ✅ **✏️ Nombres propios** — teclado pixel en DATOS (toca su nombre); el
+  nombre viaja por HUD, combate, toasts, diario, dinastía y postales.
 - **📊 Página de estadísticas de vida** — pasos del prado, motas históricas,
   comidas favoritas, tiempo jugado.
 - ✅ **🔊 Volumen en el altavoz** — alto → bajo → silencio, de un toque ·

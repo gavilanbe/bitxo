@@ -69,7 +69,7 @@ function drawHUD(t){
   const ps = currentSprite();
   ctx.drawImage(ps, 2+Math.floor((15-ps.width)/2), 17-ps.height);
   ctx.restore();
-  const name = p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name;
+  const name = p.nick || (p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name);
   drawText(name, 21, 3, '#ffffff');
   drawText('LV'+p.level+' G'+p.gen, 21, 11, 'rgba(255,255,255,0.65)');
   if(G.stars>0) drawText('★'+G.stars, 52, 11, '#ffd94a');
@@ -140,11 +140,15 @@ function drawHUD(t){
     const ty = 96 - Math.round((1-pop)*7);
     const wdt = textW(UI.msg)+12;
     const tx = 80-wdt/2;
-    px(tx+1, ty+11, wdt-1, 1, 'rgba(0,0,0,0.4)');
+    px(tx+1, ty+12, wdt-1, 1, 'rgba(0,0,0,0.4)');
+    /* borde crema: legible sobre el cielo nocturno */
+    px(tx, ty-1, wdt, 1, 'rgba(246,239,224,0.85)');
+    px(tx, ty+11, wdt, 1, 'rgba(246,239,224,0.85)');
+    px(tx-1, ty, 1, 11, 'rgba(246,239,224,0.85)');
+    px(tx+wdt, ty, 1, 11, 'rgba(246,239,224,0.85)');
     px(tx+1, ty, wdt-2, 11, '#20243c'); px(tx, ty+1, wdt, 9, '#20243c');
-    px(tx+1, ty, wdt-2, 1, 'rgba(255,255,255,0.25)');
     px(tx+1, ty+1, 2, 9, '#ffd94a');
-    drawTextC(UI.msg, 80+2, ty+3, '#f6efe0');
+    drawTextC(UI.msg, 80+2, ty+3, '#ffffff');
   }
 }
 
@@ -152,7 +156,8 @@ function drawStats(){
   panel(8,26,144,214);
   const p = AP();
   const f = currentFormDef();
-  titleChip(80, 32, p.stage===STAGES.EGG?'HUEVO':f.name);
+  titleChip(80, 32, p.nick || (p.stage===STAGES.EGG?'HUEVO':f.name));
+  if(!p.nick && p.stage>STAGES.EGG) drawTextC('(TOCA EL NOMBRE PARA BAUTIZAR)', 80, 219, 'rgba(26,20,40,0.4)');
   drawTextC('LINEA '+LINES[p.line].name+' - '+LINES[p.line].bonus, 80, 40, 'rgba(26,20,40,0.6)');
   const stageName = ['HUEVO','BEBE','JOVEN','ADULTO'][p.stage];
   const days = p.hatchedAt ? Math.floor((Date.now()-p.hatchedAt)/(24*3600*1000))+1 : 0;
@@ -181,14 +186,11 @@ function drawStats(){
   bar('ANIMO',p.happy,'#f0a04b');
   bar('PILAS',p.energy,'#5ec8d8');
   bar('LIMPIO',p.hygiene,'#7ac74f');
-  card(6,170,34,13);
-  drawTextC('ALBUM', 23, 174, K);
-  card(43,170,34,13);
-  drawTextC('LOGROS', 60, 174, K);
-  card(80,170,34,13);
-  drawTextC('RELIQ', 97, 174, K);
-  card(117,170,37,13);
-  drawTextC('BESTIA', 135, 174, K);
+  card(4,170,28,13);  drawTextC('ALBUM', 18, 174, K);
+  card(34,170,28,13); drawTextC('LOGRO', 48, 174, K);
+  card(64,170,28,13); drawTextC('RELIQ', 78, 174, K);
+  card(94,170,28,13); drawTextC('BESTIA', 108, 174, K);
+  card(124,170,30,13); drawTextC('DIARIO', 139, 174, K);
   if(canAscend()){
     card(28,186,104,16);
     drawTextC('★ ASCENDER ★', 80, 191, '#8a6a10');
@@ -220,13 +222,14 @@ function drawShop(){
   drawText('✦'+fmt(G.motas), 116, 42, '#8a6a10');
   const tab = UI.shopTab||0;
   const tabBtn = (x,label,on)=>{
-    px(x,50,46,11, on?'#ffd94a':'#d8d0ba');
-    px(x,50,46,1,K); px(x,60,46,1,K); px(x,50,1,11,K); px(x+45,50,1,11,K);
-    drawTextC(label, x+23, 53, K);
+    px(x,50,35,11, on?'#ffd94a':'#d8d0ba');
+    px(x,50,35,1,K); px(x,60,35,1,K); px(x,50,1,11,K); px(x+34,50,1,11,K);
+    drawTextC(label, x+18, 53, K);
   };
-  tabBtn(10,'MEJORAS',tab===0);
-  tabBtn(57,'JUGUETES',tab===1);
-  tabBtn(104,'GORROS',tab===2);
+  tabBtn(8,'MEJORA',tab===0);
+  tabBtn(45,'JUGUETE',tab===1);
+  tabBtn(82,'GORROS',tab===2);
+  tabBtn(119,'PRADO',tab===3);
   if(tab===0){
     for(let i=0;i<SHOP.length;i++){
       const item = SHOP[i];
@@ -293,6 +296,24 @@ function drawShop(){
     }
     drawTextC('TOCA PARA PONER O QUITAR', 80, 209, 'rgba(26,20,40,0.45)');
   }
+  if(tab===3){
+    G.decor = G.decor || {owned:{}, flores:'clasico'};
+    for(let i=0;i<DECOR.length;i++){
+      const D = DECOR[i];
+      const owned = !!G.decor.owned[D.id];
+      const active = D.kind==='flores' ? G.decor.flores===D.val : !!G.decor[D.id];
+      const afford = G.motas>=D.cost && !owned;
+      const y = 64 + i*22;
+      const flash = UI.shopFlash[D.id] && performance.now()-UI.shopFlash[D.id]<250;
+      px(10,y,140,19, flash ? '#ffd94a' : (owned ? (active ? '#ffe9a8' : '#d0e8d0') : (afford?'#f6efe0':'#d8d0ba')));
+      px(10,y,140,1,K); px(10,y+18,140,1,K); px(10,y,1,19,K); px(149,y,1,19,K);
+      drawText(D.name, 14, y+3, K);
+      drawText(D.desc, 14, y+11, 'rgba(26,20,40,0.55)');
+      if(owned) drawText(active ? 'PUESTO' : 'TUYO', 118, y+6, active ? '#8a6a10' : '#3a7048');
+      else drawText('✦'+fmt(D.cost), 118, y+6, afford?'#8a6a10':'#a03030');
+    }
+    drawTextC('TU PRADO, A TU GUSTO', 80, 186, 'rgba(26,20,40,0.45)');
+  }
   drawTextC('TOCA FUERA PARA SALIR', 80, 222, 'rgba(26,20,40,0.55)');
 }
 
@@ -307,8 +328,19 @@ function drawAscendConfirm(){
   card(84,152,52,20); drawTextC('NO', 110, 159, K);
 }
 
+function drawParqueConfirm(){
+  panel(12,82,136,112);
+  titleChip(80, 88, 'EL SENDERO');
+  drawTextC('¿ABRIR EL PARQUE?', 80, 102, K);
+  drawTextC('LOS JUGUETES DE JUGAR', 80, 116, 'rgba(26,20,40,0.6)');
+  drawTextC('SE MUDAN ALLI', 80, 124, 'rgba(26,20,40,0.6)');
+  drawTextC('CUESTA ✦'+ZONES.parque.cost, 80, 138, G.motas>=ZONES.parque.cost ? '#8a6a10' : '#a03030');
+  card(24,152,52,20); drawTextC('¡SI!', 50, 159, '#3a7048');
+  card(84,152,52,20); drawTextC('AUN NO', 110, 159, K);
+}
+
 function drawFeedMenu(){
-  panel(6,32,148,184);
+  panel(6,32,148,200);
   titleChip(62, 37, 'DESPENSA');
   drawText('✦'+fmt(G.motas), 112, 37, '#8a6a10');
   for(let i=0;i<FOODS.length;i++){
@@ -325,7 +357,14 @@ function drawFeedMenu(){
     drawText(F.desc, cx+17, cy+22, 'rgba(26,20,40,0.55)');
     if(FAVES[AP().line]===F.id) drawText('♥', cx+58, cy+3, '#f2a2b8');
   }
-  drawTextC('TOCA FUERA PARA SALIR', 80, 220, 'rgba(26,20,40,0.5)');
+  /* medicina: solo brilla si alguien está malito */
+  const enfermo = AP().sick;
+  px(10,216,140,13, enfermo ? '#d8f0d0' : '#d8d0ba');
+  px(10,216,140,1,K); px(10,228,140,1,K); px(10,216,1,13,K); px(149,216,1,13,K);
+  px(14,219,7,7,'#8ac77a'); px(16,218,3,2,'#8ac77a'); px(17,222,1,1,'#3a7048');
+  drawText('MEDICINA', 26, 219, enfermo ? K : 'rgba(26,20,40,0.45)');
+  drawText(enfermo ? '¡LO CURA!' : 'NADIE ENFERMO', 66, 219, enfermo ? '#3a7048' : 'rgba(26,20,40,0.4)');
+  drawText('✦'+COST_MEDICINA, 126, 219, enfermo ? '#8a6a10' : 'rgba(26,20,40,0.4)');
 }
 function drawPlayMenu(){
   panel(20,62,120,178);
@@ -777,4 +816,51 @@ function drawEvoTree(){
   const p = AP();
   drawTextC('TU BITXO: FUE '+(p.str||0)+' DEF '+(p.def||0)+' VEL '+(p.spd||0), 80, 238, '#3a7048');
   drawTextC('TOCA FORMAS · < > CAMBIA LINEA', 80, 250, 'rgba(26,20,40,0.45)');
+}
+
+/* ---------------- BAUTIZO: teclado pixel ---------------- */
+const RENAME_KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function drawRename(){
+  panel(8,44,144,180);
+  titleChip(80, 50, 'BAUTIZO');
+  /* el nombre en construcción */
+  px(30,62,100,16,'#f6efe0');
+  px(30,62,100,1,K); px(30,77,100,1,K); px(30,62,1,16,K); px(129,62,1,16,K);
+  const buf = UI.nickBuf||'';
+  drawTextC(buf + (Math.floor(performance.now()/400)%2===0 ? '_' : ''), 80, 67, K);
+  /* teclado 7x4 */
+  for(let i=0;i<26;i++){
+    const cx = 13 + (i%7)*19, cy = 86 + Math.floor(i/7)*19;
+    px(cx,cy,17,16,'#f6efe0');
+    px(cx,cy,17,1,K); px(cx,cy+15,17,1,K); px(cx,cy,1,16,K); px(cx+16,cy,1,16,K);
+    drawTextC(RENAME_KEYS[i], cx+9, cy+5, K);
+  }
+  /* borrar y listo */
+  px(89,143,26,16,'#f0d8c8'); px(89,143,26,1,K); px(89,158,26,1,K); px(89,143,1,16,K); px(114,143,1,16,K);
+  drawTextC('<', 102, 148, '#a03030');
+  card(24,168,112,18);
+  drawTextC(buf.length ? '¡LISTO!' : 'SIN NOMBRE (ESPECIE)', 80, 174, buf.length ? '#3a7048' : 'rgba(26,20,40,0.5)');
+  drawTextC('MAX 8 LETRAS', 80, 196, 'rgba(26,20,40,0.45)');
+  drawTextC('TOCA FUERA PARA CANCELAR', 80, 210, 'rgba(26,20,40,0.45)');
+}
+
+/* ---------------- DIARIO ---------------- */
+function drawDiary(){
+  panel(6,28,148,216);
+  titleChip(80, 33, 'DIARIO DEL PRADO');
+  const D = G.diary||[];
+  if(D.length===0){
+    drawTextC('AUN NO HAY RECUERDOS', 80, 110, 'rgba(26,20,40,0.55)');
+    drawTextC('VIVE Y SE ESCRIBIRAN SOLOS', 80, 122, 'rgba(26,20,40,0.45)');
+  } else {
+    const show = D.slice(-13).reverse();
+    for(let i=0;i<show.length;i++){
+      const e = show[i];
+      const y = 44 + i*14;
+      drawText(e.d, 12, y, '#8a6a10');
+      drawText(e.txt.length>30 ? e.txt.slice(0,30) : e.txt, 34, y, K);
+      px(12,y+9,136,1,'rgba(26,20,40,0.12)');
+    }
+  }
+  drawTextC('TOCA PARA VOLVER', 80, 234, 'rgba(26,20,40,0.5)');
 }

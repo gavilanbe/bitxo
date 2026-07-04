@@ -74,6 +74,18 @@ const TOYS = [
  {id:'robot',   name:'ROBOT AMIGO',   desc:'LIMPIA CACAS EL SOLO', cost:500}
 ];
 
+/* --- zonas del mundo: el prado es el hogar; cada juguete vive en su sitio.
+   EL PARQUE se abre por el sendero (2 juguetes + un JOVEN + motas) y se
+   lleva los juguetes de jugar; el prado conserva los de cuidado. --- */
+const ZONES = {
+  prado:  {name:'EL PRADO'},
+  parque: {name:'EL PARQUE', cost:500, toysNeed:2}
+};
+const TOY_ZONE = {
+  pelota:'parque', caja:'parque', columpio:'parque', tambor:'parque', cometa:'parque',
+  banera:'prado', huerto:'prado', fuente:'prado', robot:'prado'
+};
+
 const ENEMIES = {
   ratuco:     {name:'RATUCO',      elem:'neutral', quirk:null,     hpM:0.9,  atkM:0.9,  desc:'SIN TRUCOS, PURO DIENTE'},
   pinchon:    {name:'PINCHON',     elem:'pradera', quirk:'thorns', hpM:1,    atkM:0.95, desc:'PINCHOS SI NO ES CRITICO'},
@@ -190,3 +202,17 @@ const WEEKLY = [
  {id:'juegos',   name:'JUEGA 20 MINIJUEGOS',n:20, m:300, xp:40},
  {id:'entrena',  name:'ENTRENA 15 VECES',   n:15, m:350, xp:40}
 ];
+
+/* --- decorar el prado: expresión + sumidero de motas --- */
+const DECOR = [
+ {id:'flores_pastel', name:'FLORES PASTEL', cost:200, desc:'ROSAS Y CELESTES', kind:'flores', val:'pastel'},
+ {id:'flores_fuego',  name:'FLORES FUEGO',  cost:200, desc:'ROJAS Y DORADAS',  kind:'flores', val:'fuego'},
+ {id:'valla',   name:'VALLA',        cost:300, desc:'MADERA DEL PARQUE',    kind:'toggle'},
+ {id:'camino',  name:'CAMINITO',     cost:250, desc:'PIEDRAS EN LA HIERBA', kind:'toggle'},
+ {id:'cielo',   name:'CIELO ASTRAL', cost:500, desc:'MAS ESTRELLAS DE NOCHE', kind:'toggle'}
+];
+const FLOWER_PALS = {
+ clasico:['#e2574c','#ffd94a','#f2a2b8','#e2574c','#6db1ff'],
+ pastel: ['#f2a2b8','#9adcf0','#e0c8f8','#fff8d0','#c8f0d8'],
+ fuego:  ['#e8574c','#ffd94a','#f0a04b','#e2574c','#ffd94a']
+};

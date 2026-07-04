@@ -35,7 +35,7 @@ function liveUpdate(dtMs){
       poopTimers[i] = (poopTimers[i]||0) + dtMs;
       if(poopTimers[i] > poopEvery(p)){
         poopTimers[i] = 0;
-        if(G.poops.length<5){ G.poops.push({x:20+Math.random()*110}); SFX.nope(); }
+        if(G.poops.length<5){ G.poops.push({x:20+Math.random()*110, zone:G.zone}); SFX.nope(); }
       }
       if(dayPhase()==='night' && p.energy<25 && UI.mode==='main'){
         p.sleeping = true; if(i===G.sel){ SFX.sleep(); toast('SE HA DORMIDO...'); }
@@ -53,6 +53,54 @@ function liveUpdate(dtMs){
       continue;
     }
     checkEvolution(p, false);
+    /* --- enfermedad: la lluvia sin cometa y la mugre pasan factura --- */
+    if(!p.sick && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
+      let riesgo = 0;
+      if(p.hygiene<25) riesgo++;
+      if(WEATHER.kind==='rain' && !(G.toys && G.toys.cometa)) riesgo++;
+      if(riesgo && Math.random() < dtMs*0.0000015*riesgo){
+        p.sick = true; p.sickAt = now; p.sickPenal = false;
+        diaryLog(petName(p)+' SE PUSO MALITO');
+        toast('¡'+petName(p)+' SE HA PUESTO MALITO!', 3200);
+        SFX.nope(); vibrate(30);
+      }
+    }
+    if(p.sick){
+      if(!p.sickPenal && now-p.sickAt > 4*3600*1000){ p.sickPenal = true; p.mistakes++; }
+      if(now-p.sickAt > 10*3600*1000){ p.sick = false; } /* se cura solo, tarde */
+    }
+    /* --- el carácter se ve en el prado --- */
+    if(UI.mode==='main' && p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT &&
+       !(p.swingT>0) && !(p.batheT>0) && !(p.drinkT>0)){
+      if(now > (p.traitAt||0)){
+        p.traitAt = now + 9000 + Math.random()*14000;
+        if(p.trait==='GLOTON' && p.hunger<85){
+          p.thought = {icon:'meal', until: performance.now()+2000};
+        } else if(p.trait==='JUGUETON'){
+          if(dayPhase()!=='night'){ p.tx = 24+Math.random()*112; p.joyAt = performance.now(); }
+          else p.thought = {icon:'ball', until: performance.now()+2000};
+        } else if(p.trait==='DORMILON'){
+          p.thought = {icon:'zzz', until: performance.now()+2000};
+        } else if(p.trait==='CURIOSO'){
+          const sp2 = UI.sparkles.find(s2=>(s2.zone||'prado')===G.zone);
+          p.tx = sp2 ? Math.max(22,Math.min(138,sp2.x)) : 130;
+          p.thought = {icon:'que', until: performance.now()+2000};
+        } else if(p.trait==='VALIENTE' && !G.wild){
+          p.joyAt = performance.now();
+        }
+      }
+      if(G.wild && (G.wild.zone||'prado')===G.zone){
+        if(p.trait==='VALIENTE' && Math.random() < dtMs*0.0004){
+          p.tx = Math.max(22, Math.min(138, G.wild.x + (p.rx<G.wild.x ? -14 : 14)));
+        }
+        if(p.trait==='TIMIDO'){
+          p.scaredT = now + 600;
+          if(Math.random() < dtMs*0.0006){
+            p.tx = G.wild.x < 80 ? 130 : 26; /* huye al lado contrario */
+          }
+        }
+      }
+    }
     /* destellos de anticipación: algo está a punto de pasar */
     if(UI.mode==='main' && p.stage<STAGES.ADULT){
       const nx = predictNext(p);
@@ -73,7 +121,13 @@ function liveUpdate(dtMs){
         p.nextWalk = now + 2500 + Math.random()*4000;
       }
       const d = p.tx - p.rx;
-      if(Math.abs(d)>1){ p.rx += Math.sign(d)*Math.min(Math.abs(d), dtMs*0.018); p.dir = Math.sign(d)||1; }
+      if(Math.abs(d)>1){
+        p.rx += Math.sign(d)*Math.min(Math.abs(d), dtMs*0.018);
+        p.dir = Math.sign(d)||1;
+        if(Math.random() < dtMs*0.006){
+          UI.particles.push({x:p.rx - p.dir*5, y:160, vy:0, life:600, ch:'.', col:'rgba(20,50,35,0.45)'});
+        }
+      }
     }
     if(Math.random() < dtMs*0.0006) p.blinkAt = performance.now();
     if(p.eatT>0) p.eatT -= dtMs;
@@ -106,7 +160,7 @@ function liveUpdate(dtMs){
 
   /* juguetes vivos */
   if(G.toys && UI.mode==='main'){
-    if(G.toys.pelota){
+    if(G.toys.pelota && toyZone('pelota')===G.zone){
       G.ballVX = G.ballVX||0;
       if(G.ballX===undefined) G.ballX = 80;
       G.ballX += G.ballVX*dtMs;
@@ -126,7 +180,7 @@ function liveUpdate(dtMs){
         }
       }
     }
-    if(G.toys.banera){
+    if(G.toys.banera && toyZone('banera')===G.zone){
       for(const p of G.pets){
         if((p.batheT||0)>0){
           p.batheT -= dtMs;
@@ -142,7 +196,7 @@ function liveUpdate(dtMs){
         }
       }
     }
-    if(G.toys.tambor){
+    if(G.toys.tambor && toyZone('tambor')===G.zone){
       for(const p of G.pets){
         if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.batheT>0) &&
            Math.abs(p.rx-127)<12 && now>(p.drumAt||0) && Math.random() < dtMs*0.0001){
@@ -156,7 +210,7 @@ function liveUpdate(dtMs){
         }
       }
     }
-    if(G.toys.fuente){
+    if(G.toys.fuente && toyZone('fuente')===G.zone){
       for(const p of G.pets){
         if((p.drinkT||0)>0){
           p.drinkT -= dtMs;
@@ -173,15 +227,17 @@ function liveUpdate(dtMs){
         }
       }
     }
-    if(G.toys.robot && UI.mode==='main'){
+    if(G.toys.robot && UI.mode==='main' && toyZone('robot')===G.zone){
       if(UI.robotX===undefined) UI.robotX = 60;
       if(!UI.robotAt) UI.robotAt = 0;
-      if(G.poops.length>0 && now>UI.robotAt){
-        const target = G.poops[0].x;
+      /* el robot vive en el prado: solo barre la mugre de su zona */
+      const pi = G.poops.findIndex(pp=>(pp.zone||'prado')==='prado');
+      if(pi>=0 && now>UI.robotAt){
+        const target = G.poops[pi].x;
         const d = target - UI.robotX;
         if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*dtMs*0.012; }
         else {
-          G.poops.shift();
+          G.poops.splice(pi,1);
           UI.robotAt = now + 6*60*1000;
           for(let j=0;j<5;j++) UI.particles.push({x:UI.robotX-4+Math.random()*8, y:152, vy:-0.02, life:600, ch:'.', col:'#bdf0f5'});
           SFX.clean();
@@ -193,7 +249,7 @@ function liveUpdate(dtMs){
         UI.robotX += Math.sign(UI.robotTx-UI.robotX)*dtMs*0.004;
       }
     }
-    if(G.toys.columpio){
+    if(G.toys.columpio && toyZone('columpio')===G.zone){
       const someone = G.pets.some(q=>(q.swingT||0)>0);
       for(const p of G.pets){
         if((p.swingT||0)>0){
@@ -241,7 +297,7 @@ function liveUpdate(dtMs){
   if(WEATHER.kind==='rain') spawnEvery *= 0.6;
   if(sparkleTimer > spawnEvery && UI.sparkles.length < 5 && UI.mode==='main'){
     sparkleTimer = 0;
-    UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:now, t:Math.random()*7});
+    UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:now, t:Math.random()*7, zone:G.zone});
     if(!G.hints.sparkle){ G.hints.sparkle=true; toast('¡TOCA LAS MOTAS ✦!', 2600); }
   }
   for(let i=UI.sparkles.length-1;i>=0;i--){
@@ -288,7 +344,7 @@ function liveUpdate(dtMs){
         let nv = Math.max(1, pp + (boss ? 3 : Math.floor(Math.random()*7)-2));
         const elite = !boss && G.battlesWon>=8 && Math.random()<0.10;
         if(elite) nv += 2;
-        G.wild = {kind, boss, elite, nv, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealAt: now+75000+(G.relics && G.relics.hueso?30000:0)};
+        G.wild = {kind, boss, elite, nv, zone:G.zone, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealAt: now+75000+(G.relics && G.relics.hueso?30000:0)};
         G.wild.dir = G.wild.x<80? 1:-1;
         toast(boss? '¡EL JEFE '+ENEMIES[kind].name+'!' : (elite? '¡'+ENEMIES[kind].name+' ELITE NV'+nv+'!' : '¡UN '+ENEMIES[kind].name+' NV'+nv+'!'), 2600);
         SFX.nope(); vibrate([40,40,40]);
@@ -333,6 +389,42 @@ function liveUpdate(dtMs){
     }
   }
 
+  /* --- citas con el prado: cosas que pasan a SU hora --- */
+  {
+    const hh = new Date().getHours(), mm = new Date().getMinutes();
+    /* mercadillo de mediodía: el buhonero acude fijo */
+    if(hh===12 && mm<15 && !G.buho && G.eventBuhoDay!==dayKey() && UI.mode==='main'){
+      G.eventBuhoDay = dayKey();
+      G.buhoNextAt = now - 1;
+      toast('MEDIODIA: ¡MERCADILLO!', 2600);
+    }
+    /* lluvia de estrellas a las 22:00 */
+    G.starShower = (hh===22 && mm<10);
+    if(G.starShower && G.showerDay!==dayKey()){
+      G.showerDay = dayKey();
+      toast('¡LLUVIA DE ESTRELLAS! PIDE DESEOS', 3600);
+      SFX.wish();
+    }
+    if(G.starShower && UI.mode==='main' && !UI.shoot && Math.random() < dtMs*0.00025){
+      UI.shoot = {x:-8, y:8+Math.random()*44};
+      SFX.starWhistle();
+    }
+  }
+
+  /* --- arco de primer día: el prado te va enseñando --- */
+  if(G.ascensions===0 && G.gen<=1 && UI.mode==='main'){
+    const h2 = G.hints;
+    const p0 = G.pets[0];
+    if(p0 && p0.stage>STAGES.EGG){
+      if(!h2.mimos && Date.now()-(p0.hatchedAt||0)>20000){ h2.mimos=true; toast('ACARICIALO: TOCA A TU BITXO', 3200); }
+      else if(!h2.comer && p0.hunger<70){ h2.comer=true; toast('TIENE HAMBRE: BOTON COMER', 3200); }
+      else if(!h2.limpiar && G.poops.length>0){ h2.limpiar=true; toast('¡UNA CACA! BOTON LIMPIAR', 3200); }
+      else if(!h2.luz && p0.energy<45){ h2.luz=true; toast('ESTA CANSADO: BOTON LUZ', 3200); }
+      else if(!h2.gym && p0.stage>=STAGES.CHILD){ h2.gym=true; toast('YA PUEDE ENTRENAR: JUGAR > GYM', 3600); }
+      else if(!h2.lucha && G.wild){ h2.lucha=true; toast('¡TOCA AL SALVAJE PARA LUCHAR!', 3600); }
+    }
+  }
+
   achTimer += dtMs;
   if(achTimer > 3000){ achTimer=0; checkAchievements(); ensureDaily(); }
 
@@ -349,6 +441,7 @@ function hatchPet(i){
   p.hunger=80; p.happy=90; p.energy=100; p.hygiene=100;
   G.sel = i;
   UI.mode='hatch'; UI.hatchT=0;
+  diaryLog('NACIO '+LINES[p.line].names[p.form]+' (GEN '+p.gen+')');
   SFX.hatch(); vibrate([40,40,40,40,80]);
   saveGame();
 }

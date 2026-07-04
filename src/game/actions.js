@@ -4,7 +4,7 @@
    ========================================================= */
 /* ---------------- ACCIONES ---------------- */
 function needsAttention(){
-  return G.pets.some(p=>p.stage>STAGES.EGG && (p.hunger<25 || p.happy<25 || p.energy<15 || p.hygiene<25)) || G.poops.length>0;
+  return G.pets.some(p=>p.stage>STAGES.EGG && (p.sick || p.hunger<25 || p.happy<25 || p.energy<15 || p.hygiene<25)) || G.poops.length>0;
 }
 function spawnHearts(n){
   const p = AP();
@@ -75,6 +75,7 @@ function trainEffect(kind){
   const p = AP();
   if(p.stage===STAGES.EGG){ toast('AUN ES UN HUEVO'); SFX.nope(); return null; }
   if(p.sleeping){ toast('SHHH... DUERME'); return null; }
+  if(p.sick){ toast('ESTA MALITO: DALE MEDICINA'); SFX.nope(); return null; }
   if(p.energy<15){ toast('SIN ENERGIA'); SFX.nope(); return null; }
   const cost = trainCost(p, kind);
   if(G.motas < cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return null; }
@@ -101,8 +102,47 @@ function buyToy(i){
   if(T.id==='caja') G.cajaReadyAt = Date.now();
   if(T.id==='huerto') G.huertoReadyAt = Date.now() + 2*3600*1000;
   UI.shopFlash[T.id] = performance.now();
-  toast('¡NUEVO JUGUETE EN EL PRADO!');
+  toast(toyZone(T.id)==='parque' ? '¡NUEVO JUGUETE EN EL PARQUE!' : '¡NUEVO JUGUETE EN EL PRADO!');
   SFX.buy(); vibrate(25); saveGame();
+}
+
+/* ---------------- ZONAS: el sendero al parque ---------------- */
+/* mientras el parque esté cerrado, todo vive en el prado (el atasco
+   que motiva abrirlo); al abrirse, cada juguete se muda a su zona */
+function toyZone(id){
+  if(!G.zonesOpen.parque) return 'prado';
+  return TOY_ZONE[id]||'prado';
+}
+function parqueEligible(){
+  return Object.keys(G.toys).length >= ZONES.parque.toysNeed &&
+         G.pets.some(p=>p.stage>=STAGES.CHILD);
+}
+function tapSendero(){
+  if(!parqueEligible()){ toast('EL SENDERO PIDE '+ZONES.parque.toysNeed+' JUGUETES Y UN JOVEN', 2800); SFX.nope(); return; }
+  if(G.motas < ZONES.parque.cost){ toast('ABRIR EL SENDERO: ✦'+ZONES.parque.cost, 2600); SFX.nope(); return; }
+  UI.mode = 'parqueConfirm'; SFX.tap(); vibrate(10);
+}
+function openParque(){
+  if(G.motas < ZONES.parque.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); UI.mode='main'; return; }
+  G.motas -= ZONES.parque.cost;
+  G.zonesOpen.parque = true;
+  UI.mode = 'main';
+  gotoZone('parque');
+  toast('¡EL PARQUE ESTA ABIERTO!', 3200);
+  diaryLog('SE ABRIO EL PARQUE');
+  for(let i=0;i<14;i++) UI.particles.push({x:20+Math.random()*120, y:120+Math.random()*60, vy:-0.03-Math.random()*0.02, life:1200, ch:'✦', col:['#ffd94a','#7ac74f','#6db1ff'][i%3]});
+  SFX.levelup(); vibrate([40,40,80]);
+  saveGame();
+}
+function gotoZone(z){
+  G.zone = z;
+  /* nadie se queda columpiándose en una zona que ya no ves */
+  for(const p of G.pets){
+    if((p.swingT||0)>0 || (p.batheT||0)>0 || (p.drinkT||0)>0){
+      p.swingT=0; p.batheT=0; p.drinkT=0; p.nextWalk=0;
+    }
+  }
+  saveGame();
 }
 function openCaja(){
   const r = Math.random();
@@ -111,7 +151,7 @@ function openCaja(){
     gainMotas(g, 106, 140);
     toast('¡CAJA: +'+g+'✦!', 2600);
   } else if(r<0.8){
-    for(let i=0;i<5;i++) UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:Date.now(), t:Math.random()*7});
+    for(let i=0;i<5;i++) UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:Date.now(), t:Math.random()*7, zone:G.zone});
     toast('¡LLUVIA DE CHISPAS!', 2600);
   } else {
     gainXP(20);
@@ -186,7 +226,8 @@ function doAscend(){
 function finishAscend(){
   const p = AP();
   G.legacy = G.legacy||[];
-  G.legacy.push({name: currentFormDef().name, key: evoKeyOf(p), lv: p.level, gen: p.gen, stars: UI.ascGain});
+  G.legacy.push({name: petName(p), key: evoKeyOf(p), lv: p.level, gen: p.gen, stars: UI.ascGain});
+  diaryLog(petName(p)+' ASCENDIO AL CIELO +'+UI.ascGain+'★');
   G.stars += UI.ascGain;
   G.ascensions++;
   const i = G.sel;
@@ -404,6 +445,7 @@ function towerAdvance(b){
     if(rl) G.relics[rl.id] = true;
     let hatMsg = '';
     if(!G.hats.laurel){ G.hats.laurel = true; AP().hat = 'laurel'; hatMsg = ' ¡Y EL LAUREL!'; }
+    diaryLog(petName(AP())+' CORONO LA TORRE');
     G.tower = null;
     G.towerNextAt = Date.now() + TOWER.cooldown;
     toast('¡CAMPEON DE LA TORRE! +'+premio+'✦'+hatMsg, 4200);
@@ -451,7 +493,7 @@ async function takePhoto(){
     g2.drawImage(cv, m, m, 160*sc, 272*sc);
     const p = AP();
     const d = new Date();
-    const who = p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name;
+    const who = p.nick || (p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name);
     const label = 'BITXO · '+who+' · '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
     drawTextAt(g2, label, Math.round((o.width - label.length*4*3)/2), o.height-42, '#3b3552', 3);
     /* todo síncrono hasta share: así el gesto del toque sigue vivo (iOS) */
@@ -480,4 +522,53 @@ async function takePhoto(){
     toast('NO SE PUDO HACER LA FOTO'); SFX.nope();
     return false;
   }
+}
+
+/* ---------------- MEDICINA ---------------- */
+const COST_MEDICINA = 30;
+function giveMedicine(){
+  const p = AP();
+  if(!p.sick){ toast('NO ESTA ENFERMO'); SFX.tap(); return; }
+  if(G.motas < COST_MEDICINA){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= COST_MEDICINA;
+  p.sick = false; p.sickPenal = false;
+  diaryLog(petName(p)+' SE CURO CON LA MEDICINA');
+  p.happy = Math.min(100, p.happy+8);
+  p.eatT = 1600; p.feedKind = 'sopa';
+  toast('¡'+petName(p)+' ESTA COMO NUEVO!', 2800);
+  SFX.yay(); vibrate(20); saveGame();
+}
+
+/* ---------------- DECORAR EL PRADO ---------------- */
+function tapDecor(i){
+  const D = DECOR[i];
+  G.decor = G.decor || {owned:{}, flores:'clasico'};
+  if(G.decor.owned[D.id]){
+    if(D.kind==='flores'){
+      G.decor.flores = (G.decor.flores===D.val) ? 'clasico' : D.val;
+      toast(G.decor.flores===D.val ? '¡FLORES NUEVAS!' : 'FLORES DE SIEMPRE');
+    } else {
+      G.decor[D.id] = !G.decor[D.id];
+      toast(G.decor[D.id] ? '¡PUESTO EN EL PRADO!' : 'GUARDADO');
+    }
+    SFX.tap(); saveGame(); return;
+  }
+  if(G.motas < D.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
+  G.motas -= D.cost;
+  G.decor.owned[D.id] = true;
+  if(D.kind==='flores') G.decor.flores = D.val;
+  else G.decor[D.id] = true;
+  UI.shopFlash[D.id] = performance.now();
+  toast('¡EL PRADO ESTA MAS BONITO!');
+  SFX.buy(); vibrate(25); saveGame();
+}
+
+/* ---------------- DIARIO ---------------- */
+function diaryLog(txt){
+  if(!G) return;
+  G.diary = G.diary || [];
+  if(G.diary.length && G.diary[G.diary.length-1].txt===txt) return;
+  const d = new Date();
+  G.diary.push({d: d.getDate()+'/'+(d.getMonth()+1), txt});
+  if(G.diary.length>40) G.diary.shift();
 }
