@@ -4,10 +4,10 @@
    ========================================================= */
 /* ---------------- ENTRADA ---------------- */
 const BTNS = [
-  {ic:'feed', label:'COMER', fn:()=>{ if(eggGuard()||awayGuard())return; UI.mode='feed'; }},
-  {ic:'play', label:'JUGAR', fn:()=>{ if(eggGuard()||awayGuard())return; UI.mode='play'; }},
+  {ic:'feed', label:'COMER', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected(); UI.mode='feed'; }},
+  {ic:'play', label:'JUGAR', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected(); UI.mode='play'; }},
   {ic:'clean',label:'LIMPIAR', fn:()=>{ doClean(); }},
-  {ic:'sleep',label:'LUZ', fn:()=>{ if(eggGuard()||awayGuard())return; doSleepToggle(); }},
+  {ic:'sleep',label:'LUZ', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected(); doSleepToggle(); }},
   {ic:'shop', label:'TIENDA', fn:()=>{ UI.mode='shop'; if(!G.hints.shop){G.hints.shop=true;} }},
   {ic:'stats',label:'DATOS', fn:()=>{ UI.mode='stats'; }}
 ];
@@ -24,8 +24,72 @@ cv.addEventListener('pointerdown', ev=>{
   ev.preventDefault();
   audio();
   const p = canvasPos(ev);
+  if(UI.mode==='shop'){
+    /* la tienda se desliza: el toque se decide al soltar */
+    shopTouch = {x:p.x, y:p.y, s:(UI.shopScroll||0), dragged:false};
+    return;
+  }
   handleTap(p.x, p.y);
+  armCarry(p.x, p.y);
 });
+let shopTouch = null;
+cv.addEventListener('pointermove', ev=>{
+  if(!shopTouch || UI.mode!=='shop') return;
+  const q = canvasPos(ev);
+  const dy = q.y - shopTouch.y;
+  if(Math.abs(dy)>4) shopTouch.dragged = true;
+  if(shopTouch.dragged){
+    UI.shopScroll = Math.max(0, Math.min(shopMaxScroll(), shopTouch.s - dy));
+  }
+});
+/* pulsación larga sobre un bitxo: cogerlo en brazos */
+let carryTimer = null;
+function armCarry(x, y){
+  if(carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
+  if(UI.mode!=='main' || UI.carry) return;
+  if(y<105 || y>190) return;
+  let best=-1, bd=27;
+  for(let i=0;i<G.pets.length;i++){
+    if((G.pets[i].zone||'prado')!==G.zone) continue;
+    const d = Math.abs(x-G.pets[i].rx);
+    if(d<bd){ bd=d; best=i; }
+  }
+  if(best<0) return;
+  const p = G.pets[best];
+  if(p.stage===STAGES.EGG || p.exped || p.sleeping) return;
+  carryTimer = setTimeout(()=>{
+    carryTimer = null;
+    if(UI.mode==='main' && !UI.carry) startCarry(best);
+  }, 480);
+}
+for(const evn of ['pointerup','pointercancel','pointerleave']){
+  cv.addEventListener(evn, ev=>{
+    if(carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
+    if(shopTouch){
+      const t = shopTouch; shopTouch = null;
+      if(evn==='pointerup' && !t.dragged) handleTap(t.x, t.y);
+    }
+  });
+}
+/* flechas y senderos de los bordes: true si el toque era navegación */
+function zoneArrowTap(x, y){
+  if(!(y>166 && y<198)) return false;
+  if(x>=144){
+    if(G.zone==='prado'){
+      if(G.zonesOpen.parque){ askTravel('parque'); return true; }
+      if(Object.keys(G.toys).length>=1){ tapSendero(); return true; }
+    } else if(G.zone==='huerta'){ askTravel('prado'); return true; }
+    return false;
+  }
+  if(x<=14){
+    if(G.zone==='prado'){
+      if(G.zonesOpen.huerta){ askTravel('huerta'); return true; }
+      if(huertaTeaser()){ tapSenderoHuerta(); return true; }
+    } else if(G.zone==='parque'){ askTravel('prado'); return true; }
+    return false;
+  }
+  return false;
+}
 
 function handleTap(x,y){
   const now = performance.now();
@@ -39,7 +103,7 @@ function handleTap(x,y){
     return;
   }
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }
-  if(UI.mode==='battle'){ battleTap(); return; }
+  if(UI.mode==='battle'){ battleTap(x, y); return; }
   if(UI.mode==='album'){
     const r = Math.floor((y-33)/27);
     if(r>=0 && r<LINE_KEYS.length && y>=33 && y<222){
@@ -84,6 +148,23 @@ function handleTap(x,y){
     } else { UI.mode='main'; SFX.tap(); }
     return;
   }
+  if(UI.mode==='huertaConfirm'){
+    if(y>150 && y<174){
+      if(x<80){ openHuerta(); } else { UI.mode='main'; SFX.tap(); }
+    } else { UI.mode='main'; SFX.tap(); }
+    return;
+  }
+  if(UI.mode==='travelPick'){
+    const opts = travelOptions(UI.travelDest);
+    if(x>=22 && x<=138 && y>=86 && y<86+(opts.length+1)*27){
+      const i = Math.floor((y-86)/27);
+      if(i<opts.length){ travelWith(opts[i].i); return; }
+      const d = UI.travelDest;
+      UI.mode='main'; goWithToast(d);
+      return;
+    }
+    UI.mode='main'; SFX.tap(); return;
+  }
   if(UI.mode==='beast'){
     if(x>=9 && x<=151 && y>=35 && y<217){
       const i = Math.floor((y-35)/14);
@@ -120,22 +201,24 @@ function handleTap(x,y){
     UI.mode='main'; SFX.tap(); return;
   }
   if(UI.mode==='shop'){
-    if(y>=50 && y<=61 && x>=8 && x<=154){ UI.shopTab = x<45?0:(x<82?1:(x<119?2:3)); SFX.tap(); return; }
+    if(y>=50 && y<=61 && x>=8 && x<=154){ UI.shopTab = x<45?0:(x<82?1:(x<119?2:3)); UI.shopScroll = 0; SFX.tap(); return; }
     if(y<38 || y>216){ UI.mode='main'; SFX.tap(); return; }
+    if(y<64 || y>208) return; /* franja de pestañas y pie: sin lista */
     const tab = UI.shopTab||0;
+    const ly = y + (UI.shopScroll||0);
     if(tab===0){
-      const i = Math.floor((y-64)/19);
+      const i = Math.floor((ly-64)/19);
       if(i>=0 && i<SHOP.length) buyUpgrade(i);
     } else if(tab===1){
-      const i = Math.floor((y-64)/16);
+      const i = Math.floor((ly-64)/20);
       if(i>=0 && i<TOYS.length) buyToy(i);
     } else if(tab===2){
       const col = x<80 ? 0 : 1;
-      const row = Math.floor((y-64)/25);
+      const row = Math.floor((ly-64)/25);
       const i = row*2 + col;
       if(row>=0 && i>=0 && i<HATS.length) tapHat(i);
     } else {
-      const i = Math.floor((y-64)/22);
+      const i = Math.floor((ly-64)/22);
       if(i>=0 && i<DECOR.length) tapDecor(i);
     }
     return;
@@ -337,11 +420,23 @@ function handleTap(x,y){
   if(y>BTN_Y-4 && y<BTN_Y+BTN_S+8){
     const i = Math.floor((x-4)/26);
     if(i>=0 && i<6){
+      if(UI.carry) UI.carry = null; /* se baja solo donde estaba */
       UI.flashBtn=i; UI.flashUntil=now+150;
       SFX.tap(); vibrate(15);
       BTNS[i].fn();
       return;
     }
+  }
+  /* retrato del HUD: la vista salta a donde vive el elegido */
+  if(x<20 && y<19){
+    seeSelected(); toast(petName(AP()), 1200); SFX.tap();
+    return;
+  }
+  /* con el bitxo en brazos: las flechas navegan, el suelo lo suelta */
+  if(UI.carry){
+    if(zoneArrowTap(x, y)) return;
+    if(y>100 && y<198){ dropCarry(x); return; }
+    UI.carry = null; /* toque al HUD: se baja donde estaba */
   }
   /* la constelación: tu dinastía */
   if(y>18 && y<62 && G.ascensions>0 && !UI.shoot){
@@ -382,7 +477,7 @@ function handleTap(x,y){
       p2.eatT = 1600; p2.feedKind = 'fruta';
       gainXP(6);
       G.foodsTried.fruta = true;
-      G.huertoReadyAt = Date.now() + 2*3600*1000;
+      G.huertoReadyAt = Date.now() + huertoCycleMs();
       toast('¡FRUTA DEL HUERTO!');
       SFX.eatFood('fruta'); vibrate(15); saveGame();
     } else {
@@ -393,20 +488,8 @@ function handleTap(x,y){
   }
   /* cartel de misiones */
   if(G.zone==='prado' && x>141 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
-  /* sendero y flechas: ir y volver del parque */
-  if(y>166 && y<198){
-    if(G.zone==='prado' && x>=144){
-      if(G.zonesOpen.parque){
-        gotoZone('parque'); toast(ZONES.parque.name, 1300); SFX.tap(); vibrate(10);
-        return;
-      }
-      if(Object.keys(G.toys).length>=1){ tapSendero(); return; }
-    }
-    if(G.zone==='parque' && x<=14){
-      gotoZone('prado'); toast(ZONES.prado.name, 1300); SFX.tap(); vibrate(10);
-      return;
-    }
-  }
+  /* senderos y flechas: moverse entre zonas */
+  if(zoneArrowTap(x, y)) return;
   /* chispas */
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
@@ -432,6 +515,7 @@ function handleTap(x,y){
   if(y>105 && y<190){
     let best=-1, bd=27;
     for(let i=0;i<G.pets.length;i++){
+      if((G.pets[i].zone||'prado')!==G.zone) continue;
       const d = Math.abs(x-G.pets[i].rx);
       if(d<bd){ bd=d; best=i; }
     }
@@ -465,12 +549,10 @@ document.addEventListener('keydown', ev=>{
     SFX.tap(); BTNS[i].fn();
   } else if(k==='m' || k==='M'){
     handleTap(150, 8);
-  } else if(k==='ArrowRight' && UI.mode==='main' && G.zone==='prado' && G.zonesOpen.parque){
-    audio();
-    gotoZone('parque'); toast(ZONES.parque.name, 1300); SFX.tap();
-  } else if(k==='ArrowLeft' && UI.mode==='main' && G.zone==='parque'){
-    audio();
-    gotoZone('prado'); toast(ZONES.prado.name, 1300); SFX.tap();
+  } else if((k==='ArrowRight' || k==='ArrowLeft') && UI.mode==='main'){
+    const idx = ZONE_ORDER.indexOf(G.zone) + (k==='ArrowRight' ? 1 : -1);
+    const z = ZONE_ORDER[idx];
+    if(z && (z==='prado' || G.zonesOpen[z])){ audio(); askTravel(z); }
   } else if(k==='Escape' && MENU_PARENT[UI.mode]){
     UI.mode = MENU_PARENT[UI.mode];
     SFX.tap();

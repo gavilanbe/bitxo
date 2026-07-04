@@ -7,7 +7,8 @@
 /* a dónde vuelve cada pantalla al cerrarse con la X */
 const MENU_PARENT = {
   stats:'main', album:'stats', ach:'stats', relics:'stats', beast:'stats',
-  ascendConfirm:'stats', parqueConfirm:'main', shop:'main', feed:'main', play:'main',
+  ascendConfirm:'stats', parqueConfirm:'main', huertaConfirm:'main', travelPick:'main',
+  shop:'main', feed:'main', play:'main',
   quests:'main', buho:'main', discos:'games',
   games:'play', exped:'play', tower:'play', legacy:'main',
   diary:'stats', rename:'stats'
@@ -15,6 +16,7 @@ const MENU_PARENT = {
 const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
   exped:drawExped, ascendConfirm:drawAscendConfirm, parqueConfirm:drawParqueConfirm,
+  huertaConfirm:drawHuertaConfirm, travelPick:drawTravelPick,
   shop:drawShop, feed:drawFeedMenu, play:drawPlayMenu,
   quests:drawQuests, buho:drawBuhoShop,
   discos:drawDiscos, evotree:drawEvoTree,
@@ -129,6 +131,7 @@ function normalizeSave(g){
     p.def = p.def||0; p.spd = p.spd||0;
     if(!p.trait) p.trait = TRAIT_KEYS[Math.floor(Math.random()*TRAIT_KEYS.length)];
     p.rx = p.rx||80; p.dropT=0; p.eatT=0; p.trainT=0; p.petT=0; p.joyAt=0; p.blinkAt=0;
+    if(!p.zone || (p.zone!=='prado' && !g.zonesOpen[p.zone])) p.zone = 'prado';
   }
   return g;
 }
@@ -156,6 +159,17 @@ function normalizeSave(g){
     saveGame();
   }
   checkDailyGift();
+  /* la PWA actualiza en silencio (SW red-primero): al arrancar con una
+     versión nueva, que se note — aviso y entrada en el diario */
+  try{
+    const seen = localStorage.getItem('bitxo-ver');
+    if(seen && seen !== GAME_VERSION){
+      toast('¡PRADO ACTUALIZADO!', 4200);
+      diaryLog('EL PRADO SE ACTUALIZO');
+      saveGame();
+    }
+    localStorage.setItem('bitxo-ver', GAME_VERSION);
+  }catch(e){}
   /* aviso de versión nueva: consulta version.json saltándose la caché */
   async function checkUpdate(){
     try{
@@ -163,6 +177,10 @@ function normalizeSave(g){
       if(!r.ok) return;
       const j = await r.json();
       if(j.v && String(j.v)!==GAME_VERSION) UPDATE_READY = true;
+      /* y que el SW también se revise a sí mismo */
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.getRegistration().then(g=>{ if(g) g.update(); }).catch(()=>{});
+      }
     }catch(e){}
   }
   checkUpdate();

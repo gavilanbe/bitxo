@@ -29,7 +29,8 @@ function startBattle(){
     kind:G.wild.kind, name:E.name, nv, elite,
     elem:E.elem, quirk:E.quirk,
     mult: elemMult(playerElem(p), E.elem),
-    ehp: Math.round((12 + nv*3.4) * (E.hpM||1) * (elite?1.45:1) * (G.wild.boss?2.3:1)),
+    /* +20% de vida: el combo multiplica tu ritmo de daño */
+    ehp: Math.round((12 + nv*3.4) * 1.2 * (E.hpM||1) * (elite?1.45:1) * (G.wild.boss?2.3:1)),
     eatk: (2.2 + nv*0.85) * (E.atkM||1) * (elite?1.2:1) * (G.wild.boss?1.35:1),
     php: Math.round(24 + p.level*2.5 + p.weight*0.4),
     phase:'intro', t:0, mk:Math.random(), mdir:1,
@@ -38,6 +39,8 @@ function startBattle(){
     super:0, superMax:4,
     eCharge:0, bigAtk:false, blocked:false, blockFxT:0,
     bubble: E.quirk==='bubble', burnT:0, stolen:0, willDouble:false,
+    combo:0, comboIdle:0, lastGood:false, miss:false,
+    rage:false, rageNow:false, parry:false, parryFxT:0,
     ehurtT:0, phurtT:0, dieT:0, fx:[], turnMsg:''
   };
   if(G.wild.boss){ UI.bt.boss = true; }
@@ -102,13 +105,21 @@ function resolveEnemyHit(b){
     return;
   }
   let raw = b.eatk * (0.7+Math.random()*0.6) * (b.bigAtk ? 1.9 : 1);
-  if(b.blocked){ raw *= (b.quirk==='fly' ? 0.62 : 0.4); b.blockFxT = performance.now(); SFX.block(); }
+  if(b.blocked){
+    raw *= b.parry ? (b.bigAtk ? 0.28 : 0.1) : (b.quirk==='fly' ? 0.62 : 0.4);
+    b.blockFxT = performance.now(); SFX.block();
+  }
   const dmg = Math.max(1, Math.round(raw - (p.def||0)*0.6));
   b.php = Math.max(0, b.php - dmg);
   b.phurtT = performance.now();
   b.shake = performance.now();
-  battleBurst(46, 126, b.blocked ? '#5ec8d8' : '#e2574c', b.blocked ? 5 : 8);
-  UI.floats.push({x:46, y:92, s:'-'+dmg+(b.blocked?' BLOQ':''), col:b.blocked?'#5ec8d8':'#e2574c', life:900, vy:-0.035});
+  battleBurst(46, 126, b.parry ? '#ffffff' : (b.blocked ? '#5ec8d8' : '#e2574c'), b.parry ? 12 : (b.blocked ? 5 : 8));
+  UI.floats.push({x:46, y:92, s: b.parry ? '¡PARADA! -'+dmg : '-'+dmg+(b.blocked?' BLOQ':''),
+                  col: b.parry ? '#ffffff' : (b.blocked?'#5ec8d8':'#e2574c'), life:900, vy:-0.035});
+  if(b.parry){
+    /* la parada perfecta carga el súper */
+    b.super = Math.min(b.superMax, b.super+1);
+  }
   if(!b.blocked){
     SFX.hurt(); vibrate(30);
     if(b.quirk==='burn' && Math.random()<0.4){
@@ -126,7 +137,8 @@ function resolveEnemyHit(b){
     }
   }
 }
-function teleDur(b){ return (b.bigAtk ? 950 : 620) + (b.quirk==='armor' ? 160 : 0); }
+/* furioso (le fallaste un combo): telegraph un 30% más corto */
+function teleDur(b){ return Math.round(((b.bigAtk ? 950 : 620) + (b.quirk==='armor' ? 160 : 0)) * (b.rageNow ? 0.7 : 1)); }
 function toEnemyTurn(b){
   if(b.quirk==='regen' && b.ehp>0 && b.ehp<b.emx){
     const heal = 2 + Math.round(b.nv*0.06);
@@ -134,19 +146,22 @@ function toEnemyTurn(b){
     UI.floats.push({x:112, y:96, s:'+'+heal, col:'#7ac74f', life:800, vy:-0.03});
   }
   b.resolved = false;
-  b.phase = 'eTele'; b.t = 0; b.blocked = false;
+  b.phase = 'eTele'; b.t = 0; b.blocked = false; b.parry = false;
+  b.rageNow = b.rage; b.rage = false;
+  if(b.rageNow) UI.floats.push({x:112, y:104, s:'¡FURIA!', col:'#e2574c', life:900, vy:-0.03});
   b.bigAtk = b.quirk==='charge' && (++b.eCharge % 3 === 0);
   b.willDouble = b.quirk==='double' && Math.random()<0.35;
   SFX.telegraph(b.bigAtk);
 }
 
-function battleTap(){
+function battleTap(x, y){
   const b = UI.bt;
   if(b.phase==='intro'){ b.t = 9999; return; }
   if(b.phase==='timing'){
     const p = AP();
-    if(b.super >= b.superMax){
-      b.super = 0;
+    /* con el medidor lleno ELIGES: botón de abajo = súper; el aro = seguir a golpes */
+    if(b.super >= b.superMax && (y===undefined || y>196)){
+      b.super = 0; b.combo = 0;
       const atk = (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
       b.dmg = Math.max(2, Math.round(atk*2.2*b.mult));
       if(b.paraT){ b.dmg = Math.max(1, Math.round(b.dmg*0.7)); b.paraT = 0; }
@@ -156,21 +171,37 @@ function battleTap(){
       return;
     }
     const dist = Math.abs(b.mk-0.5)*2;
-    const mult = 0.6 + 1.7*(1-dist);
+    const decay = [1, 0.7, 0.55][b.combo] || 0.55;
     const atk = (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
-    b.dmg = Math.max(1, Math.round(atk*mult*b.mult));
+    b.miss = dist > 0.6;
+    b.lastGood = dist < 0.35;
+    if(b.miss){
+      /* golpe fallido: daño mínimo y el rival se enfurece */
+      b.dmg = Math.max(1, Math.round(atk*0.4*decay*b.mult));
+      b.crit = false;
+      b.rage = true;
+      UI.floats.push({x:112, y:110, s:'¡CASI!', col:'#e2574c', life:800, vy:-0.03});
+    } else {
+      const mult = (0.6 + 1.7*(1-dist)) * decay;
+      b.dmg = Math.max(1, Math.round(atk*mult*b.mult));
+      b.crit = dist<0.18;
+    }
     if(b.paraT){ b.dmg = Math.max(1, Math.round(b.dmg*0.7)); b.paraT = 0;
       UI.floats.push({x:46, y:104, s:'LENTO...', col:'#f0c030', life:700, vy:-0.03}); }
-    b.crit = dist<0.18;
     b.phase='panim'; b.t=0; b.resolved=false;
     /* polvo al arrancar */
     for(let i=0;i<3;i++) b.fx.push({x:40-i*3, y:148+Math.random()*4, vx:-0.01-Math.random()*0.01, vy:-0.01, g:0.00005, life:350, col:'rgba(200,200,190,0.7)', size:2});
     if(b.crit){ SFX.yay(); vibrate([30,30,60]); } else { SFX.tap(); vibrate(20); }
   } else if(b.phase==='eTele' || b.phase==='eanim'){
-    /* bloqueo: arma el escudo justo antes del impacto */
+    /* bloqueo: arma el escudo justo antes del impacto.
+       Clavarlo AL impacto (130 ms) = parada perfecta */
     const dur = teleDur(b);
     const canArm = (b.phase==='eanim' && b.t<320) || (b.phase==='eTele' && b.t > dur-180);
-    if(!b.blocked && canArm){ b.blocked = true; SFX.tap(); vibrate(15); }
+    if(!b.blocked && canArm){
+      b.blocked = true;
+      if(b.phase==='eanim' && b.t<130){ b.parry = true; b.parryFxT = performance.now(); }
+      SFX.tap(); vibrate(15);
+    }
   } else if(b.phase==='end' && b.t>800){
     const wasTower = G.wild && G.wild.tower;
     G.wild = null;
@@ -207,13 +238,29 @@ function battleStep(dt){
   if(b.phase==='intro'){
     if(b.t>1150){ b.phase='timing'; b.t=0; b.mk=Math.random(); }
   } else if(b.phase==='timing'){
-    b.mk += b.mdir * dt/(650*(1 + Math.min(0.35, (AP().spd||0)*0.015)) * (b.quirk==='spore' ? 0.78 : 1));
+    /* cada eslabón del combo hace el aro más rápido */
+    b.mk += b.mdir * dt * (1 + b.combo*0.4) / (650*(1 + Math.min(0.35, (AP().spd||0)*0.015)) * (b.quirk==='spore' ? 0.78 : 1));
     if(b.mk>1){ b.mk=1; b.mdir=-1; }
     if(b.mk<0){ b.mk=0; b.mdir=1; }
+    if(b.combo>0){
+      /* plantarse: dejar pasar el aro guarda el turno sin castigo */
+      b.comboIdle += dt;
+      if(b.comboIdle > 1500){
+        UI.floats.push({x:46, y:100, s:'TURNO GUARDADO', col:'#5ec8d8', life:800, vy:-0.03});
+        toEnemyTurn(b);
+      }
+    }
   } else if(b.phase==='panim'){
     if(b.t>300 && !b.resolved){ b.resolved = true; applyHitToEnemy(b, false); }
     if(b.t>600){
       if(b.ehp<=0){ endBattle(true); return; }
+      if(b.lastGood && !b.miss && b.combo<2){
+        b.combo++; b.comboIdle = 0;
+        b.phase='timing'; b.t=0; b.mk=Math.random();
+        UI.floats.push({x:112, y:86, s:'COMBO X'+(b.combo+1), col:'#ffd94a', life:900, vy:-0.035});
+        SFX.coin();
+        return;
+      }
       toEnemyTurn(b);
     }
   } else if(b.phase==='superAnim'){
@@ -227,7 +274,7 @@ function battleStep(dt){
     if(b.t>teleDur(b)){ b.phase='eanim'; b.t=0; }
   } else if(b.phase==='eanim'){
     if(b.t>300 && !b.resolved){ b.resolved = true; resolveEnemyHit(b); }
-    if(b.t>440 && b.willDouble && !b.resolved2){
+    if(b.t>440 && b.willDouble && !b.resolved2 && !b.parry){
       b.resolved2 = true;
       const saved = b.eatk; b.eatk *= 0.55;
       resolveEnemyHit(b);
@@ -236,6 +283,7 @@ function battleStep(dt){
     if(b.t>640){
       if(b.php<=0){ endBattle(false); return; }
       b.resolved = false; b.resolved2 = false;
+      b.combo = 0; b.comboIdle = 0;
       /* la quemadura arde al empezar tu turno */
       if(b.burnT>0){
         b.burnT--;

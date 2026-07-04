@@ -3,8 +3,12 @@
    BITXO — game/actions: cuidar, alimentar, tienda, juguetes, expediciones y ascensión
    ========================================================= */
 /* ---------------- ACCIONES ---------------- */
+function petAlert(p){
+  return p.stage>STAGES.EGG && !p.exped &&
+         (p.sick || p.hunger<25 || p.happy<25 || (!p.sleeping && p.energy<15) || p.hygiene<25);
+}
 function needsAttention(){
-  return G.pets.some(p=>p.stage>STAGES.EGG && (p.sick || p.hunger<25 || p.happy<25 || p.energy<15 || p.hygiene<25)) || G.poops.length>0;
+  return G.pets.some(petAlert) || G.poops.length>0;
 }
 function spawnHearts(n){
   const p = AP();
@@ -100,19 +104,22 @@ function buyToy(i){
   G.motas -= T.cost;
   G.toys[T.id] = true;
   if(T.id==='caja') G.cajaReadyAt = Date.now();
-  if(T.id==='huerto') G.huertoReadyAt = Date.now() + 2*3600*1000;
+  if(T.id==='huerto') G.huertoReadyAt = Date.now() + huertoCycleMs();
   UI.shopFlash[T.id] = performance.now();
   toast(toyZone(T.id)==='parque' ? '¡NUEVO JUGUETE EN EL PARQUE!' : '¡NUEVO JUGUETE EN EL PRADO!');
   SFX.buy(); vibrate(25); saveGame();
 }
 
-/* ---------------- ZONAS: el sendero al parque ---------------- */
-/* mientras el parque esté cerrado, todo vive en el prado (el atasco
-   que motiva abrirlo); al abrirse, cada juguete se muda a su zona */
+/* ---------------- ZONAS: senderos, mudanzas y brazos ---------------- */
+/* mientras una zona esté cerrada, sus juguetes viven en el prado (el
+   atasco que motiva abrirla); al abrirse, cada juguete se muda sola */
 function toyZone(id){
-  if(!G.zonesOpen.parque) return 'prado';
-  return TOY_ZONE[id]||'prado';
+  const z = TOY_ZONE[id]||'prado';
+  return (z!=='prado' && !G.zonesOpen[z]) ? 'prado' : z;
 }
+/* ¿este bitxo está en la zona que miras (y no en brazos)? */
+function isCarried(p){ return !!UI.carry && G.pets[UI.carry.i]===p; }
+function petHere(p){ return (p.zone||'prado')===G.zone && !isCarried(p); }
 function parqueEligible(){
   return Object.keys(G.toys).length >= ZONES.parque.toysNeed &&
          G.pets.some(p=>p.stage>=STAGES.CHILD);
@@ -143,6 +150,128 @@ function gotoZone(z){
     }
   }
   saveGame();
+}
+function goWithToast(z){
+  gotoZone(z);
+  if(z!=='prado' && !G.hints.brazos && G.pets.some(p=>p.stage>STAGES.EGG) &&
+     G.pets.every(p=>(p.zone||'prado')==='prado')){
+    G.hints.brazos = true;
+    toast('MANTEN PULSADO A UN BITXO PARA TRAERLO', 3600);
+  } else {
+    toast(ZONES[z].name, 1300);
+  }
+  SFX.tap(); vibrate(10);
+}
+/* ver al elegido: si vive en otra zona, la vista salta a él */
+function seeSelected(){
+  const z = AP().zone||'prado';
+  if(z!==G.zone) gotoZone(z);
+}
+
+/* --- LA HUERTA: el sendero de la izquierda --- */
+const HUERTA_TOYS = ['banera','huerto','fuente'];
+function huertaTeaser(){
+  return !G.zonesOpen.huerta && !!G.zonesOpen.parque && HUERTA_TOYS.some(id=>G.toys[id]);
+}
+function huertaEligible(){ return huertaTeaser() && (G.expedsDone||0)>=1; }
+function tapSenderoHuerta(){
+  if(!huertaEligible()){ toast('LA HUERTA PIDE UNA EXPEDICION HECHA', 2800); SFX.nope(); return; }
+  if(G.motas < ZONES.huerta.cost){ toast('ABRIR LA HUERTA: ✦'+ZONES.huerta.cost, 2600); SFX.nope(); return; }
+  UI.mode = 'huertaConfirm'; SFX.tap(); vibrate(10);
+}
+function openHuerta(){
+  if(G.motas < ZONES.huerta.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); UI.mode='main'; return; }
+  G.motas -= ZONES.huerta.cost;
+  G.zonesOpen.huerta = true;
+  UI.mode = 'main';
+  gotoZone('huerta');
+  toast('¡LA HUERTA ESTA ABIERTA!', 3200);
+  diaryLog('SE ABRIO LA HUERTA');
+  for(let i=0;i<14;i++) UI.particles.push({x:20+Math.random()*120, y:120+Math.random()*60, vy:-0.03-Math.random()*0.02, life:1200, ch:'✦', col:['#ffd94a','#7ac74f','#6db1ff'][i%3]});
+  SFX.levelup(); vibrate([40,40,80]);
+  saveGame();
+}
+/* si alguien vive en la huerta, riega: la fruta madura antes */
+function huertoCycleMs(){
+  const riego = G.pets.some(p=>(p.zone||'prado')==='huerta' && p.stage>STAGES.EGG);
+  return (riego ? 90 : 120) * 60 * 1000;
+}
+
+/* --- tienda con scroll: alto del contenido por pestaña --- */
+function shopContentH(){
+  const tab = UI.shopTab||0;
+  if(tab===0) return SHOP.length*19;
+  if(tab===1) return TOYS.length*20;
+  if(tab===2) return Math.ceil(HATS.length/2)*25;
+  return DECOR.length*22;
+}
+function shopMaxScroll(){ return Math.max(0, shopContentH() - 144); }
+
+/* --- VIAJE CON COMPAÑÍA: al cruzar, elige quién viene --- */
+function travelOptions(dest){
+  const opts = [];
+  for(let i=0;i<G.pets.length;i++){
+    const p = G.pets[i];
+    if((p.zone||'prado')!==G.zone || p.stage===STAGES.EGG || p.exped || p.sleeping || isCarried(p)) continue;
+    let block = null;
+    if(dest!=='prado' && p.stage<STAGES.CHILD) block = 'MUY PEQUENO';
+    else if(dest!=='prado' && G.pets.filter(q=>q!==p && (q.zone||'prado')===dest).length>=zoneCap(dest)) block = 'ALLI YA VIVEN '+zoneCap(dest);
+    opts.push({i, p, block});
+  }
+  return opts;
+}
+function askTravel(dest){
+  if(!UI.carry && travelOptions(dest).length>=2){
+    UI.travelDest = dest;
+    UI.mode = 'travelPick';
+    SFX.tap(); vibrate(10);
+    return;
+  }
+  goWithToast(dest);
+}
+function travelWith(idx){
+  const dest = UI.travelDest;
+  const o = travelOptions(dest).find(t=>t.i===idx);
+  if(!o) return;
+  if(o.block){ toast(o.block); SFX.nope(); return; }
+  const p = o.p;
+  const entering = ZONE_ORDER.indexOf(dest) > ZONE_ORDER.indexOf(G.zone) ? 26 : 134;
+  p.zone = dest;
+  p.rx = entering; p.tx = entering; p.nextWalk = 0;
+  p.petT = performance.now(); p.joyAt = performance.now();
+  G.sel = idx;
+  UI.mode = 'main';
+  gotoZone(dest);
+  toast(petName(p)+' VIENE CONTIGO', 1800);
+  SFX.yay(); vibrate(15);
+}
+
+/* --- EN BRAZOS: mantener pulsado coge, tocar el suelo suelta --- */
+function zoneCap(z){ return z==='prado' ? 9 : 2; }
+function startCarry(i){
+  const p = G.pets[i];
+  if(!p || p.stage===STAGES.EGG || p.exped || p.sleeping || UI.mode!=='main') return;
+  UI.carry = {i};
+  G.sel = i;
+  p.swingT=0; p.batheT=0; p.drinkT=0;
+  petVoice(p); vibrate([15,25,15]);
+  toast('EN BRAZOS: TOCA EL SUELO PARA DEJARLO', 2600);
+}
+function dropCarry(x){
+  const p = G.pets[UI.carry.i];
+  if(!p){ UI.carry = null; return; }
+  if(p.stage<STAGES.CHILD && G.zone!=='prado'){ toast('MUY PEQUENO PARA VIVIR FUERA'); SFX.nope(); return; }
+  const vecinos = G.pets.filter(q=>q!==p && (q.zone||'prado')===G.zone).length;
+  if(vecinos>=zoneCap(G.zone)){ toast('AQUI YA VIVEN '+zoneCap(G.zone)); SFX.nope(); return; }
+  const moved = (p.zone||'prado')!==G.zone;
+  p.zone = G.zone;
+  p.rx = Math.max(22, Math.min(138, x)); p.tx = p.rx; p.nextWalk = 0;
+  p.petT = performance.now(); p.joyAt = performance.now();
+  UI.carry = null;
+  spawnHearts(1);
+  if(moved) diaryLog(petName(p)+' SE MUDO: '+ZONES[G.zone].name);
+  toast(moved ? 'AQUI VIVE '+petName(p) : petName(p), 1600);
+  SFX.yay(); vibrate(15); saveGame();
 }
 function openCaja(){
   const r = Math.random();

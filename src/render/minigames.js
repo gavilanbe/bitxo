@@ -3,6 +3,13 @@
    BITXO — render/minigames: dibujo de combate y minijuegos
    ========================================================= */
 /* ---------------- COMBATE: DIBUJO ---------------- */
+/* aro de puntería: elipse punteada de píxeles */
+function battleRing(cx, cy, r, col){
+  for(let a=0;a<20;a++){
+    const ang = a/20*Math.PI*2;
+    px(Math.round(cx+Math.cos(ang)*r), Math.round(cy+Math.sin(ang)*r*0.82), 1, 1, col);
+  }
+}
 function drawBattle(t, dt){
   battleStep(dt);
   const b = UI.bt; if(!b) return;
@@ -58,6 +65,10 @@ function drawBattle(t, dt){
   if(b.phase==='eTele' && b.bigAtk && Math.floor(t/120)%2===0){
     ctx.fillStyle='rgba(226,87,76,0.16)'; ctx.fillRect(-8,0,176,272);
   }
+  /* furia: le fallaste y viene con todo */
+  if(b.phase==='eTele' && b.rageNow && !b.bigAtk && Math.floor(t/160)%2===0){
+    ctx.fillStyle='rgba(226,87,76,0.09)'; ctx.fillRect(-8,0,176,272);
+  }
 
   /* ----- luchadores ----- */
   const pd = currentFormDef();
@@ -71,6 +82,18 @@ function drawBattle(t, dt){
   if(b.phase==='eanim') eox = -Math.sin(Math.min(1,b.t/600)*Math.PI)*50;
   if(b.phase==='eTele') eleanX = Math.sin(b.t/60)*(b.bigAtk?2.5:1.5);
 
+  /* líneas de velocidad de la embestida */
+  if(b.phase==='panim' && b.t<320 && pox>6){
+    for(let i=0;i<3;i++){
+      px(Math.round(46+pox)-16-i*8, 128+i*7, 10, 1, 'rgba(255,255,255,'+(0.4-i*0.11).toFixed(2)+')');
+    }
+  }
+  if(b.phase==='eanim' && b.t<320 && eox<-6){
+    for(let i=0;i<3;i++){
+      px(Math.round(112+eox)+8+i*8, 128+i*7, 10, 1, 'rgba(255,180,170,'+(0.35-i*0.1).toFixed(2)+')');
+    }
+  }
+
   /* jugador */
   const pHurt = now-b.phurtT<130;
   ctx.save();
@@ -83,7 +106,7 @@ function drawBattle(t, dt){
   }
   ctx.restore();
   /* escudo del bloqueo */
-  const blockWin = (b.phase==='eanim' && b.t<320 ) || (b.phase==='eTele' && b.t > (b.bigAtk?950:620)-180);
+  const blockWin = (b.phase==='eanim' && b.t<320 ) || (b.phase==='eTele' && b.t > teleDur(b)-180);
   if(b.blocked && (b.phase==='eTele'||b.phase==='eanim'||now-b.blockFxT<250)){
     const bx=60, c = now-b.blockFxT<250 ? '#ffffff' : '#5ec8d8';
     px(bx,118,2,26,c); px(bx+2,116,1,2,c); px(bx+2,144,1,2,c);
@@ -106,7 +129,21 @@ function drawBattle(t, dt){
   ctx.drawImage(eHurt ? silhouette(espr) : espr, -espr.width/2, -espr.height);
   ctx.restore();
   if(b.phase==='eTele' && Math.floor(t/150)%2===0){
-    drawTextC(b.bigAtk?'¡¡CARGA!!':'!', 112, 150-espr.height-12, '#e2574c');
+    drawTextC(b.bigAtk?'¡¡CARGA!!':(b.rageNow?'¡GRR!':'!'), 112, 150-espr.height-12, '#e2574c');
+  }
+  /* aro de puntería: toca cuando abrace al rival */
+  if(b.phase==='timing'){
+    const rdist = Math.abs(b.mk-0.5)*2;
+    const er = Math.max(espr.width, espr.height)/2 + 3;
+    const rr = er + rdist*26;
+    const rcy = 150 - Math.round(espr.height/2);
+    const rcol = rdist<0.18 ? '#ffd94a' : (rdist<0.35 ? '#fff8d0' : 'rgba(255,255,255,0.5)');
+    battleRing(112, rcy, rr, rcol);
+    if(rdist<0.18) battleRing(112, rcy, rr+1.5, 'rgba(255,217,74,0.45)');
+  }
+  /* ¡K.O.! */
+  if(b.phase==='end' && b.win && b.t<700 && Math.floor(t/120)%2===0){
+    drawTextC('¡K.O.!', 112, 92, '#ffd94a');
   }
 
   /* esporas del REY SETO a la deriva */
@@ -121,13 +158,19 @@ function drawBattle(t, dt){
 
   ctx.restore(); /* fin zoom/shake */
 
+  /* destellos de impacto: crítico y parada perfecta */
+  if(now-b.ehurtT<50 && b.crit){ ctx.fillStyle='rgba(255,255,255,0.28)'; ctx.fillRect(0,0,LW,LH); }
+  if(now-(b.parryFxT||0)<130){ ctx.fillStyle='rgba(190,240,255,0.30)'; ctx.fillRect(0,0,LW,LH); }
+
   /* ----- placas de nombre y vida ----- */
   const plate = (x, name, hp, hpShow, mx, isPlayer)=>{
     px(x,166,66,24,'rgba(14,16,40,0.72)');
     px(x,166,66,1,'rgba(255,255,255,0.18)');
     drawText(name, x+4, 169, '#ffffff');
-    const w = 58, pct = Math.max(0, hpShow/mx);
+    const w = 58, pct = Math.max(0, hp/mx), pctShow = Math.max(0, hpShow/mx);
     px(x+4,177,w,5,'rgba(255,255,255,0.14)');
+    /* barra fantasma: el trozo perdido se desvanece detrás */
+    px(x+4,177,Math.round(w*pctShow),5,'rgba(255,248,208,0.5)');
     const col = pct>0.5 ? '#7ac74f' : (pct>0.25 ? '#ffd94a' : ((Math.floor(t/200)%2===0)?'#e2574c':'#a03030'));
     px(x+4,177,Math.round(w*pct),5,col);
     drawText(fmt(Math.ceil(hp)), x+4, 184, 'rgba(255,255,255,0.75)');
@@ -157,26 +200,33 @@ function drawBattle(t, dt){
     drawTextC('PREPARATE...', 80, 232, 'rgba(255,255,255,0.5)');
   } else if(b.phase==='timing'){
     if(b.super>=b.superMax){
-      if(Math.floor(t/220)%2===0) drawTextC('★ ¡SUPER LISTO! TOCA ★', 80, 204, '#ffd94a');
-      else drawTextC(superOf(p).name, 80, 204, superOf(p).col);
+      /* botón de súper: o lo desatas, o sigues a golpes */
+      const on = Math.floor(t/220)%2===0;
+      px(28,204,104,18, on ? '#ffd94a' : '#c9a227');
+      px(28,204,104,1,K); px(28,221,104,1,K); px(28,204,1,18,K); px(131,204,1,18,K);
+      drawTextC('★ ¡SUPER! ★', 80, 210, K);
+      drawTextC(superOf(p).name, 80, 226, superOf(p).col);
+      drawTextC('O TOCA AL RIVAL: GOLPE NORMAL', 80, 240, 'rgba(255,255,255,0.35)');
     } else {
-      drawTextC('¡TOCA EN EL CENTRO!', 80, 204, '#ffd94a');
+      if(b.combo>0){
+        drawTextC('¡COMBO X'+(b.combo+1)+'! ¿SIGUES?', 80, 204, '#ffd94a');
+        drawTextC('FALLAR LO ENFURECE...', 80, 216, 'rgba(255,255,255,0.55)');
+        drawTextC('O DEJA PASAR EL ARO Y PLANTATE', 80, 228, 'rgba(94,200,216,0.6)');
+      } else {
+        drawTextC('¡TOCA CUANDO EL ARO', 80, 204, '#ffd94a');
+        drawTextC('ABRACE AL RIVAL!', 80, 214, '#ffd94a');
+      }
+      if(b.mult>1) drawTextC('VENTAJA DE LINEA: DAÑO +30%', 80, 240, '#7ac74f');
+      else if(b.mult<1) drawTextC('TE RESISTE: DAÑO -25%', 80, 240, '#e2574c');
+      else drawTextC('ARO DORADO = CRITICO', 80, 240, 'rgba(255,255,255,0.35)');
     }
-    px(20,216,120,12,'rgba(255,255,255,0.10)');
-    px(20,216,120,1,K); px(20,227,120,1,K);
-    px(72,214,16,16,'rgba(255,217,74,0.25)');
-    px(78,212,4,20,'rgba(255,217,74,0.55)');
-    const mx = 20 + b.mk*116;
-    px(mx,214,3,16,'#ffffff');
-    px(mx+1,212,1,2,'#ffffff'); px(mx+1,230,1,2,'#ffffff');
-    if(b.mult>1) drawTextC('VENTAJA DE LINEA: DAÑO +30%', 80, 240, '#7ac74f');
-    else if(b.mult<1) drawTextC('TE RESISTE: DAÑO -25%', 80, 240, '#e2574c');
-    else drawTextC('CRITICO EN LA FRANJA DORADA', 80, 240, 'rgba(255,255,255,0.35)');
   } else if(b.phase==='eTele' || b.phase==='eanim'){
-    if(b.blocked) drawTextC('ESCUDO ARRIBA', 80, 210, '#5ec8d8');
+    if(b.parry) drawTextC('¡PARADA PERFECTA!', 80, 210, '#ffffff');
+    else if(b.blocked) drawTextC('ESCUDO ARRIBA', 80, 210, '#5ec8d8');
     else if(blockWin && Math.floor(t/140)%2===0) drawTextC('¡¡BLOQUEA: TOCA YA!!', 80, 210, '#5ec8d8');
-    else drawTextC(b.bigAtk ? '¡ATAQUE CARGADO!' : 'AHI VIENE...', 80, 210, b.bigAtk?'#e2574c':'rgba(255,255,255,0.6)');
-    drawTextC('TOCA JUSTO ANTES DEL GOLPE', 80, 240, 'rgba(255,255,255,0.35)');
+    else drawTextC(b.bigAtk ? '¡ATAQUE CARGADO!' : (b.rageNow ? '¡VIENE FURIOSO!' : 'AHI VIENE...'), 80, 210, (b.bigAtk||b.rageNow)?'#e2574c':'rgba(255,255,255,0.6)');
+    drawTextC('TOCA JUSTO ANTES DEL GOLPE', 80, 236, 'rgba(255,255,255,0.35)');
+    drawTextC('CLAVADO AL IMPACTO: ¡PARADA!', 80, 246, 'rgba(94,200,216,0.55)');
   } else if(b.phase==='superAnim'){
     if(Math.floor(t/150)%2===0) drawTextC('¡'+superOf(p).name+'!', 80, 214, superOf(p).col);
   } else if(b.phase==='end'){

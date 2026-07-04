@@ -8,10 +8,12 @@ const R_HUNGER = ratePerMs(5);
 const R_ENERGY = ratePerMs(16);
 const R_SLEEPREGEN = ratePerMs(6);
 function energyRate(p){ return R_ENERGY * (p.line==='marea'?0.8:1) * (p.trait==='DORMILON'?1.15:1) * (WEATHER.kind==='wind'?1.1:1) * (G.relics && G.relics.caracola?0.9:1); }
-function hungerRate(p){ return R_HUNGER * (p.trait==='GLOTON'?1.25:1); }
+/* en la huerta picotean: el hambre baja más despacio */
+function hungerRate(p){ return R_HUNGER * (p.trait==='GLOTON'?1.25:1) * ((p.zone||'prado')==='huerta'?0.8:1); }
 function poopEvery(p){ return POOP_EVERY * (p.line==='petrea'?1.6:1); }
 function hygMult(p){ return p.line==='petrea'?0.7:1; }
-function happyDecayRate(p){ return ratePerMs(6) * (1 - 0.1*G.up.juguete) * (p.trait==='JUGUETON'?0.8:1) * weatherHappyMult(p) * (G.relics && G.relics.corona?0.9:1) * (G.toys && G.toys.cometa && WEATHER.kind==='wind' ? 0.65 : 1) * (p.sick?1.5:1); }
+/* en el parque se aburren menos: el ánimo dura más */
+function happyDecayRate(p){ return ratePerMs(6) * (1 - 0.1*G.up.juguete) * (p.trait==='JUGUETON'?0.8:1) * weatherHappyMult(p) * (G.relics && G.relics.corona?0.9:1) * (G.toys && G.toys.cometa && WEATHER.kind==='wind' ? 0.65 : 1) * (p.sick?1.5:1) * ((p.zone||'prado')==='parque'?0.8:1); }
 function petName(p){ return p.nick || (p.form==='grimo' ? 'GRIMO' : (p.stage===STAGES.EGG ? 'HUEVO' : LINES[p.line].names[p.form||'babyA'])); }
 function sleepRegen(p){ return R_SLEEPREGEN * (1 + 0.15*G.up.cama) * (p.trait==='DORMILON'?1.3:1) * (p.sick?0.6:1); }
 function gardenMult(){ return 1 + 0.25*G.up.jardin + (G.relics && G.relics.seta ? 0.1 : 0); }
@@ -71,17 +73,24 @@ function nameOfKey(key){
   const i = key.indexOf('_');
   return LINES[key.slice(0,i)].names[key.slice(i+1)];
 }
+/* cuánto falta (en ms de goteo) para alcanzar un nivel objetivo */
+function xpEtaMs(p, targetLv){
+  if(p.level>=targetLv) return 0;
+  let need = xpNeed(p.level) - p.xp;
+  for(let l=p.level+1;l<targetLv;l++) need += xpNeed(l);
+  return need / XP_TRICKLE_MS;
+}
 function checkEvolution(p, silent){
   if(!p.hatchedAt) return;
   const age = Date.now() - p.hatchedAt;
-  if(p.stage===STAGES.BABY && age > T_CHILD){
+  if(p.stage===STAGES.BABY && age > T_CHILD && p.level>=EVO_LEVEL.child){
     const fromKey = evoKeyOf(p);
     p.stage = STAGES.CHILD;
     p.form = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
     markDex(p.line+'_'+p.form);
     queueEvolution(p, fromKey, evoKeyOf(p));
   }
-  if(p.stage===STAGES.CHILD && age > T_ADULT){
+  if(p.stage===STAGES.CHILD && age > T_ADULT && p.level>=EVO_LEVEL.adult){
     const fromKey = evoKeyOf(p);
     p.stage = STAGES.ADULT;
     const cs = careScore(p);
@@ -101,7 +110,9 @@ function predictNext(p){
   const age = Date.now() - p.hatchedAt;
   if(p.stage===STAGES.BABY){
     const slot = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
-    return {when: Math.max(0, T_CHILD-age), key: p.line+'_'+slot};
+    return {when: Math.max(0, T_CHILD-age, xpEtaMs(p, EVO_LEVEL.child)),
+            key: p.line+'_'+slot,
+            lvl: p.level<EVO_LEVEL.child ? EVO_LEVEL.child : null};
   }
   if(p.stage===STAGES.CHILD){
     const cs = careScore(p);
@@ -110,7 +121,9 @@ function predictNext(p){
     else if(cs>=85 && p.str>=6 && p.def>=6 && p.spd>=6 && p.gamesWon>=5 && p.mistakes===0) slot = 'adultS';
     else if(p.form==='childA') slot = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
     else slot = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
-    return {when: Math.max(0, T_ADULT-age), key: slot==='grimo' ? 'grimo' : p.line+'_'+slot};
+    return {when: Math.max(0, T_ADULT-age, xpEtaMs(p, EVO_LEVEL.adult)),
+            key: slot==='grimo' ? 'grimo' : p.line+'_'+slot,
+            lvl: p.level<EVO_LEVEL.adult ? EVO_LEVEL.adult : null};
   }
   return null;
 }

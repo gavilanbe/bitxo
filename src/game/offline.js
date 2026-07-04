@@ -7,7 +7,7 @@ let offlineReport = null;
 function applyElapsed(ms){
   const dt = Math.min(ms, OFFLINE_CAP);
   const now = Date.now();
-  const rep = {away:ms, motas:0, autofed:0, poops:0, evolved:false, capped: ms>OFFLINE_CAP};
+  const rep = {away:ms, motas:0, autofed:0, poops:0, lvls:0, evolved:false, capped: ms>OFFLINE_CAP};
   const STEPS = 24, sdt = dt/STEPS;
   for(let i=0;i<STEPS;i++){
     for(const p of G.pets){
@@ -25,7 +25,7 @@ function applyElapsed(ms){
       } else {
         p.energy = Math.max(0, p.energy - energyRate(p)*sdt);
         if(Math.random() < sdt/poopEvery(p) && G.poops.length<5){
-          G.poops.push({x:20+Math.random()*110}); rep.poops++;
+          G.poops.push({x:20+Math.random()*110, zone:p.zone||'prado'}); rep.poops++;
         }
       }
       if(G.up.comedero>0){
@@ -33,6 +33,15 @@ function applyElapsed(ms){
         if(p.hunger < th && G.motas >= COST_MEAL){
           G.motas -= COST_MEAL; p.hunger = Math.min(100, p.hunger+35);
           p.weight = Math.min(99, p.weight+1); rep.autofed++;
+        }
+      }
+      /* el goteo de XP también corre fuera (a media marcha, como las motas) */
+      const lg = p.stage===STAGES.BABY ? EVO_LEVEL.child : (p.stage===STAGES.CHILD ? EVO_LEVEL.adult : 0);
+      if(lg && p.level<lg){
+        p.xpAcc = (p.xpAcc||0) + XP_TRICKLE_MS*sdt*0.5*(p.sleeping?0.3:1)*(p.sick?0.5:1);
+        if(p.xpAcc>=1){
+          const w = Math.floor(p.xpAcc); p.xpAcc -= w; p.xp += w;
+          while(p.xp >= xpNeed(p.level) && p.level<lg){ p.xp -= xpNeed(p.level); p.level++; rep.lvls++; }
         }
       }
       const gain = petRate(p) * (sdt/1000) * 0.5;

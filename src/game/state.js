@@ -17,6 +17,7 @@ function makePet(line, gen){
     sleeping:false, tapsOnEgg:0,
     fedMeals:0, fedSnacks:0, gamesWon:0,
     level:1, xp:0,
+    zone:'prado',
     rx: 30+Math.random()*100, tx: 80, dir:1, nextWalk:0,
     blinkAt:0, eatT:0, trainT:0, petT:0, joyAt:0, joySeed:0, hop:0,
     dropT: performance.now(), feedKind:'meal'

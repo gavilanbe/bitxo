@@ -1,7 +1,7 @@
 /* BITXO service worker: red primero, caché de respaldo.
    Las actualizaciones siempre llegan (los ?v= cambian de URL) y sin
    conexión el prado sigue abierto con lo último que se descargó. */
-const CACHE = 'bitxo-cache-20260704-0937';
+const CACHE = 'bitxo-cache-20260704-1715';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(
@@ -12,6 +12,14 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if(e.request.method !== 'GET') return;
+  /* version.json jamás se sirve de caché: es el detector de novedades */
+  if(new URL(e.request.url).pathname.endsWith('version.json')){
+    e.respondWith(
+      fetch(e.request, {cache:'no-store'})
+        .catch(() => new Response('{}', {headers:{'Content-Type':'application/json'}}))
+    );
+    return;
+  }
   e.respondWith(
     fetch(e.request).then(r => {
       if(r.ok && new URL(e.request.url).origin === location.origin){

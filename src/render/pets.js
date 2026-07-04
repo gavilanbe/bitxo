@@ -255,8 +255,36 @@ function drawToys(t){
   }
 }
 function drawPets(t){
-  const order = G.pets.map((p,i)=>i).sort((a,b)=>G.pets[a].rx-G.pets[b].rx);
+  const order = G.pets.map((p,i)=>i)
+    .filter(i=>(G.pets[i].zone||'prado')===G.zone && !(UI.carry && UI.carry.i===i))
+    .sort((a,b)=>G.pets[a].rx-G.pets[b].rx);
   for(const i of order) drawOnePet(G.pets[i], i, t);
+  drawCarried(t);
+}
+/* el bitxo en brazos: flota contigo hasta que toques el suelo */
+function drawCarried(t){
+  if(!UI.carry) return;
+  const p = G.pets[UI.carry.i];
+  if(!p) return;
+  const def = p.form==='grimo' ? 'grimo' : p.line+'_'+(p.form||'babyA');
+  const spr = SPR[def][1];
+  const bob = Math.round(Math.sin(t/240)*2);
+  const x = 80, y = 192 + bob;
+  px(x-9, 193, 18, 2, 'rgba(0,0,0,0.2)');
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.drawImage(spr, -Math.floor(spr.width/2), -spr.height);
+  if(p.hat && SPR['hat_'+p.hat]){
+    const hs = SPR['hat_'+p.hat];
+    const hdy = (HAT_BY_ID[p.hat] && HAT_BY_ID[p.hat].dy) || 0;
+    ctx.drawImage(hs, -Math.floor(hs.width/2), -spr.height - hs.height + 2 + hdy);
+  }
+  ctx.restore();
+  if(Math.floor(t/400)%2===0){
+    px(x-1, y-spr.height-8, 2, 2, '#ffd94a');
+    px(x-2, y-spr.height-10, 4, 2, '#ffd94a');
+  }
+  if(Math.floor(t/500)%3===0) drawText('♥', x+10, y-spr.height-4, '#f2a2b8');
 }
 function drawWild(t){
   if(!G.wild || (G.wild.zone||'prado')!==G.zone) return;

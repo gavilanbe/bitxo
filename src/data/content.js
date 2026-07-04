@@ -76,14 +76,18 @@ const TOYS = [
 
 /* --- zonas del mundo: el prado es el hogar; cada juguete vive en su sitio.
    EL PARQUE se abre por el sendero (2 juguetes + un JOVEN + motas) y se
-   lleva los juguetes de jugar; el prado conserva los de cuidado. --- */
+   lleva los juguetes de jugar; LA HUERTA (tras una expedición) se lleva
+   los de cuidado. Los bitxos JOVEN+ pueden mudarse (en brazos, máx. 2). --- */
 const ZONES = {
   prado:  {name:'EL PRADO'},
-  parque: {name:'EL PARQUE', cost:500, toysNeed:2}
+  parque: {name:'EL PARQUE', cost:500, toysNeed:2},
+  huerta: {name:'LA HUERTA', cost:800}
 };
+/* de izquierda a derecha en el mundo */
+const ZONE_ORDER = ['huerta','prado','parque'];
 const TOY_ZONE = {
   pelota:'parque', caja:'parque', columpio:'parque', tambor:'parque', cometa:'parque',
-  banera:'prado', huerto:'prado', fuente:'prado', robot:'prado'
+  banera:'huerta', huerto:'huerta', fuente:'huerta', robot:'prado'
 };
 
 const ENEMIES = {
@@ -180,13 +184,13 @@ const EVO_REQS = {
  egg:   ['TODO EMPIEZA AQUI', 'CUIDA LO QUE SALGA'],
  babyA: ['AL ECLOSIONAR: 50%', 'PURA SUERTE'],
  babyB: ['AL ECLOSIONAR: 50%', 'PURA SUERTE'],
- childA:['BEBE CON ENTRENO TOTAL 4+', 'O CUIDADO 65+'],
- childB:['BEBE CON POCO ENTRENO', 'Y CUIDADO REGULAR'],
- adultA:['JOVEN {cA} + FUERZA 5+', 'CON MAS FUE QUE DEF'],
- adultB:['JOVEN {cA} SIN FUERZA 5', 'O CON MAS DEF QUE FUE'],
- adultC:['JOVEN {cB} + VELOCIDAD 5+', 'O 3 JUEGOS GANADOS'],
- adultD:['JOVEN {cB} TRANQUILO:', 'SIN VELOCIDAD NI JUEGOS'],
- adultS:['TODAS LAS STATS 6+ Y 0 FALLOS', 'CUIDADO 85+ Y JUEGOS 5+'],
+ childA:['NIVEL 3 + ENTRENO TOTAL 4+', 'O CUIDADO 65+'],
+ childB:['NIVEL 3 CON POCO ENTRENO', 'Y CUIDADO REGULAR'],
+ adultA:['NIVEL 6: {cA} + FUERZA 5+', 'CON MAS FUE QUE DEF'],
+ adultB:['NIVEL 6: {cA} SIN FUERZA 5', 'O CON MAS DEF QUE FUE'],
+ adultC:['NIVEL 6: {cB} + VELOCIDAD 5+', 'O 3 JUEGOS GANADOS'],
+ adultD:['NIVEL 6: {cB} TRANQUILO', 'SIN VELOCIDAD NI JUEGOS'],
+ adultS:['NIVEL 6, TODO 6+ Y 0 FALLOS', 'CUIDADO 85+ Y JUEGOS 5+'],
  grimo: ['5 FALLOS O CUIDADO PESIMO', 'EL ABANDONO TIENE PRECIO']
 };
 

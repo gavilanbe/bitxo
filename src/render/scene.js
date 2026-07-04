@@ -114,6 +114,7 @@ function drawScene(t){
 
   /* escenografía propia de cada zona */
   if(G.zone==='parque') drawParqueProps(t, S);
+  if(G.zone==='huerta') drawHuertaProps(t, S);
 
   /* decoración base + jardín (paleta de flores elegible) */
   if(G.zone==='prado'){
@@ -155,10 +156,10 @@ function drawScene(t){
   if(G.zone==='prado' && G.up.jardin>=2){ ctx.drawImage(SPR.shroom, 134, 128); }
   if(G.zone==='prado' && G.up.jardin>=3){
     /* estanque */
-    px(8,178,34,12,'#3a6bb0'); px(10,176,30,2,'#3a6bb0'); px(10,190,30,2,'#3a6bb0');
-    px(12,180,26,8,'#5e9be0');
+    px(16,178,34,12,'#3a6bb0'); px(18,176,30,2,'#3a6bb0'); px(18,190,30,2,'#3a6bb0');
+    px(20,180,26,8,'#5e9be0');
     const sh = Math.floor(t/700)%2;
-    px(16+sh*6,182,6,1,'#bde8f8'); px(26,186,5,1,'#bde8f8');
+    px(24+sh*6,182,6,1,'#bde8f8'); px(34,186,5,1,'#bde8f8');
   }
   if(G.zone==='prado' && G.up.jardin>=4){
     /* farolillos */
@@ -208,36 +209,86 @@ function drawParqueProps(t, S){
   px(106,130,2,5,'#5a4632'); px(122,130,2,5,'#5a4632');
 }
 
+/* ---------------- LA HUERTA: escenografía propia ---------------- */
+function drawHuertaProps(t, S){
+  /* surcos labrados con brotes */
+  for(let r=0;r<3;r++){
+    const y = 130 + r*7;
+    px(22,y,44,4,'#6a4e2e');
+    px(22,y,44,1,'#5a3e24');
+    px(24,y+2,40,1,'#7a5e3a');
+  }
+  for(let i=0;i<6;i++){
+    px(27+i*7, 128+(i%3)*7, 2, 2, S.grass);
+  }
+  /* espantapájaros (a veces con cuervo confianzudo) */
+  px(112,130,2,28,'#8a6a3a');
+  px(105,136,16,2,'#8a6a3a');
+  px(109,127,8,7,'#e8d8a0');
+  px(110,129,2,1,K); px(114,129,2,1,K);
+  px(108,124,10,3,'#a03030');
+  px(107,126,12,1,K);
+  if(Math.floor(t/900)%5===0){ px(104,132,3,2,'#2a2438'); px(103,131,1,1,'#2a2438'); }
+  /* girasoles */
+  for(const gx of [141,148]){
+    px(gx,140,1,16,'#57a05e');
+    px(gx-2,135,5,5,'#ffd94a');
+    px(gx-1,136,3,3,'#8a6a10');
+  }
+}
+
 /* aviso en la flecha: algo pasa en la zona a la que apunta */
 function zoneAlertCol(target){
   if(G.wild && (G.wild.zone||'prado')===target) return '#e2574c';
-  if(G.buho && target==='prado') return '#ffd94a';
+  if(G.pets.some(p=>(p.zone||'prado')===target && petAlert(p))) return '#ffd94a';
+  if(G.buho && target==='prado') return '#5ec8d8';
   return null;
 }
-/* sendero cerrado, o flechas para ir y volver */
+/* mirando en una dirección: primer aviso de las zonas de ese lado */
+function zoneAlertDir(dir){
+  let idx = ZONE_ORDER.indexOf(G.zone);
+  for(idx+=dir; idx>=0 && idx<ZONE_ORDER.length; idx+=dir){
+    const z = ZONE_ORDER[idx];
+    if(z!=='prado' && !G.zonesOpen[z]) continue;
+    const c = zoneAlertCol(z);
+    if(c) return c;
+  }
+  return null;
+}
+/* senderos cerrados, o flechas para ir y volver */
 function drawZoneEdges(t){
   const blink = Math.floor(t/450)%2===0;
-  if(G.zone==='prado'){
-    if(G.zonesOpen.parque){
-      /* caminito que sale a la derecha */
-      px(146,178,14,4,'rgba(190,182,160,0.75)');
-      px(150,184,10,3,'rgba(190,182,160,0.55)');
-      drawText('>', 152, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
-      const al = zoneAlertCol('parque');
-      if(al && blink) drawTextC('!', 154, 158, al);
-    } else if(Object.keys(G.toys).length>=1){
-      /* el sendero cerrado: un cartelito misterioso */
-      px(151,177,2,9,'#5a4632');
-      px(146,168,12,9,'#8a6a3a');
-      px(146,168,12,1,K); px(146,176,12,1,K);
-      px(146,168,1,9,K); px(157,168,1,9,K);
-      drawTextC('?', 152, 170, blink ? '#ffd94a' : '#f6efe0');
-      px(148,188,12,3,'rgba(190,182,160,0.4)');
-    }
-  } else if(G.zone==='parque'){
+  const arrowR = ()=>{
+    px(146,178,14,4,'rgba(190,182,160,0.75)');
+    px(150,184,10,3,'rgba(190,182,160,0.55)');
+    drawText('>', 152, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
+    const al = zoneAlertDir(1);
+    if(al && blink) drawTextC('!', 154, 158, al);
+  };
+  const arrowL = ()=>{
+    px(0,178,14,4,'rgba(190,182,160,0.75)');
+    px(0,184,10,3,'rgba(190,182,160,0.55)');
     drawText('<', 4, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
-    const al = zoneAlertCol('prado');
+    const al = zoneAlertDir(-1);
     if(al && blink) drawTextC('!', 6, 158, al);
+  };
+  const teaser = (sx)=>{
+    px(sx+5,177,2,9,'#5a4632');
+    px(sx,168,12,9,'#8a6a3a');
+    px(sx,168,12,1,K); px(sx,176,12,1,K);
+    px(sx,168,1,9,K); px(sx+11,168,1,9,K);
+    drawTextC('?', sx+6, 170, blink ? '#ffd94a' : '#f6efe0');
+    px(sx+2,188,12,3,'rgba(190,182,160,0.4)');
+  };
+  if(G.zone==='prado'){
+    if(G.zonesOpen.parque) arrowR();
+    else if(Object.keys(G.toys).length>=1) teaser(146);
+    if(G.zonesOpen.huerta) arrowL();
+    else if(huertaTeaser()) teaser(2);
+  } else if(G.zone==='parque'){
+    arrowL();
+  } else if(G.zone==='huerta'){
+    arrowR();
   }
 }
 
@@ -294,7 +345,7 @@ function drawWeather(t){
     ctx.fillStyle='rgba(20,30,70,0.15)'; ctx.fillRect(0,0,160,196);
     /* salpicaduras en el estanque */
     if(G.up.jardin>=3 && Math.floor(t/120)%3===0){
-      const rx2 = 14+((t*0.37)|0)%22, ry2 = 180+((t*0.13)|0)%8;
+      const rx2 = 22+((t*0.37)|0)%22, ry2 = 180+((t*0.13)|0)%8;
       px(rx2-1, ry2, 3, 1, 'rgba(190,232,248,0.7)');
       px(rx2, ry2-1, 1, 1, 'rgba(190,232,248,0.7)');
     }

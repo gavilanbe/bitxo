@@ -222,55 +222,55 @@ function buildAllSprites(){
 "............","............","............",".....k......","....k.k.....",".....k.k....","....k.......","............","............","............","............","............","............"]);
   SPR.poop = mkSprite({k:K,p:'#a4713a'},[
 "...kk...","..kppk..",".kppppk.",".kppppk.","kppppppk","kppppppk",".kkkkkk."]);
-  SPR.meal = mkSprite({k:K,r:'#e2574c',b:'#f6d186',g:'#7ac74f'},[
-"..kkkkkk..",".kbbbbbbk.","kbgbgbgbbk","kkkkkkkkkk","krrrrrrrrk",".krrrrrrk.","..kkkkkk.."]);
-  SPR.snack = mkSprite({k:K,c:'#f2a2b8',w:'#fff',s:'#e2574c'},[
-"...kkkk...","..kssssk..",".kcwcwcck.",".kcccccck.",".kwcwcwck.","..kccck...","...kkk...."]);
+  SPR.meal = mkSprite({k:K,b:'#f6d186',t:'#e8c060',g:'#7ac74f',m:'#a04a32',r:'#e2574c',w:'#fff8d0'},[
+"...kkkkk...","..kbbbbbk..",".kbwbbbwbk.",".kgggggggk.",".krrrrrrrk.",".kmmmmmmmk.",".ktttttttk.","..ktttttk..","...kkkkk..."]);
+  SPR.snack = mkSprite({k:K,c:'#f2a2b8',d:'#d8578a',w:'#fff8d0',y:'#ffd94a',s:'#e2574c',b:'#f6d186'},[
+"..kkkkkk..",".kcysccwk.","kcck..kcck","kwck..kyck",".kbdbbdbk.","..kkkkkk.."]);
   SPR.shroom = mkSprite({k:K,r:'#d8574c',w:'#f6efe0',s:'#e8d8b8'},[
 "...kkkkkkkk...","..krrwwrrrrk..",".krrrrrrwwrrk.","krwwrrrrrrrrwk","krrrrrwwrrrrrk","kkkkkkkkkkkkkk",".ksssskkssss..","..kssssssssk..","..kssssssssk..","...kkkkkkkk..."]);
-  SPR.fruta = mkSprite({k:K,g:'#7ac74f',r:'#e2574c',w:'#ffffff'},[
-"...kk...","..kgk...",".krrrrk.","krrrrrrk","krwrrrrk","krrrrrrk",".krrrrk.","..kkkk.."]);
-  SPR.pescado = mkSprite({k:K,b:'#5e9be0',w:'#ffffff'},[
-"..kkkk..k.",".kbbbbkkbk","kbwbbbbbbk","kbbbbbbkbk",".kbbbbkkbk","..kkkk..k."]);
-  SPR.picante = mkSprite({k:K,g:'#7ac74f',r:'#e2574c'},[
-"...kg..","..kgk..","..krk..",".krrk..",".krrk..","krrrk..","krrk...","krrk...",".kk...."]);
-  SPR.pastel = mkSprite({k:K,y:'#ffd94a',w:'#ffffff',p:'#f78fb3',c:'#fbe6c2'},[
-"....ky....","....kw....",".kkkkkkkk.","kppppppppk","kwpwpwpwpk","kcccccccck","kcccccccck",".kkkkkkkk."]);
-  SPR.sopa = mkSprite({k:K,y:'#ffd94a',n:'#3a4a8a',w:'#f6efe0'},[
-"...ky.k...",".kkkkkkkk.","knnnynnnnk","knnnnnnnnk",".kwwwwwwk.","..kwwwwk..","...kkkk..."]);
-  SPR.setita = mkSprite({k:K,r:'#d8574c',w:'#f6efe0',s:'#e8d8b8'},[
-".kkkkkk.","krwrrwrk","krrrrrrk","kkkkkkkk",".kssssk.",".kssssk.","..kkkk.."]);
-  SPR.pelota = mkSprite({k:K,r:'#e2574c',w:'#ffffff'},[
-"..kkk..",".krrwk.","krrrwwk","krrwwwk","krwwwwk",".krwwk.","..kkk.."]);
-  SPR.caja = mkSprite({k:K,p:'#9d7bd8',y:'#ffd94a'},[
-"kkkkkkkkkk","kppyyppyyk","kppppppppk","kyyppppyyk","kppppppppk","kppyyppyyk","kkkkkkkkkk"]);
-  SPR.banera = mkSprite({k:K,w:'#f6efe0',b:'#5e9be0',c:'#9adcf0'},[
-".kkkkkkkkkkkk.","kwccccccccccwk","kwbbbcbbcbbbwk","kwwbbbbbbbbwwk",".kwwwwwwwwwwk.","..kk......kk.."]);
-  SPR.tambor = mkSprite({k:K,r:'#e2574c',c:'#fbe6c2',w:'#f6efe0'},[
-"..kkkkkkkk..",".kcccccccck.","kkkkkkkkkkkk","krrwrrrrwrrk","krwrrrrrrwrk","krrwrrrrwrrk","kkkkkkkkkkkk"]);
+  SPR.fruta = mkSprite({k:K,g:'#57a05e',l:'#7ac74f',r:'#e2574c',d:'#a03030',w:'#ff9a90'},[
+"....kk...","...klgk..","....k....",".krrkrrk.","krwrrrrdk","krwrrrrdk","krrrrrddk",".krrrddk.","..kkkkk.."]);
+  SPR.pescado = mkSprite({k:K,b:'#5e9be0',c:'#9adcf0',d:'#3a6bb0',w:'#ffffff'},[
+"...kkkk...k.",".kkbccck.kdk","kbwkbbbbkddk","kbkkbbbbdddk",".kkbbbdk.kdk","...kkkk...k."]);
+  SPR.picante = mkSprite({k:K,g:'#7ac74f',e:'#57a05e',r:'#e2574c',d:'#a03030',w:'#ff9a90'},[
+"....kgg.","...kgek.","..krrk..",".krwrdk.",".krwrdk.","krrrrdk.","krrrddk.","krrddk..",".kkkk..."]);
+  SPR.pastel = mkSprite({k:K,y:'#ffd94a',w:'#ffffff',p:'#f78fb3',d:'#d8578a',c:'#fbe6c2',s:'#e8c060'},[
+"....krk...","....kwk...",".kkkkkkkk.","kpwpwpwppk","kpppppppdk","kkkkkkkkkk","kcwcccccsk","kccccccssk",".kkkkkkkk."]);
+  SPR.sopa = mkSprite({k:K,y:'#ffd94a',n:'#3a4a8a',u:'#28366a',w:'#f6efe0'},[
+"..w...w...","...w...w..",".kkkkkkkk.","knynynynnk","knnnnnnnuk",".kwwwwwwk.","..kwwwwk..","...kkkk..."]);
+  SPR.setita = mkSprite({k:K,r:'#d8574c',d:'#a03030',w:'#f6efe0',s:'#e8d8b8'},[
+"..kkkk..",".krwrrk.","krrrrwrk","kddddddk",".kssssk.",".kssssk.","..kkkk.."]);
+  SPR.pelota = mkSprite({k:K,r:'#e2574c',d:'#a03030',w:'#ffffff',c:'#f0f0f8'},[
+"..kkkkk..",".kwwrrrk.","kwwwrrrdk","kwwrrrrdk","kwrrrrddk","krrrrdddk",".krrdddk.","..kkkkk.."]);
+  SPR.caja = mkSprite({k:K,p:'#9d7bd8',v:'#7a5ab8',y:'#ffd94a',o:'#c9a227'},[
+"...kyyk...","..kkyykk..","kkkkkkkkkk","kppkyykppk","kppkyokppk","kkkkkkkkkk","kvvkyokvvk","kvvkyokvvk","kkkkkkkkkk"]);
+  SPR.banera = mkSprite({k:K,w:'#f6efe0',e:'#d8d0c0',b:'#5e9be0',c:'#9adcf0'},[
+"..c..c..c.....",".kkkkkkkkkkkk.","kwccbccbccbcwk","kwbbbbbbbbbbwk","kwwbbbbbbbbwwk",".kwwwwwwwwwwk.",".keekkkkkkeek.","..kk......kk.."]);
+  SPR.tambor = mkSprite({k:K,r:'#e2574c',d:'#a03030',c:'#fbe6c2',s:'#e8c060',w:'#f6efe0'},[
+".w........w.",".kw......wk.","..kkkkkkkk..",".kcccccscck.","kkkkkkkkkkkk","krwrkrrkrwrk","krrkrrrrkrrk","krkrrddrrkdk","kkkkkkkkkkkk"]);
   /* gorros */
-  SPR.hat_lazo = mkSprite({k:K,p:'#f78fb3',d:'#d8578a'},[
-"kk...kk","kppkppk","kpdkdpk",".kk.kk."]);
-  SPR.hat_flor = mkSprite({k:K,y:'#ffd94a',p:'#f2a2b8'},[
-".kpk.","kpypk",".kpk."]);
-  SPR.hat_seta = mkSprite({k:K,r:'#d8574c',w:'#f6efe0'},[
-"..kkkk..",".krwrrk.","krrrrwrk","kkkkkkkk"]);
-  SPR.hat_copa = mkSprite({k:K,n:'#2a2438',r:'#e2574c'},[
-"..kkkk..","..knnk..","..krrk..","kkkkkkkk"]);
-  SPR.hat_corona = mkSprite({k:K,y:'#ffd94a',r:'#e2574c'},[
-"k.k.k.k","kykykyk","kyyryyk","kkkkkkk"]);
-  SPR.hat_buho = mkSprite({k:K,u:'#9d7bd8',y:'#ffd94a'},[
-"...k...","..kuk..",".kuuuk.","kuyuyuk",".kkkkk."]);
-  SPR.hat_gafas = mkSprite({k:K,n:'#20243c'},[
-"kkkkkkkkk","knnkkknnk",".kk...kk."]);
-  SPR.hat_pajarita = mkSprite({k:K,r:'#e2574c',d:'#a03030'},[
-"kk...kk","krrkrrk","krdkdrk","kk...kk"]);
-  SPR.hat_halo = mkSprite({k:'#c9a227',y:'#ffd94a'},[
-".kkkkkkk.","kyyyyyyyk",".kkkkkkk."]);
-  SPR.hat_laurel = mkSprite({k:'#3d6b2f',g:'#7ac74f',y:'#ffd94a'},[
-".gk.....kg.","gkg.kyk.gkg",".gkg...gkg.","..kgg.ggk..","....kkk...."]);
-  SPR.hat_vikingo = mkSprite({k:K,w:'#f6efe0',n:'#8a6a3a'},[
-"kk.......kk","kwk.....kwk","kwwk...kwwk",".kkwkkkwkk.","..kknnnkk.."]);
+  SPR.hat_lazo = mkSprite({k:K,p:'#f78fb3',d:'#d8578a',w:'#ffd3e2'},[
+"kk..k..kk","kwpkdkpdk","kppkdkddk",".kk.k.kk."]);
+  SPR.hat_flor = mkSprite({k:K,y:'#ffd94a',o:'#c9a227',p:'#f2a2b8',w:'#fff8f0'},[
+"..kkk..",".kwppk.","kpyyopk",".kpppk.","..kkk.."]);
+  SPR.hat_seta = mkSprite({k:K,r:'#d8574c',d:'#a03030',w:'#f6efe0'},[
+"..kkkkk..",".krwrrrk.","krrrwrrrk","kdddddddk",".kkkkkkk."]);
+  SPR.hat_copa = mkSprite({k:K,n:'#2a2438',h:'#453e60',r:'#e2574c',d:'#a03030'},[
+"..kkkkk..","..khnnk..","..khnnk..","..krrdk..","knnnnnnnk",".kkkkkkk."]);
+  SPR.hat_corona = mkSprite({k:K,y:'#ffd94a',o:'#c9a227',r:'#e2574c',b:'#5e9be0'},[
+"k.k.k.k.k","kykykykyk","kyyrybyyk","kyoooooyk","kkkkkkkkk"]);
+  SPR.hat_buho = mkSprite({k:K,u:'#9d7bd8',v:'#7a5ab8',y:'#ffd94a'},[
+"....k....","...kuk...","..kuvuk..",".kuuuvuk.","kuyuyuyuk",".kkkkkkk."]);
+  SPR.hat_gafas = mkSprite({k:K,n:'#20243c',c:'#8fd8e8'},[
+"kkkkkkkkk","kcnkkkcnk",".kk...kk."]);
+  SPR.hat_pajarita = mkSprite({k:K,r:'#e2574c',d:'#a03030',w:'#ff9a90'},[
+"kk...kk","kwrkrdk","krdkddk","kk...kk"]);
+  SPR.hat_halo = mkSprite({k:'#c9a227',y:'#ffd94a',w:'#fff8d0'},[
+".kkkkkkk.","kyywyyywk",".kkkkkkk."]);
+  SPR.hat_laurel = mkSprite({k:'#3d6b2f',g:'#7ac74f',e:'#57a05e',y:'#ffd94a'},[
+".gk.....kg.","gke.kyk.ekg",".gke...ekg.","..kge.egk..","....kkk...."]);
+  SPR.hat_vikingo = mkSprite({k:K,w:'#f6efe0',e:'#d8d0c0',s:'#c8c8d4',n:'#8a6a3a',d:'#6a5230'},[
+"kk.......kk","kwk.....kwk","kwek...kewk","kwwkkkkkwwk",".kknnsnnkk.","..kdddddk..","...kkkkk..."]);
 }
 
 const IC = {};

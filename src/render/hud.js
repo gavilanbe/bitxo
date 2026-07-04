@@ -204,7 +204,8 @@ function drawStats(){
       drawTextC((p.stage===STAGES.EGG?'ECLOSIONA ':'EVOLUCIONA ')+tt, 80, 187, '#8a6a10');
       if(nx.key){
         const known = !!G.dex[nx.key];
-        drawTextC('RUMBO: '+(known ? nameOfKey(nx.key) : '?????'), 80, 195, 'rgba(26,20,40,0.6)');
+        const lvTxt = nx.lvl ? ' · NV'+p.level+'/'+nx.lvl : '';
+        drawTextC('RUMBO: '+(known ? nameOfKey(nx.key) : '?????')+lvTxt, 80, 195, 'rgba(26,20,40,0.6)');
       }
     } else {
       drawTextC('CRECERA... TEN PACIENCIA', 80, 191, 'rgba(26,20,40,0.45)');
@@ -230,6 +231,12 @@ function drawShop(){
   tabBtn(45,'JUGUETE',tab===1);
   tabBtn(82,'GORROS',tab===2);
   tabBtn(119,'PRADO',tab===3);
+  /* lista con scroll: se desliza con el dedo y se recorta al panel */
+  const sc = Math.min(UI.shopScroll||0, shopMaxScroll());
+  UI.shopScroll = sc;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(5,63,150,145); ctx.clip();
+  ctx.translate(0, -sc);
   if(tab===0){
     for(let i=0;i<SHOP.length;i++){
       const item = SHOP[i];
@@ -249,31 +256,30 @@ function drawShop(){
         drawText('LV'+lvl, 112, y+9, 'rgba(26,20,40,0.55)');
       }
     }
-  } else {
+  } else if(tab===1){
     for(let i=0;i<TOYS.length;i++){
       const T = TOYS[i];
       const owned = !!G.toys[T.id];
       const afford = G.motas>=T.cost && !owned;
-      const y = 64 + i*16;
+      const y = 64 + i*20;
       const flash = UI.shopFlash[T.id] && performance.now()-UI.shopFlash[T.id]<250;
-      px(10,y,140,14, flash ? '#ffd94a' : (owned? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba')));
-      px(10,y,140,1,K); px(10,y+13,140,1,K); px(10,y,1,14,K); px(149,y,1,14,K);
-      if(T.id==='pelota') ctx.drawImage(SPR.pelota, 14, y+3);
-      else if(T.id==='caja') ctx.drawImage(SPR.caja, 13, y+3);
-      else if(T.id==='banera') ctx.drawImage(SPR.banera, 12, y+4);
-      else if(T.id==='tambor') ctx.drawImage(SPR.tambor, 13, y+3);
-      else if(T.id==='columpio'){ px(14,y+3,1,8,'#5a4632'); px(23,y+3,1,8,'#5a4632'); px(12,y+2,13,2,'#8a6a3a'); px(16,y+9,6,2,'#8a6a3a'); }
-      else if(T.id==='huerto'){ px(12,y+9,14,3,'#5a4632'); px(17,y+4,2,5,'#57a05e'); px(20,y+5,3,3,'#e2574c'); }
-      else if(T.id==='cometa'){ px(17,y+2,3,3,'#e2574c'); px(15,y+4,3,3,'#e2574c'); px(19,y+4,3,3,'#ffd94a'); px(17,y+6,3,3,'#e2574c'); px(15,y+9,2,2,'#f0a04b'); px(19,y+10,2,2,'#f0a04b'); }
-      else if(T.id==='fuente'){ px(13,y+9,13,3,'#9a9aa4'); px(17,y+4,4,5,'#8a8a94'); px(16,y+2,6,2,'#5e9be0'); px(14,y+5,2,3,'#9adcf0'); px(23,y+5,2,3,'#9adcf0'); }
-      else if(T.id==='robot'){ px(15,y+3,8,7,'#8a8a94'); px(17,y+5,2,2,'#5ec8d8'); px(20,y+5,1,2,'#5ec8d8'); px(14,y+10,10,2,'#3a3448'); }
-      drawText(T.name, 30, y+2, K);
-      drawText(T.desc, 30, y+8, 'rgba(26,20,40,0.55)');
-      if(owned) drawText('TUYO', 124, y+4, '#3a7048');
-      else drawText('✦'+fmt(T.cost), 118, y+4, afford?'#8a6a10':'#a03030');
+      px(10,y,140,18, flash ? '#ffd94a' : (owned? '#d0e8d0' : (afford?'#f6efe0':'#d8d0ba')));
+      px(10,y,140,1,K); px(10,y+17,140,1,K); px(10,y,1,18,K); px(149,y,1,18,K);
+      if(T.id==='pelota') ctx.drawImage(SPR.pelota, 14, y+5);
+      else if(T.id==='caja') ctx.drawImage(SPR.caja, 13, y+5);
+      else if(T.id==='banera') ctx.drawImage(SPR.banera, 12, y+6);
+      else if(T.id==='tambor') ctx.drawImage(SPR.tambor, 13, y+5);
+      else if(T.id==='columpio'){ px(14,y+5,1,8,'#5a4632'); px(23,y+5,1,8,'#5a4632'); px(12,y+4,13,2,'#8a6a3a'); px(16,y+11,6,2,'#8a6a3a'); }
+      else if(T.id==='huerto'){ px(12,y+11,14,3,'#5a4632'); px(17,y+6,2,5,'#57a05e'); px(20,y+7,3,3,'#e2574c'); }
+      else if(T.id==='cometa'){ px(17,y+4,3,3,'#e2574c'); px(15,y+6,3,3,'#e2574c'); px(19,y+6,3,3,'#ffd94a'); px(17,y+8,3,3,'#e2574c'); px(15,y+11,2,2,'#f0a04b'); px(19,y+12,2,2,'#f0a04b'); }
+      else if(T.id==='fuente'){ px(13,y+11,13,3,'#9a9aa4'); px(17,y+6,4,5,'#8a8a94'); px(16,y+4,6,2,'#5e9be0'); px(14,y+7,2,3,'#9adcf0'); px(23,y+7,2,3,'#9adcf0'); }
+      else if(T.id==='robot'){ px(15,y+5,8,7,'#8a8a94'); px(17,y+7,2,2,'#5ec8d8'); px(20,y+7,1,2,'#5ec8d8'); px(14,y+12,10,2,'#3a3448'); }
+      drawText(T.name, 30, y+3, K);
+      drawText(T.desc, 30, y+10, 'rgba(26,20,40,0.55)');
+      if(owned) drawText('TUYO', 124, y+6, '#3a7048');
+      else drawText('✦'+fmt(T.cost), 118, y+6, afford?'#8a6a10':'#a03030');
     }
-  }
-  if(tab===2){
+  } else if(tab===2){
     for(let i=0;i<HATS.length;i++){
       const H = HATS[i];
       const owned = !!G.hats[H.id];
@@ -294,9 +300,7 @@ function drawShop(){
       else if(H.towerOnly) drawText('LA TORRE', x+19, y+12, 'rgba(26,20,40,0.45)');
       else drawText('✦'+fmt(H.cost), x+19, y+12, afford?'#8a6a10':'#a03030');
     }
-    drawTextC('TOCA PARA PONER O QUITAR', 80, 209, 'rgba(26,20,40,0.45)');
-  }
-  if(tab===3){
+  } else if(tab===3){
     G.decor = G.decor || {owned:{}, flores:'clasico'};
     for(let i=0;i<DECOR.length;i++){
       const D = DECOR[i];
@@ -312,8 +316,18 @@ function drawShop(){
       if(owned) drawText(active ? 'PUESTO' : 'TUYO', 118, y+6, active ? '#8a6a10' : '#3a7048');
       else drawText('✦'+fmt(D.cost), 118, y+6, afford?'#8a6a10':'#a03030');
     }
-    drawTextC('TU PRADO, A TU GUSTO', 80, 186, 'rgba(26,20,40,0.45)');
   }
+  ctx.restore();
+  /* barrita de scroll cuando hay más de lo que cabe */
+  if(shopMaxScroll()>0){
+    const vh = 145, ch = shopContentH();
+    const bh = Math.max(10, Math.round(vh*vh/ch));
+    const by = 64 + Math.round((vh-bh) * (sc/shopMaxScroll()));
+    px(152, 64, 2, vh, 'rgba(26,20,40,0.12)');
+    px(152, by, 2, bh, 'rgba(26,20,40,0.4)');
+  }
+  if(tab===2) drawTextC('TOCA PARA PONER O QUITAR', 80, 210, 'rgba(26,20,40,0.45)');
+  if(tab===3) drawTextC('TU PRADO, A TU GUSTO', 80, 210, 'rgba(26,20,40,0.45)');
   drawTextC('TOCA FUERA PARA SALIR', 80, 222, 'rgba(26,20,40,0.55)');
 }
 
@@ -337,6 +351,45 @@ function drawParqueConfirm(){
   drawTextC('CUESTA ✦'+ZONES.parque.cost, 80, 138, G.motas>=ZONES.parque.cost ? '#8a6a10' : '#a03030');
   card(24,152,52,20); drawTextC('¡SI!', 50, 159, '#3a7048');
   card(84,152,52,20); drawTextC('AUN NO', 110, 159, K);
+}
+
+function drawHuertaConfirm(){
+  panel(12,82,136,112);
+  titleChip(80, 88, 'EL SENDERO');
+  drawTextC('¿ABRIR LA HUERTA?', 80, 102, K);
+  drawTextC('HUERTO, FUENTE Y BANERA', 80, 116, 'rgba(26,20,40,0.6)');
+  drawTextC('SE MUDAN ALLI', 80, 124, 'rgba(26,20,40,0.6)');
+  drawTextC('CUESTA ✦'+ZONES.huerta.cost, 80, 138, G.motas>=ZONES.huerta.cost ? '#8a6a10' : '#a03030');
+  card(24,152,52,20); drawTextC('¡SI!', 50, 159, '#3a7048');
+  card(84,152,52,20); drawTextC('AUN NO', 110, 159, K);
+}
+
+/* ---------------- ¿QUIÉN VIENE? (viaje entre zonas) ---------------- */
+function drawTravelPick(){
+  const dest = UI.travelDest;
+  const opts = travelOptions(dest);
+  panel(14, 56, 132, 46 + (opts.length+1)*27 + 10);
+  titleChip(80, 62, '¿QUIEN VIENE?');
+  drawTextC('RUMBO: '+ZONES[dest].name, 80, 74, 'rgba(26,20,40,0.6)');
+  let y = 86;
+  for(const o of opts){
+    card(22, y, 116, 23, !!o.block);
+    const frames = SPR[o.p.form==='grimo' ? 'grimo' : o.p.line+'_'+(o.p.form||'babyA')];
+    const spr = frames[0];
+    const sc = Math.min(1, 17/Math.max(spr.width, spr.height));
+    ctx.save();
+    ctx.translate(34, y+12);
+    ctx.scale(sc, sc);
+    ctx.drawImage(spr, -spr.width/2, -spr.height/2);
+    ctx.restore();
+    drawText(petName(o.p), 48, y+4, o.block ? 'rgba(26,20,40,0.5)' : K);
+    if(o.block) drawText(o.block, 48, y+13, '#a03030');
+    else drawText('LV'+o.p.level, 48, y+13, 'rgba(26,20,40,0.55)');
+    y += 27;
+  }
+  card(22, y, 116, 23);
+  drawTextC('VOY YO SOLO', 80, y+8, K);
+  drawTextC('TOCA FUERA: TE QUEDAS', 80, y+31, 'rgba(26,20,40,0.5)');
 }
 
 function drawFeedMenu(){
@@ -613,6 +666,7 @@ function drawOfflineReport(){
   drawTextC((hrs>0? hrs+'H ':'')+mins+'M FUERA'+(r.capped?' (MAX 14H)':''), 80, y, 'rgba(26,20,40,0.6)'); y+=14;
   drawTextC('✦ +'+fmt(r.motas)+' MOTAS', 80, y, '#8a6a10'); y+=12;
   if(r.autofed>0){ drawTextC('COMIO SOLO X'+r.autofed, 80, y, '#3a7048'); y+=12; }
+  if(r.lvls>0){ drawTextC('CRECIO: +'+r.lvls+' NIVELES', 80, y, '#8a6a10'); y+=12; }
   if(r.poops>0){ drawTextC('CACAS NUEVAS: '+r.poops, 80, y, '#a03030'); y+=12; }
   if(r.evolved){ drawTextC('EVOLUCION A LA VISTA...', 80, y, '#8a6a10'); y+=12; }
   drawTextC('TOCA PARA SEGUIR', 80, 176, 'rgba(26,20,40,0.5)');

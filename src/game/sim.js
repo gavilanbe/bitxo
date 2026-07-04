@@ -35,7 +35,7 @@ function liveUpdate(dtMs){
       poopTimers[i] = (poopTimers[i]||0) + dtMs;
       if(poopTimers[i] > poopEvery(p)){
         poopTimers[i] = 0;
-        if(G.poops.length<5){ G.poops.push({x:20+Math.random()*110, zone:G.zone}); SFX.nope(); }
+        if(G.poops.length<5){ G.poops.push({x:20+Math.random()*110, zone:p.zone||'prado'}); SFX.nope(); }
       }
       if(dayPhase()==='night' && p.energy<25 && UI.mode==='main'){
         p.sleeping = true; if(i===G.sel){ SFX.sleep(); toast('SE HA DORMIDO...'); }
@@ -51,6 +51,15 @@ function liveUpdate(dtMs){
       SFX.bye(); spawnEgg(i);
       if(G.sel>=G.pets.length) G.sel=0;
       continue;
+    }
+    /* crecer también es tiempo: XP pasiva hasta el nivel de madurez */
+    const lvlGate = p.stage===STAGES.BABY ? EVO_LEVEL.child : (p.stage===STAGES.CHILD ? EVO_LEVEL.adult : 0);
+    if(lvlGate && p.level<lvlGate){
+      p.xpAcc = (p.xpAcc||0) + XP_TRICKLE_MS*dtMs*(p.sleeping?0.3:1)*(p.sick?0.5:1);
+      if(p.xpAcc>=1){
+        const w = Math.floor(p.xpAcc); p.xpAcc -= w;
+        gainXPFor(p, w);
+      }
     }
     checkEvolution(p, false);
     /* --- enfermedad: la lluvia sin cometa y la mugre pasan factura --- */
@@ -70,7 +79,7 @@ function liveUpdate(dtMs){
       if(now-p.sickAt > 10*3600*1000){ p.sick = false; } /* se cura solo, tarde */
     }
     /* --- el carácter se ve en el prado --- */
-    if(UI.mode==='main' && p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT &&
+    if(UI.mode==='main' && petHere(p) && p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT &&
        !(p.swingT>0) && !(p.batheT>0) && !(p.drinkT>0)){
       if(now > (p.traitAt||0)){
         p.traitAt = now + 9000 + Math.random()*14000;
@@ -102,17 +111,17 @@ function liveUpdate(dtMs){
       }
     }
     /* destellos de anticipación: algo está a punto de pasar */
-    if(UI.mode==='main' && p.stage<STAGES.ADULT){
+    if(UI.mode==='main' && petHere(p) && p.stage<STAGES.ADULT){
       const nx = predictNext(p);
       if(nx && nx.when>0 && nx.when<90000 && Math.random() < dtMs*0.004){
         UI.particles.push({x:p.rx-9+Math.random()*18, y:152-Math.random()*16, vy:-0.02, life:900, ch:'.', col:'#ffd94a'});
       }
     }
     /* paseo */
-    if(!p.sleeping && !p.eatT && !p.trainT && !(p.swingT>0) && !(p.batheT>0) && !(p.drinkT>0) && UI.mode==='main'){
+    if(!p.sleeping && !p.eatT && !p.trainT && !(p.swingT>0) && !(p.batheT>0) && !(p.drinkT>0) && !isCarried(p) && UI.mode==='main'){
       if(now > p.nextWalk){
         if(G.pets.length>1 && Math.random()<0.25){
-          const others = G.pets.filter(o=>o!==p && o.stage>STAGES.EGG);
+          const others = G.pets.filter(o=>o!==p && o.stage>STAGES.EGG && (o.zone||'prado')===(p.zone||'prado'));
           if(others.length){
             const o = others[Math.floor(Math.random()*others.length)];
             p.tx = Math.max(22, Math.min(138, o.rx + (Math.random()<0.5?-12:12)));
@@ -141,7 +150,8 @@ function liveUpdate(dtMs){
       let found = false;
       for(let a=0;a<G.pets.length && !found;a++) for(let b=a+1;b<G.pets.length && !found;b++){
         const PA=G.pets[a], PB=G.pets[b];
-        if(PA.stage>STAGES.EGG && PB.stage>STAGES.EGG && !PA.sleeping && !PB.sleeping && !PA.eatT && !PB.eatT && Math.abs(PA.rx-PB.rx)<26){
+        if(PA.stage>STAGES.EGG && PB.stage>STAGES.EGG && petHere(PA) && petHere(PB) &&
+           !PA.sleeping && !PB.sleeping && !PA.eatT && !PB.eatT && Math.abs(PA.rx-PB.rx)<26){
           found = true;
           const pn = performance.now();
           PA.petT=pn; PB.petT=pn; PA.joyAt=pn; PB.joyAt=pn;
@@ -169,7 +179,7 @@ function liveUpdate(dtMs){
       if(G.ballX>144){ G.ballX=144; G.ballVX=-Math.abs(G.ballVX)*0.8; if(-G.ballVX>0.03) SFX.bounce(); }
       if(Math.abs(G.ballVX)<0.005) G.ballVX=0;
       for(const p of G.pets){
-        if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !p.swingT &&
+        if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !p.swingT &&
            Math.abs(p.rx-G.ballX)<10 && Math.abs(G.ballVX)<0.02 && now>(p.kickAt||0)){
           p.kickAt = now + 9000;
           G.ballVX = (p.dir||1)*(0.08+Math.random()*0.05);
@@ -186,11 +196,11 @@ function liveUpdate(dtMs){
           p.batheT -= dtMs;
           p.hygiene = Math.min(100, p.hygiene + dtMs*0.012);
           if(p.batheT<=0){ p.batheT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
-        } else if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) &&
+        } else if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) &&
                   p.hygiene<72 && now>(p.batheCd||0) && Math.random() < dtMs*0.00004){
           p.tx = 59;
         }
-        if(!(p.batheT>0) && p.tx===59 && Math.abs(p.rx-59)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
+        if(!(p.batheT>0) && petHere(p) && p.tx===59 && Math.abs(p.rx-59)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
           p.batheT = 3000; p.batheCd = now + 60000;
           SFX.clean();
         }
@@ -198,7 +208,7 @@ function liveUpdate(dtMs){
     }
     if(G.toys.tambor && toyZone('tambor')===G.zone){
       for(const p of G.pets){
-        if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.batheT>0) &&
+        if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !(p.batheT>0) &&
            Math.abs(p.rx-127)<12 && now>(p.drumAt||0) && Math.random() < dtMs*0.0001){
           p.drumAt = now + 25000;
           p.joyAt = performance.now();
@@ -215,11 +225,11 @@ function liveUpdate(dtMs){
         if((p.drinkT||0)>0){
           p.drinkT -= dtMs;
           if(p.drinkT<=0){ p.drinkT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
-        } else if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) && !(p.batheT>0) &&
+        } else if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) && !(p.batheT>0) &&
                   p.energy<45 && now>(p.drinkCd||0) && Math.random() < dtMs*0.00005){
           p.tx = 12;
         }
-        if(!(p.drinkT>0) && p.tx===12 && Math.abs(p.rx-12)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
+        if(!(p.drinkT>0) && petHere(p) && p.tx===12 && Math.abs(p.rx-12)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
           p.drinkT = 2200; p.drinkCd = now + 120000;
           p.energy = Math.min(100, p.energy+10);
           p.joyAt = performance.now();
@@ -258,10 +268,10 @@ function liveUpdate(dtMs){
           p.happy = Math.min(100, p.happy + dtMs*0.0012);
           p.energy = Math.min(100, p.energy + dtMs*0.0008);
           if(p.swingT<=0){ p.swingT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
-        } else if(!someone && p.stage>STAGES.EGG && !p.sleeping && !p.exped && !p.eatT && !p.trainT && Math.random() < dtMs*0.00002){
+        } else if(!someone && p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !p.trainT && Math.random() < dtMs*0.00002){
           p.tx = 27;
         }
-        if(!(p.swingT>0) && !someone && p.tx===27 && Math.abs(p.rx-27)<5 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
+        if(!(p.swingT>0) && !someone && petHere(p) && p.tx===27 && Math.abs(p.rx-27)<5 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
           p.swingT = 6000;
           p.petT = performance.now();
           SFX.yay();

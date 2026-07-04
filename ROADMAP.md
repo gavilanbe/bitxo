@@ -6,6 +6,20 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 ## 🎮 Mecánicas grandes
 
+- ✅ **⚔️ Combate v3: aro, combos y paradas** — el aro de puntería respira
+  sobre el rival (dorado = crítico); un golpe bueno abre combos de hasta
+  3 anillos cada vez más rápidos (o te plantas y guardas el turno);
+  fallar ENFURECE al rival (telegraph 30% más corto); parada perfecta al
+  impacto exacto (daño casi nulo y +1 súper); el súper lleno es elección:
+  botón ★ o seguir a golpes. Embestidas con líneas de velocidad, destellos
+  de crítico/parada, barra de vida fantasma y ¡K.O.! · pendiente:
+  esquiva direccional y combos del enemigo.
+- ✅ **📈 Evolución unificada con el nivel** — madurar pide edad Y nivel
+  (JOVEN al 3, ADULTO al 6, ascenso al 8): una sola escalera con sentido.
+  La XP gotea sola hasta el nivel de madurez (1.5/min despierto, también
+  offline a media marcha) para conservar el ritmo idle; el cariño acelera
+  y el ascenso solo se gana jugando. DATOS y el árbol muestran el nivel
+  que falta.
 - ✅ **🗼 Torre del Prado** — 5 pisos de NV creciente sin curarte (solo un
   respiro del 18% entre pisos), cuota ✦100, élite en el 4º y jefe arriba;
   bono en el piso 3 y en la cima motas + reliquia + el gorro LAUREL.
@@ -49,13 +63,15 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 ## 🌦 Mundo
 
-- **🗺 Zonas del mundo** — ✅ primera fase: EL PARQUE, pantalla nueva a la
-  derecha con sendero desbloqueable (2 juguetes + un joven + ✦500); los
-  juguetes de jugar (pelota, caja, columpio, tambor, cometa) se mudan allí
-  y cada compra futura va a su zona; los salvajes y las chispas recuerdan
-  dónde aparecen y las flechas avisan con «!» · pendiente: LA HUERTA
-  (huerto, fuente, bañera), dejar bitxos residentes por zona (en brazos,
-  máx. 2), bonus pasivos por zona y el GYM viviendo en el parque.
+- **🗺 Zonas del mundo** — ✅ EL PARQUE (sendero: 2 juguetes + un joven +
+  ✦500) con pelota, caja, columpio, tambor y cometa · ✅ LA HUERTA (sendero
+  izquierdo: parque abierto + una expedición + ✦800) con huerto, fuente y
+  bañera · ✅ bitxos residentes: mantén pulsado para cogerlo en brazos y
+  tócale suelo para mudarlo (JOVEN+, máx. 2 por zona); en el parque el
+  ánimo dura +25%, en la huerta el hambre baja más despacio y la fruta
+  madura antes; las flechas avisan con «!» de salvajes y necesidades ·
+  pendiente: el GYM viviendo físicamente en el parque, spawns de salvajes
+  por bioma y algún secreto tras la huerta.
 - **Estaciones reales** — ✅ primera fase: el prado respira el calendario
   (nieve en invierno, hojas en otoño, pétalos en primavera) · pendiente:
   bufandas, comida y enemigo de temporada.
@@ -72,6 +88,15 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 ## 🖥 UI / UX
 
+- ✅ **🛒 Tienda que se desliza** — pestañas exclusivas (adiós solapes), filas
+  con aire, scroll con el dedo y barrita indicadora.
+- ✅ **🧳 ¿Quién viene?** — al cruzar de zona con 2+ bitxos elegibles, un
+  selector con retratos pregunta a quién te llevas (o «VOY YO SOLO»).
+- ✅ **🔔 Aviso de actualización en PWA** — la PWA actualiza en silencio
+  (SW red-primero): ahora al arrancar con versión nueva sale «¡PRADO
+  ACTUALIZADO!» y queda en el diario; version.json jamás se cachea.
+- ✅ **🎨 Pasada de arte a la tienda** — gorros, comidas y juguetes
+  redibujados con sombreado, brillos y siluetas legibles.
 - **🎨 Temas de panel desbloqueables** — madera, noche, GBC verde; se ganan
   con logros, se cambian en DATOS.
 - ✅ **📸 Postales** — FOTO en DATOS: PNG enmarcado con nombre y fecha, por

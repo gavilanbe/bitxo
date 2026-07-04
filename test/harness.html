@@ -46,6 +46,8 @@ function run(){
     wildnv: `G.wild={kind:'roquijo', nv:playerPower(_p)+4, elite:true, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
     breyseto: `_p.energy=90; G.wild={kind:'reyseto', nv:14, elite:false, boss:true, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.35; UI.bt.super=2; for(let i=0;i<26;i++){ UI.bt.fx.push({x:Math.random()*160, y:30+Math.random()*90, vx:-0.008, vy:0.012, life:1600, col:'rgba(201,116,58,0.8)', size:1}); }`,
     btiming: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.42; UI.bt.super=3;`,
+    bcombo: `_p.energy=90; G.wild={kind:'pinchon',boss:false,nv:8,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.combo=1; UI.bt.mk=0.55; UI.bt.super=2;`,
+    bsuperbtn: `_p.energy=90; G.wild={kind:'ratuco',boss:false,nv:6,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.5; UI.bt.super=4;`,
     btele: `_p.energy=90; G.wild={kind:'lobruno',boss:true,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='eTele'; UI.bt.t=830; UI.bt.bigAtk=true;`,
     bsuper: `_p.energy=90; _p.line='brasa'; _p.form='adultA'; G.wild={kind:'sombrio',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='superAnim'; UI.bt.t=400; for(let i=0;i<24;i++) spawnSuperFx(UI.bt), UI.bt.t+=18; UI.bt.t=430;`,
     bend: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); endBattle(true); UI.bt.t=900;`,
@@ -54,7 +56,12 @@ function run(){
     quests: `ensureDaily(); G.daily.prog[QUESTS[G.daily.ids[0]].id] = 99; UI.mode = 'quests';`,
     buho: `G.buho = {until: Date.now()+90000, x: 120, tx: 122, dir: 1, offers: buhoOffers()}; UI.mode = 'buho';`,
     gorros: `G.hats.lazo = true; _p.hat = 'lazo'; UI.mode = 'shop'; UI.shopTab = 2;`,
-    parque: `G.zonesOpen={parque:true}; G.zone='parque'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.ballX=95; G.cajaReadyAt=Date.now()-1; UI.mode='main';`,
+    parque: `G.zonesOpen={parque:true}; G.zone='parque'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.ballX=95; G.cajaReadyAt=Date.now()-1; _p.zone='parque'; _p.rx=60; _p.tx=60; UI.mode='main';`,
+    huerta: `G.zonesOpen={parque:true,huerta:true}; G.zone='huerta'; G.toys={banera:true,huerto:true,fuente:true,pelota:true}; G.huertoReadyAt=Date.now()+3600000; _p.zone='huerta'; _p.rx=60; _p.tx=60; UI.mode='main';`,
+    brazos: `G.zonesOpen={parque:true}; G.zone='parque'; G.toys={columpio:true,tambor:true}; UI.carry={i:0}; UI.mode='main';`,
+    huertaconfirm: `G.zonesOpen={parque:true}; G.toys={banera:true,huerto:true}; G.expedsDone=2; G.motas=900; UI.mode='huertaConfirm';`,
+    viaje: `G.zonesOpen={parque:true}; const q2=makePet('brasa',1); q2.stage=3; q2.form='adultA'; q2.hatchedAt=Date.now(); q2.nick='BRASI'; G.pets.push(q2); UI.travelDest='parque'; UI.mode='travelPick';`,
+    tiendajuguete: `G.motas=500; G.toys={pelota:true,caja:true}; UI.mode='shop'; UI.shopTab=1; UI.shopScroll=20;`,
     sendero: `G.toys={pelota:true,columpio:true}; UI.mode='main';`,
     pradozonas: `G.zonesOpen={parque:true}; G.zone='prado'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.up.jardin=4; G.huertoReadyAt=Date.now()-1; UI.mode='main';`,
     parqueconfirm: `G.toys={pelota:true,columpio:true}; G.motas=800; UI.mode='parqueConfirm';`
@@ -93,6 +100,27 @@ function run(){
         drawText('ENEMIGOS', 6, 82, '#f6efe0');
         drawText('GORROS', 6, 120, '#f6efe0');
         drawText('PUESTOS', 6, 150, '#f6efe0');
+      }
+      else if('${m2}'==='arte'){
+        ctx.fillStyle='#20242A'; ctx.fillRect(0,0,160,272);
+        const foods=['meal','snack','fruta','pescado','picante','pastel','setita','sopa'];
+        foods.forEach((k2,i)=>ctx.drawImage(SPR[k2], 8+(i%6)*25, 14+Math.floor(i/6)*22));
+        const toys2=['pelota','caja','banera','tambor'];
+        toys2.forEach((k2,i)=>ctx.drawImage(SPR[k2], 8+i*34, 64));
+        const hats3=['lazo','flor','seta','copa','corona','buho','gafas','pajarita','halo','laurel','vikingo'];
+        hats3.forEach((k2,i)=>ctx.drawImage(SPR['hat_'+k2], 8+(i%6)*25, 92+Math.floor(i/6)*18));
+        hats3.forEach((k2,i)=>{
+          const base = SPR.pradera_adultB[0];
+          const hx = 4+(i%6)*26, hy = 176+Math.floor(i/6)*46;
+          ctx.drawImage(base, hx, hy-base.height);
+          const hs = SPR['hat_'+k2];
+          const hdy = (HAT_BY_ID[k2] && HAT_BY_ID[k2].dy) || 0;
+          ctx.drawImage(hs, hx+Math.floor((base.width-hs.width)/2), hy-base.height-hs.height+2+hdy);
+        });
+        drawText('COMIDA', 6, 2, '#f6efe0');
+        drawText('JUGUETES', 6, 54, '#f6efe0');
+        drawText('GORROS', 6, 82, '#f6efe0');
+        drawText('PUESTOS', 6, 132, '#f6efe0');
       }
       else if(UI.mode==='mgJump'){ drawJump(t, 16); }
       else if(UI.mode==='mgTopo'){ drawTopo(t, 0); }
@@ -180,9 +208,9 @@ function run(){
       G.motas = 1000; UI.mode = 'main'; UI.park = null;
       // juguetes nuevos: comprar bañera (fila 4) y huerto (fila 6)
       UI.mode = 'shop'; UI.shopTab = 1;
-      handleTap(80, 64 + 3*16 + 8);
+      handleTap(80, 64 + 3*20 + 10);
       R.toyBanera = !!G.toys.banera;
-      handleTap(80, 64 + 5*16 + 8);
+      handleTap(80, 64 + 5*20 + 10);
       R.toyHuerto = !!G.toys.huerto && G.huertoReadyAt > Date.now();
       UI.mode = 'main';
       // cosechar el huerto
@@ -193,7 +221,7 @@ function run(){
       // evolución por stats (estilo digimon)
       const evo = (stage, form, st, df, sp, games, care) => {
         const q = makePet('pradera', 1);
-        q.stage = stage; q.form = form;
+        q.stage = stage; q.form = form; q.level = 9; // por encima de las puertas de nivel
         q.hatchedAt = Date.now() - (stage===1 ? 30*60*1000 : 5*3600*1000);
         q.str = st; q.def = df; q.spd = sp; q.gamesWon = games||0;
         q.mistakes = 0; q.weight = 20; q.discipline = 0;
@@ -209,7 +237,7 @@ function run(){
       R.evoAdultD = evo(2, 'childB', 0, 0, 0, 0) === 'adultD';
       R.evoGrimo  = evo(2, 'childA', 0, 0, 0, 0, 'mal') === 'grimo';
       { const q = makePet('pradera',1); q.stage=2; q.form='childA'; q.hatchedAt=Date.now()-5*3600*1000;
-        q.str=7; q.def=7; q.spd=7; q.gamesWon=6; q.mistakes=0; q.weight=20; q.discipline=9;
+        q.level=9; q.str=7; q.def=7; q.spd=7; q.gamesWon=6; q.mistakes=0; q.weight=20; q.discipline=9;
         checkEvolution(q, true); R.evoAdultS = q.form === 'adultS'; }
       // discos: comprar y bailar
       G.motas = 1000;
@@ -302,15 +330,15 @@ function run(){
       // álbum con 6 líneas → árbol fungo
       // predicción de evolución (en sincronía con checkEvolution)
       { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-10*60*1000;
-        q.str=2; q.def=1; q.spd=1; q.mistakes=0; q.weight=20;
+        q.level=3; q.str=2; q.def=1; q.spd=1; q.mistakes=0; q.weight=20;
         const nx = predictNext(q);
         R.predictBaby = nx && nx.key==='pradera_childA' && nx.when>0 && nx.when<=10*60*1000;
-        q.stage=2; q.form='childA'; q.str=6; q.def=1;
+        q.stage=2; q.form='childA'; q.level=6; q.str=6; q.def=1;
         const nx2 = predictNext(q);
         R.predictChild = nx2 && nx2.key==='pradera_adultA'; }
       // cola de evoluciones + cinemática
       { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-30*60*1000;
-        q.str=5; q.def=0; q.spd=0; q.mistakes=0; q.weight=20;
+        q.level=5; q.str=5; q.def=0; q.spd=0; q.mistakes=0; q.weight=20;
         G.pets.push(q);
         const qn = EVO_QUEUE.length;
         checkEvolution(q, true);
@@ -439,7 +467,7 @@ function run(){
       UI.bt = null; G.wild = null; UI.mode = 'main';
       // juguetes nuevos: comprar cometa (fila 7) y robot limpiando
       G.motas = 3000; UI.mode = 'shop'; UI.shopTab = 1;
-      handleTap(80, 64 + 6*16 + 8);
+      handleTap(80, 64 + 6*20 + 10);
       R.toyCometa = !!G.toys.cometa;
       UI.mode = 'main';
       G.toys.robot = true; G.poops = [{x:60}]; UI.robotX = 59; UI.robotAt = 0;
@@ -613,7 +641,7 @@ function run(){
         const mf = await (await fetch('../manifest.webmanifest')).json();
         R.pwaManifest = mf.name==='BITXO' && mf.display==='standalone' && mf.icons.length>=4;
         const sw = await (await fetch('../sw.js')).text();
-        R.pwaSw = sw.includes('bitxo-cache-') && sw.includes('ignoreSearch');
+        R.pwaSw = sw.includes('bitxo-cache-') && sw.includes('ignoreSearch') && sw.includes('version.json');
         const ic = await fetch('../icons/icon-512.png');
         R.pwaIcon = ic.ok;
       }catch(err){ R.pwaManifest = false; }
@@ -670,6 +698,143 @@ function run(){
       handleTap(152, 172);
       R.senderoPobre = UI.mode === 'main';
       G.motas = 3000; G.zonesOpen = {parque:true}; G.zone = 'prado'; UI.mode = 'main';
+      // RESIDENTES: en brazos, mudanza, guardas y tope por zona
+      for(const q of G.pets) q.zone = 'prado';
+      R.petZoneDefault = (G.pets[0].zone||'prado') === 'prado';
+      _p.stage = 3; _p.sleeping = false; _p.exped = null;
+      startCarry(0);
+      R.carryStarts = !!UI.carry && UI.carry.i === 0;
+      G.zone = 'parque';
+      handleTap(80, 150); // suelta en el parque
+      R.carryDrops = UI.carry === null && _p.zone === 'parque' && Math.abs(_p.rx-80)<3;
+      // el bebé no puede vivir fuera del prado
+      const beb = makePet('pradera', 1); beb.stage = 1; beb.form = 'babyA'; beb.zone = 'prado'; beb.hatchedAt = Date.now();
+      G.pets.push(beb);
+      startCarry(G.pets.length-1);
+      R.carryBaby = !!UI.carry;
+      handleTap(80, 150);
+      R.babyGuard = beb.zone === 'prado' && !!UI.carry;
+      UI.carry = null; G.pets.pop();
+      // tope de 2 residentes por zona
+      const r1 = makePet('pradera',1); r1.stage=3; r1.form='adultA'; r1.zone='parque'; r1.hatchedAt=Date.now();
+      const r2 = makePet('pradera',1); r2.stage=3; r2.form='adultA'; r2.zone='parque'; r2.hatchedAt=Date.now();
+      G.pets.push(r1, r2);
+      _p.zone = 'prado';
+      startCarry(0);
+      handleTap(80, 150);
+      R.zoneCapGuard = _p.zone === 'prado' && !!UI.carry;
+      UI.carry = null; G.pets.pop(); G.pets.pop();
+      // LA HUERTA: sendero izquierdo, apertura y mudanza del cuidado
+      G.zone = 'prado'; UI.mode = 'main'; G.motas = 3000;
+      G.toys = {pelota:true, columpio:true, banera:true, huerto:true, fuente:true};
+      G.expedsDone = 2;
+      R.huertaTease = huertaTeaser() === true && huertaEligible() === true;
+      handleTap(6, 172); // cartelito ? izquierdo
+      R.huertaConfirmOpens = UI.mode === 'huertaConfirm';
+      const mh0 = G.motas;
+      handleTap(50, 160); // ¡SI!
+      R.huertaOpens = G.zonesOpen.huerta === true && G.zone === 'huerta' && G.motas === mh0 - ZONES.huerta.cost;
+      R.huertaToys = toyZone('banera')==='huerta' && toyZone('huerto')==='huerta' &&
+                     toyZone('fuente')==='huerta' && toyZone('robot')==='prado' && toyZone('pelota')==='parque';
+      handleTap(152, 172); // flecha > vuelve al prado
+      R.huertaBack = G.zone === 'prado';
+      // bonus de zona: el parque cuida el ánimo, la huerta el hambre
+      { const q = makePet('pradera',1); q.stage=3; q.form='adultA';
+        q.zone='prado'; const h0 = happyDecayRate(q); const g0 = hungerRate(q);
+        q.zone='parque'; const h1 = happyDecayRate(q);
+        q.zone='huerta'; const g1 = hungerRate(q);
+        R.bonusParque = h1 < h0;
+        R.bonusHuerta = g1 < g0; }
+      // la fruta madura antes con un residente que riega
+      _p.zone = 'huerta';
+      R.riegoCycle = huertoCycleMs() === 90*60*1000;
+      _p.zone = 'prado';
+      R.cicloNormal = huertoCycleMs() === 120*60*1000;
+      // seleccionado en otra zona: COMER salta a su zona
+      _p.zone = 'huerta'; G.zone = 'prado'; G.sel = 0; UI.mode = 'main';
+      handleTap(16, 251); // botón COMER
+      R.jumpToPet = G.zone === 'huerta' && UI.mode === 'feed';
+      UI.mode = 'main'; _p.zone = 'prado'; G.zone = 'prado';
+      // tocar donde vive un bitxo de otra zona no lo selecciona
+      const rp = makePet('pradera',1); rp.stage=3; rp.form='adultA'; rp.zone='parque'; rp.rx=120; rp.tx=120; rp.hatchedAt=Date.now();
+      G.pets.push(rp);
+      _p.rx = 40; _p.tx = 40; G.sel = 0;
+      handleTap(120, 150);
+      R.petTapZoned = G.sel === 0;
+      G.pets.pop();
+      G.zone = 'prado'; UI.mode = 'main';
+      // TIENDA: pestañas exclusivas y compra tras deslizar
+      G.motas = 3000; G.toys = {}; UI.mode = 'shop'; UI.shopTab = 1; UI.shopScroll = 36;
+      handleTap(80, 198); // última fila (robot) visible tras el scroll
+      R.shopScrollBuy = !!G.toys.robot;
+      R.shopScrollClamp = shopMaxScroll() === TOYS.length*20 - 144;
+      UI.shopScroll = 0; UI.mode = 'main';
+      // EVOLUCION UNIFICADA: la edad sola ya no basta, el nivel manda
+      { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-30*60*1000;
+        q.level=1; q.str=5; q.mistakes=0; q.weight=20;
+        checkEvolution(q, true);
+        R.evoLevelGate = q.stage===1;
+        const nx3 = predictNext(q);
+        R.predictLevelNeed = nx3 && nx3.lvl===3 && nx3.when>0;
+        q.level=3; checkEvolution(q, true);
+        R.evoAtLevel = q.stage===2 && q.form==='childA';
+        EVO_QUEUE.length = 0; }
+      // el goteo de XP: crece solo hasta el nivel de madurez y se frena
+      { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now();
+        q.level=1; q.xp=0; q.xpAcc=0; q.sleeping=false; G.pets.push(q);
+        const um = UI.mode; UI.mode='shop';
+        liveUpdate(120000);
+        R.trickleXP = (q.xp + (q.xpAcc||0)) >= 2;
+        q.level=3; q.xp=0; q.xpAcc=0;
+        liveUpdate(120000);
+        R.trickleStops = q.xp===0 && (q.xpAcc||0)===0;
+        G.pets.pop(); UI.mode=um; }
+      // VIAJE CON COMPAÑIA: con 2 elegibles pregunta, con 1 va directo
+      G.zonesOpen = {parque:true}; G.zone = 'prado'; UI.mode = 'main'; UI.carry = null;
+      _p.stage = 3; _p.zone = 'prado'; _p.exped = null; _p.sleeping = false;
+      const cp = makePet('pradera',1); cp.stage=3; cp.form='adultA'; cp.zone='prado'; cp.rx=60; cp.hatchedAt=Date.now();
+      G.pets.push(cp);
+      handleTap(152, 172);
+      R.travelAsks = UI.mode==='travelPick' && UI.travelDest==='parque';
+      handleTap(80, 86 + 1*27 + 10); // segunda carta: el compañero
+      R.travelMoves = cp.zone==='parque' && G.zone==='parque' && UI.mode==='main';
+      handleTap(6, 172); // aquí solo vive él: navegación directa
+      R.travelDirect = G.zone==='prado' && UI.mode==='main';
+      cp.zone = 'prado'; G.pets.pop(); G.sel = 0;
+      G.zone = 'prado'; UI.mode = 'main';
+      // COMBATE v3: combo, plantarse, furia y parada perfecta
+      G.wild = {kind:'ratuco', boss:false, nv:6, x:120, tx:120, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      _p.energy = 90; _p.stage = 3; _p.spd = 0;
+      startBattle();
+      const b3 = UI.bt;
+      b3.phase='timing'; b3.mk=0.5; b3.super=0; battleTap();
+      const bd0 = b3.dmg;
+      b3.ehp = 999; b3.emx = 999;
+      for(let i=0;i<10;i++) battleStep(100); // el hit-stop se come pasos
+      R.comboOpens = b3.phase==='timing' && b3.combo===1;
+      b3.mk = 0.5; battleTap();
+      R.comboDecay = b3.dmg > 0 && b3.dmg < bd0;
+      for(let i=0;i<10;i++) battleStep(100);
+      R.comboChain = b3.combo===2;
+      for(let i=0;i<20;i++) battleStep(100); // dejar pasar el aro: te plantas
+      R.comboBank = ['eTele','eanim'].includes(b3.phase);
+      b3.phase='timing'; b3.combo=0; b3.super=0; b3.mk=0.02; battleTap(); // fallo lejos del aro
+      R.missRages = b3.rage===true;
+      for(let i=0;i<10;i++) battleStep(100);
+      R.rageTele = ['eTele','eanim'].includes(b3.phase) && teleDur(b3) < 620;
+      // parada perfecta: daño simbolico y +1 de super
+      b3.phase='eanim'; b3.t=100; b3.blocked=false; b3.parry=false; b3.resolved=false; b3.resolved2=true;
+      b3.eatk = 20; b3.super = 1; const sp0=b3.super, hp3=b3.php;
+      battleTap();
+      R.parryArms = b3.parry===true && b3.blocked===true;
+      battleStep(250);
+      R.parrySoft = (hp3 - b3.php) <= 3 && b3.super > sp0;
+      // el super es eleccion: lleno + toque al rival = golpe; boton = super
+      b3.phase='timing'; b3.super=4; b3.mk=0.5; battleTap(80, 120);
+      R.superChoice = b3.phase==='panim' && b3.super===4;
+      b3.phase='timing'; battleTap(80, 210);
+      R.superButton = b3.phase==='superAnim' && b3.super===0;
+      UI.bt = null; G.wild = null; UI.mode = 'main';
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);
