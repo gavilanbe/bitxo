@@ -186,7 +186,7 @@ const MINIGAMES = [
  {id:'mgJump',  name:'SALTA', glyph:'>', col:'#5ec8d8', sub:'+VEL', cost:250, gkey:'salta'},
  {id:'mgTopo',  name:'TOPO',  glyph:'!', col:'#a4713a', sub:'+FUE', cost:200, gkey:'topo'},
  {id:'mgPesca', name:'PESCA', glyph:'~', col:'#4a90d8', sub:'TESOROS', cost:300, gkey:'pesca'},
- {id:'mgMemo',  name:'MEMORIA', glyph:'=', col:'#8a6ae8', sub:'+DEF', cost:350, gkey:'memo'},
+ {id:'mgMemo',  name:'MEMORIA', glyph:'::', col:'#8a6ae8', sub:'+DEF', cost:350, gkey:'memo'},
  {id:'mgGlobo', name:'GLOBO', glyph:'O', col:'#f78fb3', sub:'REFLEJOS', cost:280, gkey:'globo'}
 ];
 

@@ -52,6 +52,9 @@ function liveUpdate(dtMs){
       if(G.sel>=G.pets.length) G.sel=0;
       continue;
     }
+    /* la evolución espera a que estés en el prado: nada de transformarse
+       en mitad del gym o de un minijuego */
+    const evoOk = UI.mode==='main';
     /* crecer también es tiempo: XP pasiva hasta el nivel de madurez */
     const lvlGate = p.stage===STAGES.BABY ? EVO_LEVEL.child : (p.stage===STAGES.CHILD ? EVO_LEVEL.adult : 0);
     if(lvlGate && p.level<lvlGate){
@@ -61,7 +64,7 @@ function liveUpdate(dtMs){
         gainXPFor(p, w);
       }
     }
-    checkEvolution(p, false);
+    if(evoOk) checkEvolution(p, false);
     /* --- enfermedad: la lluvia sin cometa y la mugre pasan factura --- */
     if(!p.sick && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
       let riesgo = 0;

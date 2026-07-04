@@ -104,9 +104,13 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **🎬 Transición de zona** — la cámara se desliza estilo Zelda al cruzar.
 - ✅ **🏋️ GYM en el parque** — muñeco de entreno físico: tócalo y el gimnasio
   abre sin pasar por menús (vuelve al parque al salir).
-- ✅ **🏋️ GYM con nervio** — repeticiones cantadas (¡X1! ¡X2! ¡X3!), barra
-  con discos que sube de verdad, muro que se inclina y agrieta, cinta de
-  correr con lona en movimiento, sudor, polvo y fanfarria de estrellas.
+- ✅ **🏋️ GYM interactivo** — cada sesión son 3 reps que CLAVAS tú: la aguja
+  de ritmo oscila y tocas en lo dorado (¡3 clavados = +1 extra!); si no
+  tocas, salen solas sin premio. Barra con discos que crecen con tu FUE,
+  muro de escalada con presas de colores que se agrieta, cinta con lona,
+  barandilla y velocímetro, grada, dominadas, esterillas, cara de esfuerzo,
+  sudor y fanfarria. Dormido no se entra, y la evolución espera educadamente
+  a que salgas del gym (o de cualquier pantalla) para transformarse.
 - ✅ **🎧 La preescucha manda** — al oír un disco (♥) la banda sonora calla
   y las preescuchas no se pisan entre sí.
 - ✅ **📰 Novedades al actualizar** — `make ship` estampa el mensaje en

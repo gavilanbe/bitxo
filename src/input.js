@@ -13,6 +13,12 @@ const BTNS = [
 ];
 function eggGuard(){ if(AP().stage===STAGES.EGG){ toast('AUN ES UN HUEVO'); return true; } return false; }
 function awayGuard(){ if(AP().exped){ toast('ESTA DE EXPEDICION'); return true; } return false; }
+/* al GYM no se entra dormido */
+function gymOpenGuard(){
+  if(eggGuard() || awayGuard()) return false;
+  if(AP().sleeping){ toast('SHHH... DUERME'); SFX.nope(); return false; }
+  return true;
+}
 const BTN_Y = 240, BTN_S = 22;
 
 function canvasPos(ev){
@@ -251,7 +257,7 @@ function handleTap(x,y){
   if(UI.mode==='play'){
     if(x>=26 && x<=134 && y>=80 && y<228){
       const i = Math.floor((y-80)/38);
-      if(i===0){ UI.mode='train'; SFX.tap(); return; }
+      if(i===0){ if(!gymOpenGuard()) return; UI.mode='train'; SFX.tap(); return; }
       if(i===1){ UI.mode='games'; SFX.tap(); return; }
       if(i===2){
         if(AP().stage<STAGES.CHILD){ toast('AUN ES MUY PEQUENO'); SFX.nope(); return; }
@@ -329,6 +335,7 @@ function handleTap(x,y){
       UI.trainFrom = null; UI.park = null; SFX.tap(); return;
     }
     const pk = UI.park || (UI.park = {phase:'idle', px:80, t:0});
+    if(pk.phase==='train'){ gymRepTap(); return; }
     if(pk.phase==='idle' && y>=104 && y<=180){
       let kind=null, tx=0;
       if(x>=18 && x<52){ kind='str'; tx=36; }
@@ -518,6 +525,7 @@ function handleTap(x,y){
   /* el muñeco de entreno del parque: GYM sin menús (y el ¡VS! del duelo) */
   if(G.zone==='parque' && x>42 && x<64 && y>104 && y<166){
     if(y<120){ startDuel(); return; }
+    if(!gymOpenGuard()) return;
     UI.trainFrom = 'parque';
     UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
     SFX.tap(); vibrate(10); return;

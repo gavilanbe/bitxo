@@ -514,6 +514,19 @@ function useBattleItem(i){
   vibrate(15); saveGame();
 }
 
+/* ---------------- GYM: la rep se clava con el dedo ---------------- */
+function gymRepTap(){
+  const pk = UI.park;
+  if(!pk || pk.phase!=='train' || (pk.repAnim||0)>0 || (pk.rep||0)>=3) return;
+  const gauge = (Math.sin((pk.t||0)/300)+1)/2;
+  const perfect = gauge > 0.72;
+  pk.lastPerfect = perfect;
+  if(perfect) pk.perfects = (pk.perfects||0)+1;
+  pk.repAnim = 420;
+  UI.floats.push({x:pk.px, y:116, s: perfect ? '¡CLAVADO!' : 'BIEN', col: perfect ? '#ffd94a' : '#f6efe0', life:520, vy:-0.04});
+  if(perfect){ SFX.coin(); vibrate([10,20]); } else { SFX.tap(); vibrate(8); }
+}
+
 /* ---------------- LOGROS: scroll del panel ---------------- */
 function achMaxScroll(){ return Math.max(0, ACH.length*11 - 165); }
 

@@ -948,6 +948,34 @@ function run(){
       globoStep(100);
       R.globoFloor = UI.mg.lives===lv0-1;
       UI.mode = 'main'; UI.mg = null;
+      // GYM v3: dormido no entra, reps con el dedo y sesión perfecta
+      _p.sleeping = true; _p.exped = null; UI.mode = 'play';
+      handleTap(80, 95);
+      R.gymSleepBlocked = UI.mode==='play';
+      _p.sleeping = false; UI.mode = 'main';
+      G.motas = 500; _p.energy = 90;
+      const gd0 = _p.def;
+      UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
+      handleTap(80, 140); // MURO: paga, camina y aplica la base
+      R.gymBase = _p.def === gd0+1;
+      UI.park.phase='train'; UI.park.t = 471; UI.park.rep = 0;
+      UI.park.perfects = 0; UI.park.repAnim = 0; UI.park.autoAt = 99999;
+      gymRepTap(); // la aguja está en lo dorado: clavado
+      R.gymRepArms = UI.park.repAnim>0 && UI.park.perfects===1;
+      UI.park.perfects = 3; UI.park.rep = 2; UI.park.repAnim = 1;
+      drawPark(1000, 16); // cierra la 3a rep: sesión perfecta, +1 extra
+      R.gymPerfect = _p.def === gd0+2 && UI.park.phase==='idle';
+      UI.mode = 'main'; UI.park = null;
+      // la evolución espera a que vuelvas al prado
+      { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-60*1000;
+        q.level=3; q.mistakes=0; q.weight=20; q.sleeping=false; G.pets.push(q);
+        UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
+        liveUpdate(50);
+        R.evoWaitsGym = q.stage===1;
+        UI.mode = 'main'; UI.park = null;
+        liveUpdate(50);
+        R.evoAfterGym = q.stage===2;
+        EVO_QUEUE.length = 0; G.pets.pop(); }
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);
