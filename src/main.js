@@ -87,6 +87,10 @@ function frame(now){
     drawTopo(now, dt);
   } else if(UI.mode==='mgPesca'){
     drawPesca(now, dt);
+  } else if(UI.mode==='mgMemo'){
+    drawMemo(now, dt);
+  } else if(UI.mode==='mgGlobo'){
+    drawGlobo(now, dt);
   } else if(UI.mode==='train'){
     drawPark(now, dt);
   } else {

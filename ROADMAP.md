@@ -15,12 +15,11 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   de crítico/parada, barra de vida fantasma y ¡K.O.! · ✅ esquiva deslizando
   durante la ventana defensiva · ✅ opción ARO tranquilo en DATOS ·
   pendiente: combos del enemigo.
-- ✅ **📈 Evolución unificada con el nivel** — madurar pide edad Y nivel
-  (JOVEN al 3, ADULTO al 6, ascenso al 8): una sola escalera con sentido.
-  La XP gotea sola hasta el nivel de madurez (1.5/min despierto, también
-  offline a media marcha) para conservar el ritmo idle; el cariño acelera
-  y el ascenso solo se gana jugando. DATOS y el árbol muestran el nivel
-  que falta.
+- ✅ **📈 Evolución por NIVEL, sin relojes** — JOVEN al 3, ADULTO al 6,
+  ascenso al 8: una sola escalera. Nada de esperar horas: la XP gotea sola
+  (1.5/min despierto, también offline) y ese goteo ES el ritmo idle
+  (~40 min a JOVEN, ~2h más a ADULTO); el cariño lo acelera todo. DATOS
+  y el árbol muestran el nivel que falta.
 - ✅ **🗼 Torre del Prado** — 5 pisos de NV creciente sin curarte (solo un
   respiro del 18% entre pisos), cuota ✦100, élite en el 4º y jefe arriba;
   bono en el piso 3 y en la cima motas + reliquia + el gorro LAUREL.
@@ -54,6 +53,9 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   criando a un GRIMO hasta nivel 10 — redime el fracaso), FLORA (jardín 5).
 - **Más enemigos** — ✅ 13 · ideas: pareja que ataca junta (dos barras de vida),
   mímico que copia tu línea, jefe estacional.
+- **Más juegos** — ✅ 8 en la sala: MEMORIA (parejas de la despensa, +DEF
+  si la bordas) y GLOBO (que no toque el suelo, con viento traicionero) ·
+  ideas: carrera de obstáculos, jardinería contrarreloj.
 - **Más discos** — ✅ NANA (báilala y lo dejas dormido) · ideas: MAREA ALTA
   (ritmo irregular), disco secreto del buhonero.
 - **Más expediciones** — ✅ 5 · ideas: expedición nocturna (solo de noche),
@@ -96,11 +98,17 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
 - ✅ **🛒 Tienda que se desliza** — pestañas exclusivas (adiós solapes), filas
   con aire, scroll con el dedo y barrita indicadora (LOGROS también desliza).
-- ✅ **💬 Burbuja de estado** — toca a tu bitxo: carita de ánimo + pips de
-  hambre/pilas/limpio; y el botón que hace falta pulsa en dorado con «!».
+- ✅ **💬 Ficha rápida al tocar** — toca a tu bitxo y abajo (bajo sus barras)
+  aparece la carita de ánimo, LIMPIO, peso, edad, nivel y amistad; el botón
+  que hace falta pulsa en dorado con «!».
 - ✅ **🎬 Transición de zona** — la cámara se desliza estilo Zelda al cruzar.
 - ✅ **🏋️ GYM en el parque** — muñeco de entreno físico: tócalo y el gimnasio
   abre sin pasar por menús (vuelve al parque al salir).
+- ✅ **🏋️ GYM con nervio** — repeticiones cantadas (¡X1! ¡X2! ¡X3!), barra
+  con discos que sube de verdad, muro que se inclina y agrieta, cinta de
+  correr con lona en movimiento, sudor, polvo y fanfarria de estrellas.
+- ✅ **🎧 La preescucha manda** — al oír un disco (♥) la banda sonora calla
+  y las preescuchas no se pisan entre sí.
 - ✅ **📰 Novedades al actualizar** — `make ship` estampa el mensaje en
   version.json y el juego lo escribe en el diario tras actualizar.
 - ✅ **🧳 ¿Quién viene?** — al cruzar de zona con 2+ bitxos elegibles, un

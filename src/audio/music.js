@@ -83,7 +83,9 @@ function compileSong(S){
   let pos = 0;
   for(const n of S.mel){ S.melAt[pos] = n; pos += n[1]; }
 }
-let curSong = null, songStep = 0, stepT = 0;
+let curSong = null, songStep = 0, stepT = 0, MUSIC_HOLD = 0;
+/* silencia la banda sonora un rato (preescuchas, jingles): así no se mezclan */
+function holdMusic(ms){ MUSIC_HOLD = performance.now() + ms; curSong = null; }
 function pickSong(){
   if(UI.mode==='battle') return 'battle';
   if(dayPhase()==='night') return 'night';
@@ -172,7 +174,8 @@ function schedDrums(kind, pos, t, bar){
 }
 setInterval(()=>{
   if(!AC || (G && G.muted)) { curSong=null; return; }
-  if(['boot','evolve','hatch','ascendFX','mgDance','mgSimon'].includes(UI.mode)){ curSong=null; return; }
+  if(['boot','evolve','hatch','ascendFX','mgDance','mgSimon'].includes(UI.mode) ||
+     performance.now() < MUSIC_HOLD){ curSong=null; return; }
   const want = pickSong();
   if(want !== curSong){
     curSong = want; songStep = 0;

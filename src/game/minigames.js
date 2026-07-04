@@ -185,3 +185,101 @@ function pescaFinish(){
   const gold = m.caught.some(f=>f.id==='dorado');
   finishMg('PESCA', m.score, m.score*3, 8+m.score, m.score>=8 || gold);
 }
+
+/* --- MEMORIA: parejas de la despensa — concentración pura --- */
+const MEMO_SPRS = ['meal','snack','fruta','pescado','picante','setita'];
+const MEMO_POS = [];
+for(let r=0;r<3;r++) for(let c=0;c<4;c++) MEMO_POS.push({x:14+c*34, y:64+r*42});
+function startMemo(){
+  if(!mgGuard(8)) return;
+  const deck = [];
+  for(const k of MEMO_SPRS){ deck.push(k, k); }
+  for(let i=deck.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    const tmp = deck[i]; deck[i]=deck[j]; deck[j]=tmp;
+  }
+  UI.mg = {ph:'play', t:0, end:60000, cards:deck.map(k=>({k, flip:false, done:false})), sel:[], lockT:0, score:0, tries:0};
+  UI.mode='mgMemo';
+}
+function memoTap(x, y){
+  const m = UI.mg;
+  if(m.ph==='end'){ UI.mode='main'; SFX.tap(); return; }
+  if(m.ph!=='play' || m.lockT) return;
+  for(let i=0;i<12;i++){
+    const P = MEMO_POS[i], c = m.cards[i];
+    if(x>=P.x && x<P.x+30 && y>=P.y && y<P.y+38 && !c.flip && !c.done){
+      c.flip = true; m.sel.push(i);
+      SFX.tap(); vibrate(8);
+      if(m.sel.length===2){ m.tries++; m.lockT = performance.now()+650; }
+      return;
+    }
+  }
+}
+function memoStep(){
+  const m = UI.mg;
+  if(m.ph==='play' && m.lockT && performance.now()>m.lockT){
+    const a = m.sel[0], b = m.sel[1];
+    if(m.cards[a].k===m.cards[b].k){
+      m.cards[a].done = m.cards[b].done = true;
+      m.score++;
+      UI.floats.push({x:MEMO_POS[b].x+15, y:MEMO_POS[b].y, s:'¡PAREJA!', col:'#7ac74f', life:700, vy:-0.03});
+      SFX.coin(); vibrate(12);
+    } else {
+      m.cards[a].flip = m.cards[b].flip = false;
+      SFX.nope();
+    }
+    m.sel = []; m.lockT = 0;
+    if(m.score===6) memoFinish();
+  }
+}
+function memoFinish(){
+  const m = UI.mg;
+  if(m.ph==='end') return;
+  const perfect = m.score===6 && m.tries<=10;
+  if(perfect){ AP().def = Math.min(99, AP().def+1); toast('+1 DEF POR ESA MEMORIA', 2200); }
+  finishMg('MEMORIA', m.score, m.score*10 + (perfect?20:0), 6+m.score*2, m.score===6);
+}
+
+/* --- GLOBO: que no toque el suelo — toques y viento traicionero --- */
+function startGlobo(){
+  if(!mgGuard(8)) return;
+  UI.mg = {ph:'play', t:0, end:35000, x:80, y:90, vx:0.015, vy:0, score:0, lives:3, hitT:0};
+  UI.mode='mgGlobo';
+}
+function globoTap(x, y){
+  const m = UI.mg;
+  if(m.ph==='end'){ UI.mode='main'; SFX.tap(); return; }
+  if(m.ph!=='play') return;
+  if(Math.abs(x-m.x)<15 && Math.abs(y-m.y)<17){
+    m.vy = -0.135 - Math.random()*0.02;
+    m.vx += (m.x-x)*0.006;
+    m.score++;
+    m.hitT = performance.now();
+    UI.floats.push({x:m.x, y:m.y-16, s:'+1', col:'#f78fb3', life:500, vy:-0.03});
+    SFX.boing(); vibrate(8);
+  }
+}
+function globoStep(dt){
+  const m = UI.mg;
+  if(m.ph!=='play') return;
+  m.t += dt;
+  m.vy += 0.00022*dt;
+  m.vx += Math.sin(m.t/900)*0.00006*dt; /* el viento empuja */
+  m.x += m.vx*dt; m.y += m.vy*dt;
+  if(m.x<14){ m.x=14; m.vx=Math.abs(m.vx)*0.7; }
+  if(m.x>146){ m.x=146; m.vx=-Math.abs(m.vx)*0.7; }
+  if(m.y<26){ m.y=26; m.vy=Math.abs(m.vy)*0.4; }
+  if(m.y>168){
+    m.lives--;
+    UI.floats.push({x:m.x, y:160, s:'¡AY!', col:'#e2574c', life:700, vy:-0.03});
+    SFX.nope(); vibrate(40);
+    if(m.lives<=0){ globoFinish(); return; }
+    m.x = 40+Math.random()*80; m.y = 60; m.vy = 0; m.vx = 0.015;
+  }
+  if(m.t>=m.end) globoFinish();
+}
+function globoFinish(){
+  const m = UI.mg;
+  if(m.ph==='end') return;
+  finishMg('GLOBO', m.score, m.score*2, 6+Math.round(m.score/2), m.score>=12);
+}

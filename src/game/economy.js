@@ -82,15 +82,17 @@ function xpEtaMs(p, targetLv){
 }
 function checkEvolution(p, silent){
   if(!p.hatchedAt) return;
-  const age = Date.now() - p.hatchedAt;
-  if(p.stage===STAGES.BABY && age > T_CHILD && p.level>=EVO_LEVEL.child){
+  /* evolución por NIVEL, sin relojes: el goteo de XP es el ritmo idle
+     y el cariño lo acelera */
+  if(p.stage===STAGES.BABY && p.level>=EVO_LEVEL.child){
     const fromKey = evoKeyOf(p);
     p.stage = STAGES.CHILD;
     p.form = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
     markDex(p.line+'_'+p.form);
     queueEvolution(p, fromKey, evoKeyOf(p));
+    return; /* una etapa por vez: cada evolución se vive entera */
   }
-  if(p.stage===STAGES.CHILD && age > T_ADULT && p.level>=EVO_LEVEL.adult){
+  if(p.stage===STAGES.CHILD && p.level>=EVO_LEVEL.adult){
     const fromKey = evoKeyOf(p);
     p.stage = STAGES.ADULT;
     const cs = careScore(p);
@@ -110,7 +112,7 @@ function predictNext(p){
   const age = Date.now() - p.hatchedAt;
   if(p.stage===STAGES.BABY){
     const slot = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
-    return {when: Math.max(0, T_CHILD-age, xpEtaMs(p, EVO_LEVEL.child)),
+    return {when: xpEtaMs(p, EVO_LEVEL.child),
             key: p.line+'_'+slot,
             lvl: p.level<EVO_LEVEL.child ? EVO_LEVEL.child : null};
   }
@@ -121,7 +123,7 @@ function predictNext(p){
     else if(cs>=85 && p.str>=6 && p.def>=6 && p.spd>=6 && p.gamesWon>=5 && p.mistakes===0) slot = 'adultS';
     else if(p.form==='childA') slot = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
     else slot = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
-    return {when: Math.max(0, T_ADULT-age, xpEtaMs(p, EVO_LEVEL.adult)),
+    return {when: xpEtaMs(p, EVO_LEVEL.adult),
             key: slot==='grimo' ? 'grimo' : p.line+'_'+slot,
             lvl: p.level<EVO_LEVEL.adult ? EVO_LEVEL.adult : null};
   }

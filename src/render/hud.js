@@ -112,6 +112,24 @@ function drawHUD(t){
 
   px(6,224,148,1,'rgba(26,20,40,0.2)');
 
+  /* ficha rápida al tocar a tu bitxo: abajo, donde siempre miras */
+  if(p.bubbleT && performance.now()-p.bubbleT<2600 && p.stage>STAGES.EGG){
+    const face = p.happy>66 ? 2 : (p.happy>33 ? 1 : 0);
+    const fx2 = 8, fy2 = 227;
+    px(fx2,fy2,9,9,['#e2574c','#f0a04b','#7ac74f'][face]);
+    px(fx2,fy2,9,1,K); px(fx2,fy2+8,9,1,K); px(fx2,fy2,1,9,K); px(fx2+8,fy2,1,9,K);
+    px(fx2+2,fy2+3,1,2,K); px(fx2+6,fy2+3,1,2,K);
+    if(face===2){ px(fx2+2,fy2+6,1,1,K); px(fx2+3,fy2+7,3,1,K); px(fx2+6,fy2+6,1,1,K); }
+    else if(face===1){ px(fx2+3,fy2+7,3,1,K); }
+    else { px(fx2+3,fy2+6,3,1,K); px(fx2+2,fy2+7,1,1,K); px(fx2+6,fy2+7,1,1,K); }
+    statBar(24,226,40,p.hygiene,'#7ac74f','LIMPIO');
+    drawText('PESO '+p.weight+'KG', 76, 226, K);
+    const dias = p.hatchedAt ? Math.floor((Date.now()-p.hatchedAt)/(24*3600*1000))+1 : 0;
+    drawText('EDAD '+dias+'D', 76, 233, 'rgba(26,20,40,0.55)');
+    drawText('NV'+p.level, 126, 226, '#8a6a10');
+    drawText('♥'+(G.bond||0), 126, 233, '#e2574c');
+  }
+
   const ACC = ['#e2574c','#f0a04b','#5ec8d8','#8a6ae8','#ffd94a','#7ac74f'];
   const activeBtn = ({feed:0, play:1, games:1, train:1, discos:1, exped:1,
     shop:4, stats:5, album:5, ach:5, relics:5, beast:5, evotree:5, ascendConfirm:5})[UI.mode];
@@ -528,28 +546,28 @@ function drawLegacy(){
 
 /* ---------------- SALA DE JUEGOS ---------------- */
 function drawGames(){
-  panel(6,54,148,166);
-  titleChip(80, 60, 'SALA DE JUEGOS');
+  panel(6,28,148,216);
+  titleChip(80, 34, 'SALA DE JUEGOS');
   G.best = G.best||{};
   for(let i=0;i<MINIGAMES.length;i++){
     const M = MINIGAMES[i];
     const owned = !M.gkey || !!G.games[M.gkey];
-    const cx = 10 + (i%3)*47, cy = 72 + Math.floor(i/3)*62;
-    card(cx, cy, 44, 58, !owned);
+    const cx = 10 + (i%3)*47, cy = 46 + Math.floor(i/3)*60;
+    card(cx, cy, 44, 56, !owned);
     px(cx+1, cy+1, 42, 14, owned ? M.col : 'rgba(26,20,40,0.15)');
     drawTextC(M.glyph, cx+22, cy+5, owned ? '#ffffff' : 'rgba(26,20,40,0.4)');
-    drawTextC(M.name, cx+22, cy+20, owned ? K : 'rgba(26,20,40,0.55)');
+    drawTextC(M.name, cx+22, cy+19, owned ? K : 'rgba(26,20,40,0.55)');
     if(owned){
-      drawTextC(M.sub, cx+22, cy+30, 'rgba(26,20,40,0.55)');
+      drawTextC(M.sub, cx+22, cy+29, 'rgba(26,20,40,0.55)');
       const best = G.best[M.id]||0;
-      drawTextC(best>0 ? 'REC '+best : 'SIN REC', cx+22, cy+42, best>0 ? '#8a6a10' : 'rgba(26,20,40,0.35)');
+      drawTextC(best>0 ? 'REC '+best : 'SIN REC', cx+22, cy+41, best>0 ? '#8a6a10' : 'rgba(26,20,40,0.35)');
     } else {
-      drawTextC('✦'+M.cost, cx+22, cy+32, G.motas>=M.cost ? '#8a6a10' : '#a03030');
-      drawTextC('COMPRAR', cx+22, cy+44, 'rgba(26,20,40,0.55)');
+      drawTextC('✦'+M.cost, cx+22, cy+31, G.motas>=M.cost ? '#8a6a10' : '#a03030');
+      drawTextC('COMPRAR', cx+22, cy+43, 'rgba(26,20,40,0.55)');
     }
   }
-  drawTextC('LOS JUEGOS TAMBIEN ENTRENAN', 80, 200, 'rgba(26,20,40,0.5)');
-  drawTextC('TOCA FUERA PARA SALIR', 80, 210, 'rgba(26,20,40,0.5)');
+  drawTextC('LOS JUEGOS TAMBIEN ENTRENAN', 80, 228, 'rgba(26,20,40,0.5)');
+  drawTextC('TOCA FUERA PARA SALIR', 80, 237, 'rgba(26,20,40,0.5)');
 }
 function drawExped(){
   panel(8,44,144,168);

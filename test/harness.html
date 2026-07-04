@@ -64,6 +64,10 @@ function run(){
     burbuja: `_p.bubbleT=performance.now()+999999; _p.hunger=64; _p.energy=38; _p.hygiene=85; UI.mode='main';`,
     duelo: `G.zonesOpen={parque:true}; G.zone='parque'; _p.zone='parque'; const q3=makePet('brasa',1); q3.stage=3; q3.form='adultA'; q3.zone='parque'; q3.hatchedAt=Date.now(); q3.energy=90; G.pets.push(q3); startDuel(); UI.bt.phase='timing'; UI.bt.mk=0.5; G.items=['pocion','chispa'];`,
     tiendajuguete: `G.motas=500; G.toys={pelota:true,caja:true}; UI.mode='shop'; UI.shopTab=1; UI.shopScroll=20;`,
+    parkrun: `G.motas=137; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:128, tx:128, kind:'spd', t:900, gain:1, rep:1};`,
+    memo: `G.games.memo=true; startMemo(); UI.mg.cards[0].flip=true; UI.mg.cards[3].done=true; UI.mg.cards[4].done=true; UI.mg.score=1; UI.mg.tries=3;`,
+    globo: `G.games.globo=true; startGlobo(); UI.mg.x=70; UI.mg.y=90; UI.mg.score=7; UI.mg.lives=2;`,
+    fichabajo: `_p.bubbleT=performance.now()+999999; _p.hunger=64; _p.energy=38; _p.hygiene=72; UI.mode='main';`,
     sendero: `G.toys={pelota:true,columpio:true}; UI.mode='main';`,
     pradozonas: `G.zonesOpen={parque:true}; G.zone='prado'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.up.jardin=4; G.huertoReadyAt=Date.now()-1; UI.mode='main';`,
     parqueconfirm: `G.toys={pelota:true,columpio:true}; G.motas=800; UI.mode='parqueConfirm';`
@@ -127,6 +131,8 @@ function run(){
       else if(UI.mode==='mgJump'){ drawJump(t, 16); }
       else if(UI.mode==='mgTopo'){ drawTopo(t, 0); }
       else if(UI.mode==='mgPesca'){ drawPesca(t, 0); }
+      else if(UI.mode==='mgMemo'){ drawMemo(t, 0); }
+      else if(UI.mode==='mgGlobo'){ drawGlobo(t, 0); }
       else if(UI.mode==='train'){ drawPark(t, 16); }
       else if(UI.mode==='evolve'){ drawEvolve(16); }
       else if(UI.mode==='battle'){ UI.bt.stop=0; drawBattle(t, 0); drawParticles(16); }
@@ -332,12 +338,12 @@ function run(){
       // álbum con 6 líneas → árbol fungo
       // predicción de evolución (en sincronía con checkEvolution)
       { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-10*60*1000;
-        q.level=3; q.str=2; q.def=1; q.spd=1; q.mistakes=0; q.weight=20;
+        q.level=2; q.xp=0; q.xpAcc=0; q.str=2; q.def=1; q.spd=1; q.mistakes=0; q.weight=20;
         const nx = predictNext(q);
-        R.predictBaby = nx && nx.key==='pradera_childA' && nx.when>0 && nx.when<=10*60*1000;
+        R.predictBaby = nx && nx.key==='pradera_childA' && nx.when>0 && nx.lvl===3;
         q.stage=2; q.form='childA'; q.level=6; q.str=6; q.def=1;
         const nx2 = predictNext(q);
-        R.predictChild = nx2 && nx2.key==='pradera_adultA'; }
+        R.predictChild = nx2 && nx2.key==='pradera_adultA' && nx2.when===0; }
       // cola de evoluciones + cinemática
       { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-30*60*1000;
         q.level=5; q.str=5; q.def=0; q.spd=0; q.mistakes=0; q.weight=20;
@@ -904,6 +910,44 @@ function run(){
                     ['pradera','brasa'].includes(G.pets[n0].line) && G.criaNextAt > Date.now();
         G.pets.pop(); G.pets.pop(); G.sel = 0; G.bond = 0; G.up.nido = 0; }
       UI.mode = 'main';
+      // EVOLUCION SIN RELOJ: el nivel manda, la edad ya no bloquea
+      { const q = makePet('pradera',1); q.stage=1; q.form='babyA'; q.hatchedAt=Date.now()-60*1000;
+        q.level=3; q.str=5; q.mistakes=0; q.weight=20;
+        checkEvolution(q, true);
+        R.evoAgeless = q.stage===2;
+        EVO_QUEUE.length = 0; }
+      // PREESCUCHA DE DISCOS: silencia la banda sonora y no se pisa
+      UI.previewUntil = 0; MUSIC_HOLD = 0;
+      previewDisco(0);
+      R.previewHolds = MUSIC_HOLD > performance.now() && UI.previewUntil > performance.now();
+      const pu0 = UI.previewUntil;
+      previewDisco(0);
+      R.previewNoOverlap = UI.previewUntil === pu0;
+      MUSIC_HOLD = 0; UI.previewUntil = 0;
+      // MEMORIA: voltear y emparejar
+      R.gamesEight = MINIGAMES.length===8;
+      G.games.memo = true; _p.energy = 90;
+      startMemo();
+      R.memoStarts = UI.mode==='mgMemo' && UI.mg.cards.length===12;
+      UI.mg.cards[0].k = 'meal'; UI.mg.cards[1].k = 'meal';
+      memoTap(MEMO_POS[0].x+5, MEMO_POS[0].y+5);
+      memoTap(MEMO_POS[1].x+5, MEMO_POS[1].y+5);
+      R.memoFlips = UI.mg.cards[0].flip && UI.mg.cards[1].flip && UI.mg.tries===1;
+      UI.mg.lockT = 1; memoStep();
+      R.memoMatch = UI.mg.cards[0].done && UI.mg.score===1;
+      UI.mode = 'main'; UI.mg = null;
+      // GLOBO: el toque impulsa, el suelo castiga
+      G.games.globo = true; _p.energy = 90;
+      startGlobo();
+      R.globoStarts = UI.mode==='mgGlobo';
+      UI.mg.x = 80; UI.mg.y = 100;
+      globoTap(80, 100);
+      R.globoBounce = UI.mg.vy<0 && UI.mg.score===1;
+      UI.mg.y = 169; UI.mg.vy = 0.05;
+      const lv0 = UI.mg.lives;
+      globoStep(100);
+      R.globoFloor = UI.mg.lives===lv0-1;
+      UI.mode = 'main'; UI.mg = null;
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);

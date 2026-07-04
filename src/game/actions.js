@@ -548,6 +548,12 @@ function buyDisco(i){
 function previewDisco(i){
   const D = DISCOS[i];
   audio();
+  /* la banda sonora calla mientras suena la preescucha (y no se pisan) */
+  const nowP = performance.now();
+  if(nowP < (UI.previewUntil||0)){ SFX.tap(); return; }
+  const durMs = 8*D.step + 500;
+  UI.previewUntil = nowP + durMs;
+  holdMusic(durMs + 900);
   for(let n=0;n<8;n++){
     if(!D.pat[n]) continue;
     const off = n*D.step/1000;

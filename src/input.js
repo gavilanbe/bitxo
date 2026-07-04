@@ -303,10 +303,10 @@ function handleTap(x,y){
     UI.mode='stats'; SFX.tap(); return;
   }
   if(UI.mode==='games'){
-    if(x>=10 && x<=151 && y>=72 && y<192){
-      const col = Math.floor((x-10)/47), row = Math.floor((y-72)/62);
+    if(x>=10 && x<=151 && y>=46 && y<226){
+      const col = Math.floor((x-10)/47), row = Math.floor((y-46)/60);
       const i = row*3 + col;
-      if(col>=0 && col<3 && row>=0 && row<2 && i<MINIGAMES.length){
+      if(col>=0 && col<3 && row>=0 && row<3 && i<MINIGAMES.length){
         const M = MINIGAMES[i];
         const owned = !M.gkey || !!G.games[M.gkey];
         if(!owned){ buyGame(M.gkey, M.cost); return; }
@@ -316,6 +316,8 @@ function handleTap(x,y){
         else if(M.id==='mgJump') startJump();
         else if(M.id==='mgTopo') startTopo();
         else if(M.id==='mgPesca') startPesca();
+        else if(M.id==='mgMemo') startMemo();
+        else if(M.id==='mgGlobo') startGlobo();
         SFX.tap(); return;
       }
     }
@@ -367,6 +369,8 @@ function handleTap(x,y){
   if(UI.mode==='mgJump'){ jumpTap(); return; }
   if(UI.mode==='mgTopo'){ topoTap(x, y); return; }
   if(UI.mode==='mgPesca'){ pescaTap(); return; }
+  if(UI.mode==='mgMemo'){ memoTap(x, y); return; }
+  if(UI.mode==='mgGlobo'){ globoTap(x, y); return; }
   if(UI.mode==='exped'){
     if(x>14 && x<146 && y>66 && y<206){
       const i = Math.floor((y-66)/28);
