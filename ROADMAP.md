@@ -12,8 +12,9 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   fallar ENFURECE al rival (telegraph 30% más corto); parada perfecta al
   impacto exacto (daño casi nulo y +1 súper); el súper lleno es elección:
   botón ★ o seguir a golpes. Embestidas con líneas de velocidad, destellos
-  de crítico/parada, barra de vida fantasma y ¡K.O.! · pendiente:
-  esquiva direccional y combos del enemigo.
+  de crítico/parada, barra de vida fantasma y ¡K.O.! · ✅ esquiva deslizando
+  durante la ventana defensiva · ✅ opción ARO tranquilo en DATOS ·
+  pendiente: combos del enemigo.
 - ✅ **📈 Evolución unificada con el nivel** — madurar pide edad Y nivel
   (JOVEN al 3, ADULTO al 6, ascenso al 8): una sola escalera con sentido.
   La XP gotea sola hasta el nivel de madurez (1.5/min despierto, también
@@ -23,12 +24,15 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **🗼 Torre del Prado** — 5 pisos de NV creciente sin curarte (solo un
   respiro del 18% entre pisos), cuota ✦100, élite en el 4º y jefe arriba;
   bono en el piso 3 y en la cima motas + reliquia + el gorro LAUREL.
-- **🥚 Cría** — dos adultos con AMISTAD alta pueden dar un huevo que hereda
-  línea y carácter (con sorpresas). *Se apoya en: multi-bitxo, bond, dex.*
+- ✅ **🥚 Cría** — dos ADULTOS que viven en la misma zona, con AMISTAD 25+,
+  hueco en el nido y 24h de respiro, hacen nido: llega un huevo que hereda
+  la línea de uno de los dos (y el 60% de las veces, su carácter).
 - ✅ **🌟 Pantalla de DINASTÍA** — toca el cielo y ahí están: cada ascendido
   con su sprite, nivel, generación y las estrellas que dejó.
-- **🎒 Inventario ligero** — pociones del buhonero que se guardan en vez de
-  usarse al momento (3 huecos). *Se apoya en: buhonero, boosts.*
+- ✅ **🎒 Mochila** — el buhonero vende POCIÓN ROJA y CHISPA PICANTE que se
+  guardan (3 huecos) y se usan en combate como acción gratis.
+- ✅ **🤝 Duelo amistoso** — con 2 bitxos residentes en el parque, toca el
+  ¡VS! del muñeco: sparring sin rencores (+3 amistad, ambos felices).
 - ✅ **📅 Misión semanal** — un encargo gordo por semana (élites, combates,
   minijuegos o entreno) en el cartel, bajo las diarias.
 - ✅ **🏆 Revancha del bestiario** — toca la ficha de cualquier enemigo visto
@@ -76,7 +80,9 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
   (nieve en invierno, hojas en otoño, pétalos en primavera) · pendiente:
   bufandas, comida y enemigo de temporada.
 - **Clima extremo raro** — tormenta con truenos (corren a refugiarse a la
-  casita), arcoíris tras la lluvia con mota dorada.
+  casita), arcoíris tras la lluvia con mota dorada · ✅ charcos que quedan
+  un rato al escampar · ✅ huellas en la nieve · ✅ sombras alargadas al
+  amanecer y atardecer.
 - ✅ **Citas del prado** — mercadillo del buhonero fijo a mediodía y lluvia
   de estrellas a las 22:00 (deseos ×2).
 - ✅ **Cielo gradual** — el color del día ya no salta: amaneceres y
@@ -89,7 +95,14 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 ## 🖥 UI / UX
 
 - ✅ **🛒 Tienda que se desliza** — pestañas exclusivas (adiós solapes), filas
-  con aire, scroll con el dedo y barrita indicadora.
+  con aire, scroll con el dedo y barrita indicadora (LOGROS también desliza).
+- ✅ **💬 Burbuja de estado** — toca a tu bitxo: carita de ánimo + pips de
+  hambre/pilas/limpio; y el botón que hace falta pulsa en dorado con «!».
+- ✅ **🎬 Transición de zona** — la cámara se desliza estilo Zelda al cruzar.
+- ✅ **🏋️ GYM en el parque** — muñeco de entreno físico: tócalo y el gimnasio
+  abre sin pasar por menús (vuelve al parque al salir).
+- ✅ **📰 Novedades al actualizar** — `make ship` estampa el mensaje en
+  version.json y el juego lo escribe en el diario tras actualizar.
 - ✅ **🧳 ¿Quién viene?** — al cruzar de zona con 2+ bitxos elegibles, un
   selector con retratos pregunta a quién te llevas (o «VOY YO SOLO»).
 - ✅ **🔔 Aviso de actualización en PWA** — la PWA actualiza en silencio

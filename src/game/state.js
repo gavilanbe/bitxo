@@ -63,6 +63,7 @@ function freshGame(){
     decor:{owned:{}, flores:'clasico', valla:false, camino:false, cielo:false},
     diary:[],
     zone:'prado', zonesOpen:{},
+    combos3:0, parries:0, harvests:0, items:[], criaNextAt:0, slowRing:false,
     poops:[], lastSeen:Date.now(),
     hints:{sparkle:false, shop:false}
   };

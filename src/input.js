@@ -24,22 +24,32 @@ cv.addEventListener('pointerdown', ev=>{
   ev.preventDefault();
   audio();
   const p = canvasPos(ev);
-  if(UI.mode==='shop'){
-    /* la tienda se desliza: el toque se decide al soltar */
-    shopTouch = {x:p.x, y:p.y, s:(UI.shopScroll||0), dragged:false};
+  if(UI.mode==='shop' || UI.mode==='ach'){
+    /* paneles que se deslizan: el toque se decide al soltar */
+    shopTouch = {x:p.x, y:p.y, mode:UI.mode, s: UI.mode==='shop' ? (UI.shopScroll||0) : (UI.achScroll||0), dragged:false};
     return;
   }
   handleTap(p.x, p.y);
   armCarry(p.x, p.y);
+  if(UI.mode==='battle') btSwipe = {x:p.x, y:p.y, done:false};
 });
-let shopTouch = null;
+let shopTouch = null, btSwipe = null;
 cv.addEventListener('pointermove', ev=>{
-  if(!shopTouch || UI.mode!=='shop') return;
+  if(btSwipe && UI.mode==='battle' && !btSwipe.done){
+    const q = canvasPos(ev);
+    if(Math.abs(q.x-btSwipe.x) + Math.abs(q.y-btSwipe.y) > 16){
+      btSwipe.done = true;
+      battleSwipe();
+    }
+    return;
+  }
+  if(!shopTouch || UI.mode!==shopTouch.mode) return;
   const q = canvasPos(ev);
   const dy = q.y - shopTouch.y;
   if(Math.abs(dy)>4) shopTouch.dragged = true;
   if(shopTouch.dragged){
-    UI.shopScroll = Math.max(0, Math.min(shopMaxScroll(), shopTouch.s - dy));
+    if(shopTouch.mode==='shop') UI.shopScroll = Math.max(0, Math.min(shopMaxScroll(), shopTouch.s - dy));
+    else UI.achScroll = Math.max(0, Math.min(achMaxScroll(), shopTouch.s - dy));
   }
 });
 /* pulsación larga sobre un bitxo: cogerlo en brazos */
@@ -65,6 +75,7 @@ function armCarry(x, y){
 for(const evn of ['pointerup','pointercancel','pointerleave']){
   cv.addEventListener(evn, ev=>{
     if(carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
+    btSwipe = null;
     if(shopTouch){
       const t = shopTouch; shopTouch = null;
       if(evn==='pointerup' && !t.dragged) handleTap(t.x, t.y);
@@ -111,7 +122,7 @@ function handleTap(x,y){
     }
     UI.mode='stats'; SFX.tap(); return;
   }
-  if(UI.mode==='ach'){ UI.mode='stats'; SFX.tap(); return; }
+  if(UI.mode==='ach'){ UI.mode='stats'; UI.achScroll = 0; SFX.tap(); return; }
   if(UI.mode==='relics'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='quests'){
     if(x>=16 && x<=144 && y>=62 && y<146){
@@ -194,9 +205,14 @@ function handleTap(x,y){
     }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
     if(y>=205 && y<=222){
-      if(x>=12 && x<56){ exportSave(); return; }
-      if(x>=58 && x<102){ importSave(); return; }
-      if(x>=104 && x<148){ takePhoto(); return; }
+      if(x>=8 && x<43){ exportSave(); return; }
+      if(x>=45 && x<80){ importSave(); return; }
+      if(x>=82 && x<117){ takePhoto(); return; }
+      if(x>=119 && x<154){
+        G.slowRing = !G.slowRing;
+        toast(G.slowRing ? 'ARO TRANQUILO EN COMBATE' : 'ARO A VELOCIDAD NORMAL', 2600);
+        SFX.tap(); saveGame(); return;
+      }
     }
     UI.mode='main'; SFX.tap(); return;
   }
@@ -306,7 +322,10 @@ function handleTap(x,y){
     UI.mode='play'; SFX.tap(); return;
   }
   if(UI.mode==='train'){
-    if(y<16 && x<48){ UI.mode='play'; UI.park=null; SFX.tap(); return; }
+    if(y<16 && x<48){
+      UI.mode = UI.trainFrom==='parque' ? 'main' : 'play';
+      UI.trainFrom = null; UI.park = null; SFX.tap(); return;
+    }
     const pk = UI.park || (UI.park = {phase:'idle', px:80, t:0});
     if(pk.phase==='idle' && y>=104 && y<=180){
       let kind=null, tx=0;
@@ -477,6 +496,8 @@ function handleTap(x,y){
       p2.eatT = 1600; p2.feedKind = 'fruta';
       gainXP(6);
       G.foodsTried.fruta = true;
+      G.harvests = (G.harvests||0)+1;
+      questProg('cosecha', 1);
       G.huertoReadyAt = Date.now() + huertoCycleMs();
       toast('¡FRUTA DEL HUERTO!');
       SFX.eatFood('fruta'); vibrate(15); saveGame();
@@ -490,6 +511,13 @@ function handleTap(x,y){
   if(G.zone==='prado' && x>141 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
   /* senderos y flechas: moverse entre zonas */
   if(zoneArrowTap(x, y)) return;
+  /* el muñeco de entreno del parque: GYM sin menús (y el ¡VS! del duelo) */
+  if(G.zone==='parque' && x>42 && x<64 && y>104 && y<166){
+    if(y<120){ startDuel(); return; }
+    UI.trainFrom = 'parque';
+    UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
+    SFX.tap(); vibrate(10); return;
+  }
   /* chispas */
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
@@ -523,6 +551,7 @@ function handleTap(x,y){
       const p = G.pets[best];
       if(best!==G.sel){
         G.sel = best; petVoice(p);
+        if(p.stage>STAGES.EGG) p.bubbleT = now;
         toast(currentNameOf(p), 1200);
       } else if(p.exped){
         const m = Math.ceil((p.exped.until-Date.now())/60000);
@@ -532,6 +561,7 @@ function handleTap(x,y){
       } else if(!p.sleeping){
         p.happy = Math.min(100, p.happy+2);
         spawnHearts(1); petVoice(p); p.petT = now;
+        p.bubbleT = now; /* la burbuja te cuenta cómo está */
         questProg('mimos', 1);
       }
     }

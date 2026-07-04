@@ -119,17 +119,22 @@ function drawHUD(t){
     const bx = 5 + i*26;
     const hot = UI.flashBtn===i && performance.now()<UI.flashUntil;
     const act = activeBtn===i;
+    /* la acción que hace falta te llama: borde dorado y aviso */
+    const urgent = (i===0 && p.hunger<25) || (i===1 && p.happy<25) ||
+                   (i===2 && G.poops.length>0) || (i===3 && p.energy<15 && !p.sleeping);
+    const pulse = urgent && !act && Math.floor(t/320)%2===0;
     const by = BTN_Y + (hot?1:0);
     if(!hot) px(bx+1, BTN_Y+BTN_S, BTN_S-1, 1, 'rgba(26,20,40,0.35)');
     const bg = hot ? '#ffd94a' : (act ? '#fff3d0' : '#f6efe0');
     px(bx+1, by, BTN_S-2, BTN_S, bg);
     px(bx, by+1, BTN_S, BTN_S-2, bg);
-    const bc = act ? '#8a6a10' : K;
+    const bc = act ? '#8a6a10' : (pulse ? '#ffd94a' : K);
     px(bx+1, by, BTN_S-2, 1, bc); px(bx+1, by+BTN_S-1, BTN_S-2, 1, bc);
     px(bx, by+1, 1, BTN_S-2, bc); px(bx+BTN_S-1, by+1, 1, BTN_S-2, bc);
     px(bx+1, by+1, BTN_S-2, 1, '#fffaf0');
     px(bx+2, by+BTN_S-3, BTN_S-4, 2, ACC[i]);
     ctx.drawImage(IC[BTNS[i].ic], bx+5, by+4);
+    if(pulse) drawTextC('!', bx+11, BTN_Y-9, '#ffd94a');
   }
   if(UI.flashBtn>=0 && performance.now()<UI.flashUntil+900){
     drawTextC(BTNS[UI.flashBtn].label, 80, 265, K);
@@ -211,9 +216,10 @@ function drawStats(){
       drawTextC('CRECERA... TEN PACIENCIA', 80, 191, 'rgba(26,20,40,0.45)');
     }
   }
-  card(12,206,44,14); drawTextC('COPIA', 34, 210, K);
-  card(58,206,44,14); drawTextC('CARGA', 80, 210, K);
-  card(104,206,44,14); drawTextC('FOTO', 126, 210, K);
+  card(8,206,34,14); drawTextC('COPIA', 25, 210, K);
+  card(45,206,34,14); drawTextC('CARGA', 62, 210, K);
+  card(82,206,34,14); drawTextC('FOTO', 99, 210, K);
+  card(119,206,34,14); drawTextC('ARO', 136, 210, G.slowRing ? '#8a6a10' : K);
   drawTextC('TOCA PARA VOLVER', 80, 228, 'rgba(26,20,40,0.5)');
 }
 
@@ -677,16 +683,29 @@ function drawAch(){
   panel(4,26,152,196);
   let done=0; for(const a of ACH) if(G.ach[a.id]) done++;
   titleChip(80, 31, 'LOGROS '+done+'/'+ACH.length);
+  const sc = Math.min(UI.achScroll||0, achMaxScroll());
+  UI.achScroll = sc;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(5,37,150,168); ctx.clip();
+  ctx.translate(0, -sc);
   for(let i=0;i<ACH.length;i++){
     const a = ACH[i], got = !!G.ach[a.id];
-    const y = 38 + i*11;
+    const y = 40 + i*11;
     px(10,y,7,7, got?'#7ac74f':'rgba(26,20,40,0.12)');
     px(10,y,7,1,K); px(10,y+6,7,1,K); px(10,y,1,7,K); px(16,y,1,7,K);
     drawText(a.name, 21, y+1, got? K : 'rgba(26,20,40,0.55)');
     const rw = a.m ? '+'+a.m+'✦' : '+'+a.s+'★';
     drawText(rw, 122, y+1, got? '#3a7048' : '#8a6a10');
   }
-  drawTextC('TOCA PARA VOLVER', 80, 214, 'rgba(26,20,40,0.5)');
+  ctx.restore();
+  if(achMaxScroll()>0){
+    const vh = 168, ch2 = ACH.length*11;
+    const bh = Math.max(10, Math.round(vh*vh/ch2));
+    const by = 37 + Math.round((vh-bh) * (sc/achMaxScroll()));
+    px(152, 37, 2, vh, 'rgba(26,20,40,0.12)');
+    px(152, by, 2, bh, 'rgba(26,20,40,0.4)');
+  }
+  drawTextC('DESLIZA · TOCA PARA VOLVER', 80, 212, 'rgba(26,20,40,0.5)');
 }
 
 

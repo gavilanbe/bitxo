@@ -24,6 +24,18 @@ const MENU_DRAW = {
   tower:drawTower, legacy:drawLegacy,
   diary:drawDiary, rename:drawRename
 };
+/* el mundo visible: escena + habitantes de la zona actual */
+function drawWorldScene(now){
+  drawScene(now);
+  drawShoot(now);
+  drawPoops(now);
+  drawToys(now);
+  drawSign(now);
+  drawSparkles(now);
+  drawWild(now);
+  drawBuho(now);
+  drawPets(now);
+}
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
   const repFn = offlineReport ? drawOfflineReport : (UI.expReport ? drawExpReport : null);
@@ -78,15 +90,28 @@ function frame(now){
   } else if(UI.mode==='train'){
     drawPark(now, dt);
   } else {
-    drawScene(now);
-    drawShoot(now);
-    drawPoops(now);
-    drawToys(now);
-    drawSign(now);
-    drawSparkles(now);
-    drawWild(now);
-    drawBuho(now);
-    drawPets(now);
+    if(UI.zoneSlide){
+      /* cambio de zona: la cámara se desliza estilo Zelda */
+      UI.zoneSlide.t += dt;
+      const spr = Math.min(1, UI.zoneSlide.t/280);
+      const se = 1 - Math.pow(1-spr, 3);
+      const sdir = UI.zoneSlide.dir;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(0,0,LW,196); ctx.clip();
+      const realZone = G.zone;
+      ctx.save();
+      ctx.translate(Math.round(-sdir*se*LW), 0);
+      G.zone = UI.zoneSlide.from; drawWorldScene(now); G.zone = realZone;
+      ctx.restore();
+      ctx.save();
+      ctx.translate(Math.round(sdir*(1-se)*LW), 0);
+      drawWorldScene(now);
+      ctx.restore();
+      ctx.restore();
+      if(spr>=1) UI.zoneSlide = null;
+    } else {
+      drawWorldScene(now);
+    }
     drawWeather(now);
     drawSeason(now);
     if(AP().sleeping) px(0,0,160,200,'rgba(10,8,30,0.35)');
@@ -122,6 +147,8 @@ function normalizeSave(g){
   g.diary = g.diary||[];
   g.zonesOpen = g.zonesOpen||{};
   if(!g.zone || (g.zone!=='prado' && !g.zonesOpen[g.zone])) g.zone = 'prado';
+  g.combos3 = g.combos3||0; g.parries = g.parries||0; g.harvests = g.harvests||0;
+  g.items = g.items||[]; g.criaNextAt = g.criaNextAt||0; g.slowRing = !!g.slowRing;
   g.poops = g.poops||[];
   for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
@@ -166,6 +193,11 @@ function normalizeSave(g){
     if(seen && seen !== GAME_VERSION){
       toast('¡PRADO ACTUALIZADO!', 4200);
       diaryLog('EL PRADO SE ACTUALIZO');
+      /* si la versión trae nota de novedades, al diario */
+      fetch('version.json?t='+Date.now(), {cache:'no-store'})
+        .then(r=>r.json())
+        .then(j=>{ if(j.note){ diaryLog('NOVEDAD: '+String(j.note).toUpperCase().slice(0,30)); saveGame(); } })
+        .catch(()=>{});
       saveGame();
     }
     localStorage.setItem('bitxo-ver', GAME_VERSION);

@@ -73,7 +73,7 @@ function drawBattle(t, dt){
   /* ----- luchadores ----- */
   const pd = currentFormDef();
   const pspr = SPR[pd.spr][0];
-  const espr = ESPR[b.kind];
+  const espr = b.fspr || ESPR[b.kind];
   const bob = Math.sin(t/300)*1.2;
 
   let pox=0, eox=0, eleanX=0;
@@ -196,8 +196,8 @@ function drawBattle(t, dt){
     px(0,0,160,Math.round(60*(1-pr)),'#0a0b14');
     px(0,272-Math.round(76*(1-pr)),160,Math.round(76*(1-pr))+1,'#0a0b14');
     const bx = 160-(Math.min(1,b.t/450))*140;
-    drawTextC(b.boss ? '¡¡EL JEFE '+b.name+'!!' : '¡'+b.name+' SALVAJE!', Math.round(bx+60), 216, b.boss?'#e2574c':'#ffffff');
-    drawTextC('PREPARATE...', 80, 232, 'rgba(255,255,255,0.5)');
+    drawTextC(b.friendly ? '¡DUELO: '+b.name+'!' : (b.boss ? '¡¡EL JEFE '+b.name+'!!' : '¡'+b.name+' SALVAJE!'), Math.round(bx+60), 216, b.boss?'#e2574c':'#ffffff');
+    drawTextC(b.friendly ? 'SIN RENCORES...' : 'PREPARATE...', 80, 232, 'rgba(255,255,255,0.5)');
   } else if(b.phase==='timing'){
     if(b.super>=b.superMax){
       /* botón de súper: o lo desatas, o sigues a golpes */
@@ -220,17 +220,31 @@ function drawBattle(t, dt){
       else if(b.mult<1) drawTextC('TE RESISTE: DAÑO -25%', 80, 240, '#e2574c');
       else drawTextC('ARO DORADO = CRITICO', 80, 240, 'rgba(255,255,255,0.35)');
     }
+    /* la mochila: chips de objetos usables */
+    for(let i2=0;i2<(G.items||[]).length;i2++){
+      const ix = 4+i2*18;
+      px(ix,248,16,16,'#1e2130');
+      px(ix,248,16,1,'rgba(255,255,255,0.25)'); px(ix,263,16,1,K);
+      px(ix,248,1,16,K); px(ix+15,248,1,16,K);
+      if(G.items[i2]==='pocion'){ px(ix+6,251,4,3,'#f6efe0'); px(ix+5,254,6,7,'#e2574c'); px(ix+6,255,2,2,'#ff9a90'); }
+      else { px(ix+8,250,2,6,'#ffd94a'); px(ix+5,255,4,2,'#ffd94a'); px(ix+7,257,2,5,'#ffd94a'); }
+    }
   } else if(b.phase==='eTele' || b.phase==='eanim'){
     if(b.parry) drawTextC('¡PARADA PERFECTA!', 80, 210, '#ffffff');
     else if(b.blocked) drawTextC('ESCUDO ARRIBA', 80, 210, '#5ec8d8');
     else if(blockWin && Math.floor(t/140)%2===0) drawTextC('¡¡BLOQUEA: TOCA YA!!', 80, 210, '#5ec8d8');
     else drawTextC(b.bigAtk ? '¡ATAQUE CARGADO!' : (b.rageNow ? '¡VIENE FURIOSO!' : 'AHI VIENE...'), 80, 210, (b.bigAtk||b.rageNow)?'#e2574c':'rgba(255,255,255,0.6)');
-    drawTextC('TOCA JUSTO ANTES DEL GOLPE', 80, 236, 'rgba(255,255,255,0.35)');
-    drawTextC('CLAVADO AL IMPACTO: ¡PARADA!', 80, 246, 'rgba(94,200,216,0.55)');
+    drawTextC('TOCA JUSTO ANTES DEL GOLPE', 80, 234, 'rgba(255,255,255,0.35)');
+    drawTextC('CLAVADO AL IMPACTO: ¡PARADA!', 80, 243, 'rgba(94,200,216,0.55)');
+    drawTextC('O DESLIZA PARA ESQUIVAR', 80, 252, 'rgba(94,200,216,0.4)');
   } else if(b.phase==='superAnim'){
     if(Math.floor(t/150)%2===0) drawTextC('¡'+superOf(p).name+'!', 80, 214, superOf(p).col);
   } else if(b.phase==='end'){
-    if(b.win){
+    if(b.friendly){
+      drawTextC(b.win ? '¡BUEN DUELO!' : 'HA GANADO '+b.name, 80, 202, '#ffd94a');
+      drawTextC('AMISTAD +3 · AMBOS FELICES', 80, 214, '#ffffff');
+      drawTextC('SIN RENCORES EN EL PARQUE', 80, 224, 'rgba(255,255,255,0.6)');
+    } else if(b.win){
       drawTextC('¡VICTORIA!', 80, 202, '#ffd94a');
       drawTextC('+'+b.reward+'✦   +15 XP   +1 FUE', 80, 214, '#ffffff');
       drawTextC('BOTIN X1.5 ACTIVADO', 80, 224, '#7ac74f');

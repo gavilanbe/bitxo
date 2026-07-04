@@ -142,7 +142,13 @@ function openParque(){
   saveGame();
 }
 function gotoZone(z){
+  const prev = G.zone;
   G.zone = z;
+  if(prev!==z){
+    /* deslizamiento de cámara estilo Zelda */
+    UI.zoneSlide = {from: prev, dir: ZONE_ORDER.indexOf(z) > ZONE_ORDER.indexOf(prev) ? 1 : -1, t:0};
+    if(z!=='prado') questProg('visita', 1);
+  }
   /* nadie se queda columpiándose en una zona que ya no ves */
   for(const p of G.pets){
     if((p.swingT||0)>0 || (p.batheT||0)>0 || (p.drinkT||0)>0){
@@ -375,9 +381,17 @@ function ensureDaily(){
   /* 3 misiones al día, elegidas con un LCG sembrado por la fecha:
      todos ven las mismas y no se pueden re-tirar */
   let s = 0; for(const c of key) s = (s*31 + c.charCodeAt(0)) >>> 0;
-  /* sin luchador no se pide ganar combates: nada de misiones imposibles */
+  /* nada de misiones imposibles: cada una exige tener su sistema a mano */
   const fighter = G.pets.some(q=>q.stage>=STAGES.CHILD);
-  const idx = QUESTS.map((_,i)=>i).filter(i=>QUESTS[i].id!=='combate' || fighter);
+  const QUEST_OK = {
+    combate: fighter, combo: fighter, parada: fighter,
+    cosecha: !!G.toys.huerto,
+    visita: !!(G.zonesOpen.parque || G.zonesOpen.huerta)
+  };
+  const idx = QUESTS.map((_,i)=>i).filter(i=>{
+    const ok = QUEST_OK[QUESTS[i].id];
+    return ok===undefined ? true : ok;
+  });
   for(let i=idx.length-1;i>0;i--){
     s = (s*1664525 + 1013904223) >>> 0;
     const j = s % (i+1);
@@ -420,7 +434,9 @@ function buhoOffers(){
     {kind:'boost',  id:'boost',  name:'BOTIN X1.5',   desc:'30 MIN DE MOTAS',   cost:100},
     {kind:'xp',     id:'xp',     name:'POCION SABIA', desc:'+60 XP AL INSTANTE',cost:90},
     {kind:'siesta', id:'siesta', name:'CAFE DEL ALBA',desc:'PILAS AL MAXIMO',   cost:60},
-    {kind:'festin', id:'festin', name:'FESTIN',       desc:'TODOS COMEN Y RIEN',cost:80}
+    {kind:'festin', id:'festin', name:'FESTIN',       desc:'TODOS COMEN Y RIEN',cost:80},
+    {kind:'item',   id:'pocion', name:'POCION ROJA',  desc:'MOCHILA: +VIDA EN LUCHA', cost:120},
+    {kind:'item',   id:'chispa', name:'CHISPA PICANTE',desc:'MOCHILA: SUPER +2', cost:110}
   ];
   while(offers.length<3 && pool.length){
     const i = Math.floor(Math.random()*pool.length);
@@ -431,9 +447,11 @@ function buhoOffers(){
 function buyBuhoOffer(i){
   const o = G.buho && G.buho.offers[i];
   if(!o || o.sold){ SFX.tap(); return; }
+  if(o.kind==='item' && (G.items||[]).length>=3){ toast('MOCHILA LLENA (3 HUECOS)'); SFX.nope(); return; }
   if(G.motas < o.cost){ toast('FALTAN MOTAS ✦'); SFX.nope(); return; }
   G.motas -= o.cost; o.sold = true;
-  if(o.kind==='hat'){ G.hats[o.id] = true; AP().hat = o.id; toast('¡GORRO NUEVO PUESTO!'); }
+  if(o.kind==='item'){ G.items = G.items||[]; G.items.push(o.id); toast('A LA MOCHILA: '+o.name, 2400); }
+  else if(o.kind==='hat'){ G.hats[o.id] = true; AP().hat = o.id; toast('¡GORRO NUEVO PUESTO!'); }
   else if(o.kind==='relic'){ G.relics[o.id] = true; toast('RELIQUIA: '+o.name, 2800); }
   else if(o.kind==='boost'){ G.boostUntil = Date.now() + 30*60*1000; toast('¡BOTIN ACTIVADO 30 MIN!'); }
   else if(o.kind==='xp'){ gainXP(60); toast('+60 XP'); }
@@ -444,6 +462,60 @@ function buyBuhoOffer(i){
   }
   SFX.buy(); vibrate(25); saveGame();
 }
+
+/* ---------------- DUELO AMISTOSO (en el parque) ---------------- */
+function startDuel(){
+  const duo = G.pets.filter(q=>(q.zone||'prado')==='parque' && q.stage>=STAGES.CHILD && !q.sleeping && !q.exped && !isCarried(q));
+  if(duo.length<2){ toast('HACEN FALTA 2 BITXOS EN EL PARQUE'); SFX.nope(); return; }
+  const a = duo[0], r = duo[1];
+  if(a.energy<8 || r.energy<8){ toast('SIN ENERGIA PARA JUGAR'); SFX.nope(); return; }
+  G.sel = G.pets.indexOf(a);
+  const nv = Math.max(1, playerPower(r));
+  UI.bt = {
+    kind:'duelo', name:petName(r).slice(0,9), nv, elite:false,
+    elem: playerElem(r), quirk:null,
+    mult: elemMult(playerElem(a), playerElem(r)),
+    friendly:true, rival:r,
+    fspr: SPR[r.form==='grimo' ? 'grimo' : r.line+'_'+(r.form||'babyA')][0],
+    ehp: Math.round(14 + nv*2.6), eatk: 1.8 + nv*0.6,
+    php: Math.round(24 + a.level*2.5 + a.weight*0.4),
+    phase:'intro', t:0, mk:Math.random(), mdir:1,
+    dmg:0, crit:false, resolved:false, shake:0, stop:0, zoomT:0,
+    super:0, superMax:4,
+    eCharge:0, bigAtk:false, blocked:false, blockFxT:0,
+    bubble:false, burnT:0, stolen:0, willDouble:false,
+    combo:0, comboIdle:0, lastGood:false, miss:false,
+    rage:false, rageNow:false, parry:false, parryFxT:0, dodge:false,
+    ehurtT:0, phurtT:0, dieT:0, fx:[], turnMsg:''
+  };
+  UI.bt.emx = UI.bt.ehp; UI.bt.pmx = UI.bt.php;
+  UI.bt.ehpShow = UI.bt.ehp; UI.bt.phpShow = UI.bt.php;
+  a.energy = Math.max(0, a.energy-8);
+  r.energy = Math.max(0, r.energy-8);
+  UI.mode = 'battle';
+  SFX.train(); vibrate(30);
+}
+
+/* ---------------- MOCHILA: usar objeto en combate ---------------- */
+function useBattleItem(i){
+  const b = UI.bt; if(!b || b.phase!=='timing') return;
+  const it = (G.items||[])[i]; if(!it) return;
+  G.items.splice(i, 1);
+  if(it==='pocion'){
+    const heal = Math.round(b.pmx*0.4);
+    b.php = Math.min(b.pmx, b.php+heal);
+    UI.floats.push({x:46, y:96, s:'+'+heal, col:'#7ac74f', life:900, vy:-0.03});
+    SFX.eat();
+  } else if(it==='chispa'){
+    b.super = Math.min(b.superMax, b.super+2);
+    UI.floats.push({x:46, y:96, s:'SUPER +2', col:'#ffd94a', life:900, vy:-0.03});
+    SFX.coin();
+  }
+  vibrate(15); saveGame();
+}
+
+/* ---------------- LOGROS: scroll del panel ---------------- */
+function achMaxScroll(){ return Math.max(0, ACH.length*11 - 165); }
 
 /* ---------------- GORROS ---------------- */
 function tapHat(i){

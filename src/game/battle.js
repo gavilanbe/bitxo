@@ -40,7 +40,7 @@ function startBattle(){
     eCharge:0, bigAtk:false, blocked:false, blockFxT:0,
     bubble: E.quirk==='bubble', burnT:0, stolen:0, willDouble:false,
     combo:0, comboIdle:0, lastGood:false, miss:false,
-    rage:false, rageNow:false, parry:false, parryFxT:0,
+    rage:false, rageNow:false, parry:false, parryFxT:0, dodge:false,
     ehurtT:0, phurtT:0, dieT:0, fx:[], turnMsg:''
   };
   if(G.wild.boss){ UI.bt.boss = true; }
@@ -80,6 +80,7 @@ function applyHitToEnemy(b, isSuper){
     battleBurst(112, 118, '#9adcf0', 10);
     UI.floats.push({x:112, y:104, s:'¡BURBUJA ROTA!', col:'#9adcf0', life:900, vy:-0.03});
   }
+  if(!isSuper && b.combo===2){ G.combos3 = (G.combos3||0)+1; questProg('combo', 1); }
   b.ehp = Math.max(0, b.ehp - b.dmg);
   b.ehurtT = performance.now();
   b.stop = b.crit ? 110 : 70;
@@ -99,6 +100,13 @@ function applyHitToEnemy(b, isSuper){
 }
 function resolveEnemyHit(b){
   const p = AP();
+  /* esquiva armada con un deslizamiento: el golpe pasa de largo */
+  if(b.dodge){
+    b.dodge = false;
+    UI.floats.push({x:46, y:96, s:'¡ESQUIVA!', col:'#5ec8d8', life:900, vy:-0.03});
+    SFX.tap();
+    return;
+  }
   if(Math.random() < Math.min(0.25, (p.spd||0)*0.012)){
     UI.floats.push({x:46, y:96, s:'¡ESQUIVA!', col:'#5ec8d8', life:900, vy:-0.03});
     SFX.tap();
@@ -119,6 +127,8 @@ function resolveEnemyHit(b){
   if(b.parry){
     /* la parada perfecta carga el súper */
     b.super = Math.min(b.superMax, b.super+1);
+    G.parries = (G.parries||0)+1;
+    questProg('parada', 1);
   }
   if(!b.blocked){
     SFX.hurt(); vibrate(30);
@@ -146,7 +156,7 @@ function toEnemyTurn(b){
     UI.floats.push({x:112, y:96, s:'+'+heal, col:'#7ac74f', life:800, vy:-0.03});
   }
   b.resolved = false;
-  b.phase = 'eTele'; b.t = 0; b.blocked = false; b.parry = false;
+  b.phase = 'eTele'; b.t = 0; b.blocked = false; b.parry = false; b.dodge = false;
   b.rageNow = b.rage; b.rage = false;
   if(b.rageNow) UI.floats.push({x:112, y:104, s:'¡FURIA!', col:'#e2574c', life:900, vy:-0.03});
   b.bigAtk = b.quirk==='charge' && (++b.eCharge % 3 === 0);
@@ -159,6 +169,11 @@ function battleTap(x, y){
   if(b.phase==='intro'){ b.t = 9999; return; }
   if(b.phase==='timing'){
     const p = AP();
+    /* mochila: los chips de la esquina usan un objeto sin gastar turno */
+    if(x!==undefined && y!==undefined && y>=246 && x<58 && (G.items||[]).length){
+      const slot = Math.floor((x-4)/18);
+      if(slot>=0 && slot<G.items.length){ useBattleItem(slot); return; }
+    }
     /* con el medidor lleno ELIGES: botón de abajo = súper; el aro = seguir a golpes */
     if(b.super >= b.superMax && (y===undefined || y>196)){
       b.super = 0; b.combo = 0;
@@ -203,6 +218,7 @@ function battleTap(x, y){
       SFX.tap(); vibrate(15);
     }
   } else if(b.phase==='end' && b.t>800){
+    if(b.friendly){ UI.mode='main'; saveGame(); return; }
     const wasTower = G.wild && G.wild.tower;
     G.wild = null;
     nextWildAt = Date.now() + 120000 + Math.random()*180000;
@@ -238,8 +254,8 @@ function battleStep(dt){
   if(b.phase==='intro'){
     if(b.t>1150){ b.phase='timing'; b.t=0; b.mk=Math.random(); }
   } else if(b.phase==='timing'){
-    /* cada eslabón del combo hace el aro más rápido */
-    b.mk += b.mdir * dt * (1 + b.combo*0.4) / (650*(1 + Math.min(0.35, (AP().spd||0)*0.015)) * (b.quirk==='spore' ? 0.78 : 1));
+    /* cada eslabón del combo hace el aro más rápido (ARO tranquilo: opción en DATOS) */
+    b.mk += b.mdir * dt * (1 + b.combo*0.4) / (650*(1 + Math.min(0.35, (AP().spd||0)*0.015)) * (b.quirk==='spore' ? 0.78 : 1) * (G.slowRing ? 1.45 : 1));
     if(b.mk>1){ b.mk=1; b.mdir=-1; }
     if(b.mk<0){ b.mk=0; b.mdir=1; }
     if(b.combo>0){
@@ -331,9 +347,34 @@ function spawnSuperFx(b){
   }
 }
 
+/* esquiva: deslizar durante la ventana defensiva */
+function battleSwipe(){
+  const b = UI.bt; if(!b) return;
+  if(b.phase!=='eTele' && b.phase!=='eanim') return;
+  const dur = teleDur(b);
+  const can = (b.phase==='eanim' && b.t<300 && !b.resolved) || (b.phase==='eTele' && b.t > dur-260);
+  if(can && !b.dodge){
+    b.dodge = true;
+    UI.floats.push({x:46, y:110, s:'¡SALTO!', col:'#5ec8d8', life:500, vy:-0.03});
+    vibrate(12);
+  }
+}
+
 function endBattle(win){
   const b = UI.bt; const p = AP();
   b.phase='end'; b.t=0; b.win=win;
+  if(b.friendly){
+    /* duelo amistoso: nadie pierde de verdad */
+    if(win){ b.dieT = performance.now(); battleBurst(112, 130, '#ffffff', 10); }
+    b.reward = 0;
+    const r = b.rival;
+    G.bond = (G.bond||0) + 3;
+    p.happy = Math.min(100, p.happy+10);
+    if(r) r.happy = Math.min(100, r.happy+10);
+    gainXP(8);
+    SFX.yay();
+    return;
+  }
   if(win){
     b.dieT = performance.now();
     battleBurst(112, 130, '#ffffff', 16);

@@ -61,6 +61,8 @@ function run(){
     brazos: `G.zonesOpen={parque:true}; G.zone='parque'; G.toys={columpio:true,tambor:true}; UI.carry={i:0}; UI.mode='main';`,
     huertaconfirm: `G.zonesOpen={parque:true}; G.toys={banera:true,huerto:true}; G.expedsDone=2; G.motas=900; UI.mode='huertaConfirm';`,
     viaje: `G.zonesOpen={parque:true}; const q2=makePet('brasa',1); q2.stage=3; q2.form='adultA'; q2.hatchedAt=Date.now(); q2.nick='BRASI'; G.pets.push(q2); UI.travelDest='parque'; UI.mode='travelPick';`,
+    burbuja: `_p.bubbleT=performance.now()+999999; _p.hunger=64; _p.energy=38; _p.hygiene=85; UI.mode='main';`,
+    duelo: `G.zonesOpen={parque:true}; G.zone='parque'; _p.zone='parque'; const q3=makePet('brasa',1); q3.stage=3; q3.form='adultA'; q3.zone='parque'; q3.hatchedAt=Date.now(); q3.energy=90; G.pets.push(q3); startDuel(); UI.bt.phase='timing'; UI.bt.mk=0.5; G.items=['pocion','chispa'];`,
     tiendajuguete: `G.motas=500; G.toys={pelota:true,caja:true}; UI.mode='shop'; UI.shopTab=1; UI.shopScroll=20;`,
     sendero: `G.toys={pelota:true,columpio:true}; UI.mode='main';`,
     pradozonas: `G.zonesOpen={parque:true}; G.zone='prado'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.up.jardin=4; G.huertoReadyAt=Date.now()-1; UI.mode='main';`,
@@ -835,6 +837,73 @@ function run(){
       b3.phase='timing'; battleTap(80, 210);
       R.superButton = b3.phase==='superAnim' && b3.super===0;
       UI.bt = null; G.wild = null; UI.mode = 'main';
+      // LOGROS Y MISIONES DE LOS SISTEMAS NUEVOS
+      R.achNew = ACH.length===21 && ACH.some(a=>a.id==='torero') && QUESTS.length===11;
+      G.zonesOpen = {parque:true, huerta:true};
+      R.achTerra = ACH.find(a=>a.id==='terra').cond()===true;
+      G.parries = 3;
+      R.achTorero = ACH.find(a=>a.id==='torero').cond()===true;
+      G.parries = 0;
+      // burbuja de estado al acariciar
+      _p.rx = 80; _p.tx = 80; _p.zone = 'prado'; G.zone = 'prado'; UI.mode = 'main';
+      _p.sleeping = false; _p.exped = null; G.sel = 0;
+      handleTap(80, 150);
+      R.bubbleShows = !!_p.bubbleT && performance.now()-_p.bubbleT < 500;
+      // transición deslizante al cambiar de zona
+      gotoZone('parque');
+      R.slideStarts = !!UI.zoneSlide && UI.zoneSlide.dir===1 && UI.zoneSlide.from==='prado';
+      UI.zoneSlide = null; gotoZone('prado'); UI.zoneSlide = null;
+      // aro tranquilo: la carta ARO de DATOS
+      G.slowRing = false; UI.mode = 'stats';
+      handleTap(136, 212);
+      R.slowRingToggle = G.slowRing===true;
+      G.slowRing = false; UI.mode = 'main';
+      // mochila: comprar pocion al buhonero y usarla en combate
+      G.items = []; G.motas = 1000;
+      G.buho = {until:Date.now()+99999, x:120, tx:120, dir:1, offers:[{kind:'item', id:'pocion', name:'POCION ROJA', desc:'', cost:120}]};
+      buyBuhoOffer(0);
+      R.itemBought = G.items.length===1 && G.items[0]==='pocion';
+      G.buho = null;
+      G.wild = {kind:'ratuco', boss:false, nv:6, x:120, tx:120, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1};
+      _p.energy = 90; startBattle();
+      UI.bt.php = 10; UI.bt.pmx = 50; UI.bt.phase = 'timing';
+      battleTap(10, 252);
+      R.itemHeals = UI.bt.php > 10 && G.items.length===0;
+      // esquiva armada con deslizamiento
+      UI.bt.phase='eanim'; UI.bt.t=100; UI.bt.blocked=false; UI.bt.dodge=false;
+      UI.bt.resolved=false; UI.bt.resolved2=true;
+      battleSwipe();
+      R.dodgeArms = UI.bt.dodge===true;
+      const hpD = UI.bt.php;
+      battleStep(250);
+      R.dodgeAvoids = UI.bt.php===hpD;
+      UI.bt = null; G.wild = null; UI.mode = 'main';
+      // duelo amistoso en el parque
+      const dl = makePet('brasa',1); dl.stage=3; dl.form='adultA'; dl.zone='parque'; dl.hatchedAt=Date.now(); dl.energy=90;
+      G.pets.push(dl);
+      _p.zone = 'parque'; _p.energy = 90; G.zone = 'parque';
+      startDuel();
+      R.duelStarts = UI.mode==='battle' && UI.bt.friendly===true;
+      const bw0 = G.battlesWon, bo0 = G.bond;
+      endBattle(true);
+      R.duelFriendly = G.battlesWon===bw0 && G.bond===bo0+3;
+      UI.bt.t = 900; battleTap();
+      R.duelExits = UI.mode==='main';
+      UI.bt = null; _p.zone = 'prado'; G.pets.pop(); G.zone = 'prado'; G.sel = 0;
+      // cría: dos adultos que viven juntos con amistad alta
+      { _p.stage = 3; _p.form = 'adultA'; _p.zone = 'prado'; _p.rx = 60; _p.tx = 60;
+        _p.sleeping = false; _p.eatT = 0; _p.exped = null;
+        const pb = makePet('brasa',1); pb.stage=3; pb.form='adultA'; pb.zone='prado';
+        pb.rx=70; pb.tx=70; pb.hatchedAt=Date.now(); pb.sleeping=false;
+        G.pets.push(pb);
+        G.up.nido = 2; G.bond = 30; G.criaNextAt = 0; G.nextBondAt = Date.now()-1;
+        UI.mode = 'main'; G.zone = 'prado';
+        const n0 = G.pets.length;
+        liveUpdate(50);
+        R.criaEgg = G.pets.length===n0+1 && G.pets[n0].stage===STAGES.EGG &&
+                    ['pradera','brasa'].includes(G.pets[n0].line) && G.criaNextAt > Date.now();
+        G.pets.pop(); G.pets.pop(); G.sel = 0; G.bond = 0; G.up.nido = 0; }
+      UI.mode = 'main';
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);

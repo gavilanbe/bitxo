@@ -21,7 +21,7 @@ help: ## Muestra esta ayuda
 
 ship: ## Estampa versión, commitea y publica (make ship MSG="mensaje")
 	@test -n "$(MSG)" || (echo "Falta MSG=\"mensaje\"" && exit 1)
-	@bash tools/stamp.sh
+	@NOTE="$(MSG)" bash tools/stamp.sh
 	@git add -A && git commit -m "$(MSG)"
 	@gh auth switch --user gavilanbe && git -c credential.helper= -c credential.helper='!gh auth git-credential' push origin main; gh auth switch --user nahuelgavilan-toolshock
 	@echo "🥚 Publicado — GitHub Pages tarda ~1 min"

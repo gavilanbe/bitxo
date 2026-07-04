@@ -112,6 +112,15 @@ function drawScene(t){
 
   for(let i=0;i<8;i++){ px((i*37+11)%160, 130+(i*23)%60, 2,1, S.grass2); }
 
+  /* charcos que quedan un rato tras la lluvia */
+  if(Date.now() < (G.puddlesUntil||0) && WEATHER.kind!=='rain'){
+    for(const pd of [[44,176],[108,184]]){
+      px(pd[0]-6,pd[1],12,3,'rgba(94,155,224,0.4)');
+      px(pd[0]-4,pd[1]-1,8,1,'rgba(154,220,240,0.5)');
+      px(pd[0]-3,pd[1]+3,6,1,'rgba(94,155,224,0.28)');
+    }
+  }
+
   /* escenografía propia de cada zona */
   if(G.zone==='parque') drawParqueProps(t, S);
   if(G.zone==='huerta') drawHuertaProps(t, S);
@@ -207,6 +216,15 @@ function drawParqueProps(t, S){
   px(104,127,22,3,'#a4834e');
   px(104,127,22,1,'#c8a04b');
   px(106,130,2,5,'#5a4632'); px(122,130,2,5,'#5a4632');
+  /* muñeco de entreno: tócalo y el GYM abre sin menús */
+  px(52,134,3,24,'#8a6a3a');
+  px(51,124,5,4,'#5a4632');
+  px(47,128,12,12,'#c98a4b');
+  px(47,128,12,1,K); px(47,139,12,1,K); px(47,128,1,12,K); px(58,128,1,12,K);
+  px(49,131,3,2,'#a4713a'); px(54,134,3,2,'#a4713a');
+  /* si hay pareja de residentes, ¡duelo! */
+  const duo = G.pets.filter(q=>(q.zone||'prado')==='parque' && q.stage>=STAGES.CHILD && !q.sleeping && !q.exped);
+  if(duo.length>=2 && Math.floor(t/400)%2===0) drawTextC('¡VS!', 53, 112, '#e2574c');
 }
 
 /* ---------------- LA HUERTA: escenografía propia ---------------- */
@@ -342,6 +360,7 @@ function drawSeason(t){
 }
 function drawWeather(t){
   if(WEATHER.kind==='rain'){
+    G.puddlesUntil = Date.now() + 3*60*1000; /* charcos al escampar */
     ctx.fillStyle='rgba(20,30,70,0.15)'; ctx.fillRect(0,0,160,196);
     /* salpicaduras en el estanque */
     if(G.up.jardin>=3 && Math.floor(t/120)%3===0){

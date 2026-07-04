@@ -134,7 +134,9 @@ function liveUpdate(dtMs){
         p.rx += Math.sign(d)*Math.min(Math.abs(d), dtMs*0.018);
         p.dir = Math.sign(d)||1;
         if(Math.random() < dtMs*0.006){
-          UI.particles.push({x:p.rx - p.dir*5, y:160, vy:0, life:600, ch:'.', col:'rgba(20,50,35,0.45)'});
+          /* en invierno las pisadas quedan marcadas en la nieve */
+          const nieve = season()==='invierno';
+          UI.particles.push({x:p.rx - p.dir*5, y:160, vy:0, life: nieve?2600:600, ch:'.', col: nieve?'rgba(240,246,255,0.7)':'rgba(20,50,35,0.45)'});
         }
       }
     }
@@ -162,6 +164,19 @@ function liveUpdate(dtMs){
           G.nextBondAt = now + 18000 + Math.random()*15000;
           SFX.yay();
           if(G.bond===1) toast('¡SE HAN HECHO AMIGOS!', 2600);
+          /* cría: dos adultos que viven juntos y se quieren mucho */
+          if(PA.stage===STAGES.ADULT && PB.stage===STAGES.ADULT && (G.bond||0)>=25 &&
+             G.pets.length < maxPets() && now > (G.criaNextAt||0)){
+            G.criaNextAt = now + 24*3600*1000;
+            G.nextEggLine = Math.random()<0.5 ? PA.line : PB.line;
+            const egg = spawnEgg();
+            if(Math.random()<0.6) egg.trait = Math.random()<0.5 ? PA.trait : PB.trait;
+            egg.zone = 'prado';
+            for(let j2=0;j2<10;j2++) UI.particles.push({x:mx-12+Math.random()*24, y:128+Math.random()*16, vy:-0.03, life:1600, ch:'♥', col:'#f2a2b8'});
+            toast('¡'+petName(PA)+' Y '+petName(PB)+' HAN HECHO UN NIDO!', 3800);
+            diaryLog('LLEGO UN HUEVO DE '+petName(PA)+' Y '+petName(PB));
+            SFX.hatch(); vibrate([30,30,60]);
+          }
         }
       }
       if(!found) G.nextBondAt = now + 6000;

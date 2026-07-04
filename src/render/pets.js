@@ -104,7 +104,10 @@ function drawOnePet(p, i, t){
 
   const tremble = (p.scaredT && Date.now()<p.scaredT) ? Math.round(Math.sin(t/30)) : 0;
   const x = Math.round(p.rx) + tremble;
-  const shw = Math.max(6, Math.round((w-4)*sx * (1 - lift*0.04)));
+  /* al amanecer y atardecer las sombras se alargan */
+  const phSh = dayPhase();
+  const shStretch = (phSh==='dawn' || phSh==='dusk') ? 1.6 : 1;
+  const shw = Math.max(6, Math.round((w-4)*sx * (1 - lift*0.04) * shStretch));
   px(x-shw/2, 161, shw, 2, 'rgba(0,0,0,0.25)');
   ctx.save();
   ctx.translate(x, baseY - lift);
@@ -141,8 +144,34 @@ function drawOnePet(p, i, t){
       const dy = (t/9)%7;
       px(x-3, yTop+6+dy, 1, 2, '#6db1ff');
     }
+    /* burbuja de estado: tócalo y te cuenta cómo está */
+    const bubbleOn = p.bubbleT && now-p.bubbleT<2200;
+    if(bubbleOn){
+      const bx2 = Math.max(2, Math.min(122, x-17));
+      const by2 = yTop-20;
+      px(bx2,by2,36,16,'#f6efe0');
+      px(bx2,by2,36,1,K); px(bx2,by2+15,36,1,K);
+      px(bx2,by2,1,16,K); px(bx2+35,by2,1,16,K);
+      px(Math.min(bx2+30, Math.max(bx2+3, x-1)),by2+16,2,2,'#f6efe0');
+      const face = p.happy>66 ? 2 : (p.happy>33 ? 1 : 0);
+      const fx2 = bx2+3, fy2 = by2+4;
+      px(fx2,fy2,8,8,['#e2574c','#f0a04b','#7ac74f'][face]);
+      px(fx2+2,fy2+2,1,2,K); px(fx2+5,fy2+2,1,2,K);
+      if(face===2){ px(fx2+2,fy2+5,1,1,K); px(fx2+3,fy2+6,2,1,K); px(fx2+5,fy2+5,1,1,K); }
+      else if(face===1){ px(fx2+2,fy2+6,4,1,K); }
+      else { px(fx2+2,fy2+6,1,1,K); px(fx2+3,fy2+5,2,1,K); px(fx2+5,fy2+6,1,1,K); }
+      const pip = (row, val, col)=>{
+        const yy = by2+3+row*4;
+        px(bx2+14,yy,19,3,'rgba(26,20,40,0.15)');
+        px(bx2+14,yy,Math.round(19*Math.max(0,Math.min(100,val))/100),3,col);
+      };
+      pip(0, p.hunger, '#e2574c');
+      pip(1, p.energy, '#5ec8d8');
+      pip(2, p.hygiene, '#7ac74f');
+    }
     let icon = null;
-    if(p.sick) icon='sick';
+    if(bubbleOn) icon = null;
+    else if(p.sick) icon='sick';
     else if(p.hunger<25) icon='meal';
     else if(G.poops.length>0 && p.hygiene<50) icon='poo';
     else if(p.happy<25) icon='sad';

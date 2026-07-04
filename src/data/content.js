@@ -30,7 +30,12 @@ const ACH = [
  {id:'expl',  name:'EXPLORADOR',     cond:()=>(G.expedsDone||0)>=5, m:300},
  {id:'caza',  name:'CAZAJEFES',      cond:()=>(G.bossesWon||0)>=3, s:1},
  {id:'gour',  name:'GOURMET',        cond:()=>Object.keys(G.foodsTried||{}).length>=8, m:250},
- {id:'natu',  name:'NATURALISTA',    cond:()=>BEAST_ORDER.every(k=>G.beast && G.beast[k] && G.beast[k].seen>0), s:1}
+ {id:'natu',  name:'NATURALISTA',    cond:()=>BEAST_ORDER.every(k=>G.beast && G.beast[k] && G.beast[k].seen>0), s:1},
+ {id:'mudanza',name:'MUDANZA',       cond:()=>G.pets.some(p=>(p.zone||'prado')!=='prado'), m:150},
+ {id:'terra', name:'TERRATENIENTE',  cond:()=>!!(G.zonesOpen && G.zonesOpen.parque && G.zonesOpen.huerta), s:1},
+ {id:'encade',name:'ENCADENADO',     cond:()=>(G.combos3||0)>=1, m:200},
+ {id:'torero',name:'TORERO',         cond:()=>(G.parries||0)>=3, m:250},
+ {id:'verdu', name:'VERDULERO',      cond:()=>(G.harvests||0)>=5, m:200}
 ];
 const EXPEDS = [
  {id:'prado', name:'PRADO ALTO',    mins:20,  motas:30,  xp:10,  relic:0.10, egg:'fungo', eggP:0.15},
@@ -124,7 +129,11 @@ const QUESTS = [
  {id:'combate', name:'GANA 1 COMBATE',     n:1,  m:70, xp:12},
  {id:'limpia',  name:'LIMPIA 3 CACAS',     n:3,  m:40, xp:8},
  {id:'mimos',   name:'ACARICIA 5 VECES',   n:5,  m:30, xp:6},
- {id:'entrena', name:'ENTRENA 2 VECES',    n:2,  m:45, xp:8}
+ {id:'entrena', name:'ENTRENA 2 VECES',    n:2,  m:45, xp:8},
+ {id:'combo',   name:'HAZ 1 COMBO X3',     n:1,  m:60, xp:10},
+ {id:'parada',  name:'1 PARADA PERFECTA',  n:1,  m:50, xp:8},
+ {id:'cosecha', name:'COSECHA EL HUERTO',  n:1,  m:40, xp:8},
+ {id:'visita',  name:'VISITA OTRA ZONA',   n:1,  m:30, xp:6}
 ];
 
 /* --- gorros: cosmética que tu bitxo lleva puesta de verdad --- */
