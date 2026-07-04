@@ -243,7 +243,7 @@ function buildAllSprites(){
   SPR.pelota = mkSprite({k:K,r:'#e2574c',d:'#a03030',w:'#ffffff',c:'#f0f0f8'},[
 "..kkkkk..",".kwwrrrk.","kwwwrrrdk","kwwrrrrdk","kwrrrrddk","krrrrdddk",".krrdddk.","..kkkkk.."]);
   SPR.caja = mkSprite({k:K,p:'#9d7bd8',v:'#7a5ab8',y:'#ffd94a',o:'#c9a227'},[
-"...kyyk...","..kkyykk..","kkkkkkkkkk","kppkyykppk","kppkyokppk","kkkkkkkkkk","kvvkyokvvk","kvvkyokvvk","kkkkkkkkkk"]);
+"...kyyk...","..kyyyyk..",".kkkkkkkk.","kpppyypppk","kpppyypppk","kkkkkkkkkk","kvvvyovvvk","kvvvyovvvk",".kkkkkkkk."]);
   SPR.banera = mkSprite({k:K,w:'#f6efe0',e:'#d8d0c0',b:'#5e9be0',c:'#9adcf0'},[
 "..c..c..c.....",".kkkkkkkkkkkk.","kwccbccbccbcwk","kwbbbbbbbbbbwk","kwwbbbbbbbbwwk",".kwwwwwwwwwwk.",".keekkkkkkeek.","..kk......kk.."]);
   SPR.tambor = mkSprite({k:K,r:'#e2574c',d:'#a03030',c:'#fbe6c2',s:'#e8c060',w:'#f6efe0'},[
