@@ -25,6 +25,21 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 
+## 🎬 Eclosión y evolución, a lo grande (sep 2026)
+
+- ✅ **Motor de cinemáticas** (`render/cine.js`): el prado se funde en un
+  espacio de energía del color de la línea (túnel de anillos, estrellas en
+  warp), partículas elementales que orbitan en espiral (hojas, fuego,
+  burbujas, esporas, rocas, rayos, estrellas), latidos y cambios de forma a
+  tempo con una partitura que sube, clímax en silencio y cámara lenta,
+  estallido con platillo y fanfarria del tema.
+- ✅ **Eclosión**: a 4x, grietas que crecen con cada latido, ¡TOCA PARA
+  AYUDARLE!, silueta de energía que se colorea con un barrido, primera
+  palabra y el nombre letra a letra.
+- ✅ **Evolución**: silueta de energía con borde de luz que alterna cada vez
+  más rápido, rayos sobre el capullo, pose de la forma nueva y su RAMA
+  (GUERRERO, TANQUE, ÁGIL, TRANQUILO, ¡LEYENDA!); GRIMO en oscuro.
+
 ## 🥚 El huevo, de cine (sep 2026)
 
 - ✅ **Llegada**: franjas de cine, un cometa de su color cruza el cielo, la

@@ -148,8 +148,7 @@ function handleTap(x,y){
   if(UI.mode==='hatch'){ hatchTap(x, y); return; }
   if(UI.mode==='eggArrive'){ eggArriveTap(); return; }
   if(UI.mode==='evolve'){
-    if(UI.evoT > 4900){ UI.mode='main'; UI.evo=null; }
-    else if(UI.evoT < 3900) UI.evoT = 3900; /* saltar al estallido */
+    evolveTap();
     return;
   }
   if(UI.mode==='ascendFX'){ if(UI.ascT>4200){ finishAscend(); } return; }

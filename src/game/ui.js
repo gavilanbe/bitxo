@@ -57,6 +57,7 @@ function playNextEvo(){
       from: SPR[q.fromKey][0], to: SPR[q.toKey][0],
       fromName: nameOfKey(q.fromKey), toName: nameOfKey(q.toKey),
       toDesc: formDescOfKey(q.toKey),
+      toSlot: q.toKey==='grimo' ? 'grimo' : q.toKey.slice(q.toKey.indexOf('_')+1),
       dark: q.toKey==='grimo',
       swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false
     };

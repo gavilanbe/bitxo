@@ -453,13 +453,13 @@ function run(){
         R.evoPlays = played && UI.mode==='evolve' && !!UI.evo && UI.evo.toName===LINES.pradera.names.childA;
         // la cinemática no revienta en ninguna fase
         let crashed = false;
-        try{ for(const tt of [400, 1500, 2600, 4000, 4500, 5200]){ UI.evoT = tt; drawEvolve(16); } }
+        try{ for(const tt of [400, 1500, 2600, 4500, 5100, 6200, 7200]){ UI.evoT = tt; drawEvolve(16); } }
         catch(err){ crashed = true; }
         R.evoDraws = !crashed;
         // saltar y salir con toques
         UI.evoT = 1200; handleTap(80,100);
-        R.evoSkips = UI.evoT === 3900;
-        UI.evoT = 5000; handleTap(80,100);
+        R.evoSkips = UI.evoT === EVO_T.skipTo;
+        UI.evoT = EVO_T.exit+100; handleTap(80,100);
         R.evoExits = UI.mode==='main' && UI.evo===null;
         EVO_QUEUE.length = 0;
         G.pets.pop(); G.sel = 0; }
