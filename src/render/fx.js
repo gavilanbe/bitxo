@@ -5,16 +5,30 @@
 function drawParticles(dt){
   for(let i=UI.particles.length-1;i>=0;i--){
     const p = UI.particles[i];
+    if(p.life0===undefined) p.life0 = p.life;
+    if(p.vx) p.x += p.vx*dt;
+    if(p.g) p.vy += p.g*dt;
     p.y += p.vy*dt; p.life -= dt;
     if(p.life<=0){ UI.particles.splice(i,1); continue; }
+    /* se desvanecen en su último tercio en vez de desaparecer de golpe */
+    const k = p.life/p.life0;
+    if(k<0.33) ctx.globalAlpha = k/0.33;
     if(p.ch==='.') px(p.x,p.y,2,2,p.col);
     else drawText(p.ch, p.x, p.y, p.col);
+    ctx.globalAlpha = 1;
   }
   for(let i=UI.floats.length-1;i>=0;i--){
     const f = UI.floats[i];
     f.y += f.vy*dt; f.life -= dt;
     if(f.life<=0){ UI.floats.splice(i,1); continue; }
-    drawTextC(f.s, f.x, f.y, f.col);
+    if(f.life0===undefined) f.life0 = f.life;
+    /* salto de entrada y contorno: se lee sobre cualquier fondo */
+    const age = f.life0 - f.life;
+    const jy = age<160 ? Math.round(-3*Math.sin(age/160*Math.PI)) : 0;
+    const k2 = f.life/f.life0;
+    if(k2<0.3) ctx.globalAlpha = k2/0.3;
+    drawTextOC(f.s, f.x, Math.round(f.y)+jy, f.col, 1);
+    ctx.globalAlpha = 1;
   }
 }
 

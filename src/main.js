@@ -57,9 +57,16 @@ function drawModals(now){
   ctx.restore();
 }
 function frame(now){
-  const dt = Math.min(100, now - lastT);
+  const rdt = Math.min(100, now - lastT);
   lastT = now;
+  /* dt de JUEGO: se congela durante un hitstop; el juice usa el real */
+  const dt = juiceStep(rdt);
+  wipeCheck();
   liveUpdate(dt);
+  const shaking = JUICE.sx!==0 || JUICE.sy!==0;
+  if(shaking) px(0,0,LW,LH,K);
+  ctx.save();
+  ctx.translate(JUICE.sx, JUICE.sy);
 
   if(UI.mode==='boot'){
     px(0,0,160,272,K);
@@ -118,12 +125,18 @@ function frame(now){
     }
     drawWeather(now);
     drawSeason(now);
-    if(AP().sleeping) px(0,0,160,200,'rgba(10,8,30,0.35)');
+    if(AP().sleeping) px(0,0,160,196,'rgba(10,8,30,0.35)');
+    drawVignette();
     drawParticles(dt);
+    drawFx(rdt); JUICE.fxDrawn = true;
+    /* el HUD no tiembla: se lee siempre */
+    ctx.restore(); ctx.save();
     drawHUD(now);
     drawModals(now);
     if(UI.mode==='main' && !offlineReport && !UI.expReport && EVO_QUEUE.length) playNextEvo();
   }
+  ctx.restore();
+  drawJuiceOverlay(rdt);
   requestAnimationFrame(frame);
 }
 
