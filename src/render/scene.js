@@ -9,7 +9,7 @@ const SKY = {
   dusk: {bands:['#3a2e6e','#8a4a7a','#e88a5a'], hill:'#2e5440', hill2:'#234233', grass:'#3a7048', grass2:'#2e5c3a'}
 };
 const stars = []; for(let i=0;i<26;i++) stars.push({x:Math.random()*160,y:Math.random()*90,t:Math.random()*6});
-const clouds = [{x:20,y:22,s:1},{x:100,y:40,s:0.7},{x:-40,y:12,s:1.2}];
+const clouds = [{x:20,y:18,s:1},{x:100,y:44,s:0.7},{x:-40,y:8,s:1.2},{x:60,y:68,s:0.5}];
 const fireflies = []; for(let i=0;i<9;i++) fireflies.push({x:Math.random()*160,y:130+Math.random()*55,a:Math.random()*7});
 const butterflies = []; for(let i=0;i<6;i++) butterflies.push({x:Math.random()*160,y:126+Math.random()*50,a:Math.random()*7,c:['#f2a2b8','#fff8d0','#ffd94a'][i%3]});
 /* mezcla gradual entre fases del día: nada de saltos de color */
@@ -37,6 +37,193 @@ function skyNow(){
   }
   return SKY[ph];
 }
+/* ================= FONDO v2: degradados tramados, capas y luz =================
+   Todo lo estático se hornea en lienzos (cacheados por paleta) y el
+   frame solo los estampa: más detalle sin coste por frame. */
+const BAYER4 = [0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5];
+function _rgb(h){ return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)]; }
+function _mix(a, b, t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; }
+/* degradado vertical con tramado Bayer: 'stops' = [[y, '#hex'], ...] */
+function ditherGradInto(g, x0, y0, w, h, stops, steps){
+  steps = steps||4;
+  const id = g.getImageData(x0, y0, w, h), d = id.data;
+  const S = stops.map(s=>[s[0], _rgb(s[1])]);
+  for(let y=0;y<h;y++){
+    let i=0; while(i<S.length-2 && y>=S[i+1][0]) i++;
+    const span = Math.max(1, S[i+1][0]-S[i][0]);
+    const f = Math.max(0, Math.min(1, (y-S[i][0])/span));
+    const q = f*steps, lo = Math.floor(q), fr = q-lo;
+    for(let x=0;x<w;x++){
+      const lv = (BAYER4[(y&3)*4+(x&3)]/16 < fr) ? lo+1 : lo;
+      const c = _mix(S[i][1], S[i+1][1], Math.min(1, lv/steps));
+      const o = (y*w+x)*4;
+      d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255;
+    }
+  }
+  g.putImageData(id, x0, y0);
+}
+function lerpHexA(a, b, t){ const c = _mix(_rgb(a), _rgb(b), t); const f=v=>('0'+Math.round(v).toString(16)).slice(-2); return '#'+f(c[0])+f(c[1])+f(c[2]); }
+function darkHex(a, k){ return lerpHexA(a, '#0a0818', k); }
+function lightHex(a, k){ return lerpHexA(a, '#fff6dc', k); }
+/* silueta de colina determinista (suma de senos) */
+function hillY(x, base, amp, seed){
+  return Math.round(base - amp*(0.55*Math.sin(x/23+seed) + 0.3*Math.sin(x/11+seed*2.3) + 0.15*Math.sin(x/5.3+seed*4.1)));
+}
+const _bgCache = {key:null, cv:null};
+function bakeBackdrop(S, ph){
+  const key = S.bands.join()+S.hill+S.hill2+S.grass+S.grass2+ph+(G&&G.zone);
+  if(_bgCache.key===key) return _bgCache.cv;
+  const sky = (_bgCache.cv && _bgCache.cv.sky) || document.createElement('canvas');
+  const c = (_bgCache.cv && _bgCache.cv.land) || document.createElement('canvas');
+  sky.width = LW; sky.height = 126;
+  c.width = LW; c.height = 196;
+  const g = c.getContext('2d');
+  g.clearRect(0,0,LW,196);
+  /* cielo */
+  ditherGradInto(sky.getContext('2d'), 0, 0, LW, 126, [[0,S.bands[0]],[48,S.bands[1]],[104,S.bands[2]],[126,lightHex(S.bands[2],0.18)]], 5);
+  /* montañas lejanas: aire entre medias (perspectiva atmosférica) */
+  const far = lerpHexA(S.hill2, S.bands[2], 0.55), farHi = lerpHexA(far, S.bands[2], 0.35);
+  for(let x=0;x<LW;x++){
+    const y = hillY(x, 100, 11, 1.3);
+    g.fillStyle = far; g.fillRect(x, y, 1, 126-y);
+    if(hillY(x-1,100,11,1.3) > y) { g.fillStyle = farHi; g.fillRect(x, y, 1, 1); }
+  }
+  /* colina media con arboleda */
+  const mid = S.hill2, midHi = lightHex(S.hill2, 0.12);
+  for(let x=0;x<LW;x++){
+    const y = hillY(x, 111, 6, 4.2);
+    g.fillStyle = mid; g.fillRect(x, y, 1, 126-y);
+    g.fillStyle = midHi; g.fillRect(x, y, 1, 1);
+  }
+  const treeDark = darkHex(S.hill2, 0.22), treeLt = lightHex(S.hill2, 0.14);
+  for(let i=0;i<11;i++){
+    const tx = (i*37+9)%156 + 2;
+    const ty = hillY(tx, 111, 6, 4.2);
+    const r = 3 + (i*7)%3;
+    g.fillStyle = darkHex(S.hill2,0.35); g.fillRect(tx, ty-1, 1, 3);
+    for(let yy=-r;yy<=r;yy++) for(let xx=-r;xx<=r;xx++){
+      if(xx*xx+yy*yy*1.3 > r*r+1) continue;
+      g.fillStyle = (xx+yy < -r*0.4) ? treeLt : ((xx-yy > r*0.5) ? treeDark : mid);
+      g.fillRect(tx+xx, ty-r-1+yy, 1, 1);
+    }
+  }
+  /* colina cercana */
+  const near = S.hill, nearHi = lightHex(S.hill, 0.14);
+  for(let x=0;x<LW;x++){
+    const y = hillY(x, 121, 3, 7.7);
+    g.fillStyle = near; g.fillRect(x, y, 1, 128-y);
+    g.fillStyle = nearHi; g.fillRect(x, y, 1, 1);
+  }
+  /* prado: más claro lejos, más oscuro cerca (profundidad) */
+  ditherGradInto(g, 0, 124, LW, 72, [[0,lightHex(S.grass,0.1)],[26,S.grass],[72,darkHex(S.grass,0.16)]], 4);
+  /* borde del horizonte del prado */
+  for(let x=0;x<LW;x+=1){ if(((x*7)%5)<3){ g.fillStyle = S.grass2; g.fillRect(x, 124+((x*13)%3===0?1:0), 1, 1); } }
+  /* matas de hierba deterministas, más grandes cuanto más cerca */
+  for(let i=0;i<46;i++){
+    const gx = (i*53+17)%158+1, gy = 128 + (i*29)%64;
+    const big = gy>168 ? 2 : 1;
+    g.fillStyle = S.grass2;
+    g.fillRect(gx, gy, 1, 1+big); g.fillRect(gx-1, gy+big, 1, 1); g.fillRect(gx+1, gy+big-1, 1, 1+big-1);
+    g.fillStyle = lightHex(S.grass, 0.18); g.fillRect(gx, gy-1, 1, 1);
+  }
+  /* guijarros */
+  for(let i=0;i<7;i++){
+    const gx = (i*71+33)%150+5, gy = 134 + (i*41)%56;
+    g.fillStyle = darkHex(S.grass,0.3); g.fillRect(gx, gy+1, 3, 1);
+    g.fillStyle = lerpHexA(S.grass, '#d8d0c0', 0.55); g.fillRect(gx, gy, 2, 1);
+  }
+  _bgCache.key = key; _bgCache.cv = {sky, land:c};
+  return _bgCache.cv;
+}
+/* nubes esponjosas: tres formas horneadas por paleta */
+const _cloudCache = {key:null, spr:[]};
+function cloudSprites(ph){
+  const night = ph==='night';
+  const key = ph;
+  if(_cloudCache.key===key) return _cloudCache.spr;
+  const lit = night ? '#3a3f78' : (ph==='dusk' ? '#f6c8b0' : (ph==='dawn' ? '#fbe0e0' : '#ffffff'));
+  const body = night ? '#2a2e5c' : (ph==='dusk' ? '#d89aa0' : (ph==='dawn' ? '#e8c0d0' : '#eef6fc'));
+  const shade = night ? '#20234a' : (ph==='dusk' ? '#a86a88' : (ph==='dawn' ? '#c8a0c0' : '#c6dcee'));
+  const shapes = [
+    [[8,8,7],[16,6,8],[25,9,6],[4,11,4],[31,11,4]],
+    [[6,6,5],[13,5,6],[20,7,5]],
+    [[10,9,8],[20,6,9],[31,8,8],[40,11,5],[3,12,4]]
+  ];
+  _cloudCache.spr = shapes.map(sh=>{
+    let W=0,H=0; for(const b of sh){ W=Math.max(W,b[0]+b[2]+1); H=Math.max(H,b[1]+b[2]+1); }
+    H = Math.min(H, 16);
+    const c = document.createElement('canvas'); c.width=W; c.height=H;
+    const g = c.getContext('2d');
+    for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+      let inside=false, top=1e9;
+      for(const b of sh){ const dx=x-b[0], dy=y-b[1]; if(dx*dx+dy*dy<=b[2]*b[2]){ inside=true; top=Math.min(top, dy/b[2]); } }
+      if(!inside || y>H-3) continue;
+      const bottom = y>=H-5;
+      g.fillStyle = top<-0.55 ? lit : (bottom ? shade : body);
+      g.fillRect(x,y,1,1);
+    }
+    return c;
+  });
+  _cloudCache.key = key;
+  return _cloudCache.spr;
+}
+/* sol y luna recorren el cielo con la hora real */
+function celestialPos(){
+  const d = new Date();
+  const h = d.getHours() + d.getMinutes()/60;
+  let k;
+  if(h>=6.5 && h<21){ k = (h-6.5)/14.5; }
+  else { const hh = h<6.5 ? h+24 : h; k = (hh-21)/9.5; }
+  return { x: Math.round(16 + k*128), y: Math.round(74 - Math.sin(k*Math.PI)*42) };
+}
+function drawSunMoon(t, ph, S){
+  const cp = celestialPos();
+  if(ph==='night'){
+    /* halo de luna tramado */
+    ctx.globalAlpha = 0.12; ctx.fillStyle = '#dfe8ff';
+    for(let r=13;r>7;r-=3){ ctx.fillRect(cp.x-r, cp.y-r+2, r*2, r*2-4); ctx.fillRect(cp.x-r+2, cp.y-r, r*2-4, r*2); }
+    ctx.globalAlpha = 1;
+    const mc = '#f4f0d8';
+    px(cp.x-4,cp.y-5,8,10,mc); px(cp.x-5,cp.y-4,10,8,mc);
+    px(cp.x-3,cp.y-6,6,1,mc); px(cp.x-3,cp.y+5,6,1,mc);
+    px(cp.x-1,cp.y-3,2,2,'#d8d2b4'); px(cp.x+2,cp.y+1,2,1,'#d8d2b4'); px(cp.x-3,cp.y+2,1,1,'#d8d2b4');
+    /* sombra creciente */
+    px(cp.x+1,cp.y-5,4,10, S.bands[0]); px(cp.x+2,cp.y-6,2,1, S.bands[0]); px(cp.x+3,cp.y-4,3,8, S.bands[0]);
+    return;
+  }
+  const sc = ph==='day' ? '#ffe066' : '#ffab5a', core = ph==='day' ? '#fff6c0' : '#ffd08a';
+  /* halo que respira */
+  const br = 1 + Math.sin(t/900)*0.5;
+  ctx.globalAlpha = 0.14; ctx.fillStyle = sc;
+  for(const r of [15+br, 11+br]){ ctx.fillRect(cp.x-r+3, cp.y-r, (r-3)*2, r*2); ctx.fillRect(cp.x-r, cp.y-r+3, r*2, (r-3)*2); }
+  ctx.globalAlpha = 1;
+  /* rayos girando lentos */
+  for(let i=0;i<8;i++){
+    const a = i*Math.PI/4 + t/5000;
+    const r0 = 9, r1 = 11 + ((i%2)?1:3);
+    for(let r=r0;r<=r1;r++) px(cp.x+Math.cos(a)*r, cp.y+Math.sin(a)*r, 1, 1, sc);
+  }
+  px(cp.x-4,cp.y-6,8,12,sc); px(cp.x-6,cp.y-4,12,8,sc); px(cp.x-5,cp.y-5,10,10,sc);
+  px(cp.x-3,cp.y-4,5,5,core); px(cp.x-4,cp.y-3,2,2,'#ffffff');
+}
+/* rayos de luz diagonales de día: aire dorado sobre el prado */
+function drawGodRays(t, ph){
+  if(ph==='night' || WEATHER.kind==='rain' || WEATHER.kind==='fog') return;
+  const cp = celestialPos();
+  const a0 = ph==='day' ? 0.05 : 0.08;
+  const col = ph==='day' ? '#fff6c0' : '#ffb070';
+  ctx.fillStyle = col;
+  for(let i=0;i<4;i++){
+    const off = i*34 + Math.sin(t/2600+i)*6;
+    ctx.globalAlpha = a0*(0.6+0.4*Math.sin(t/1700+i*1.7));
+    for(let y=cp.y+8; y<196; y+=2){
+      const x = cp.x - 30 + off + (y-cp.y)*(cp.x>80?-0.55:0.55);
+      ctx.fillRect(Math.round(x), y, 7+(i%2)*4, 2);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 /* estrellas de ascensos anteriores: posiciones deterministas */
 function legacyStarPos(i){
   return { x: (i*53+23)%150+5, y: (i*37+11)%70+8 };
@@ -44,73 +231,92 @@ function legacyStarPos(i){
 
 function drawScene(t){
   const ph = dayPhase(), S = skyNow();
-  px(0,0,160,50,S.bands[0]);
-  px(0,50,160,35,S.bands[1]);
-  px(0,85,160,35,S.bands[2]);
+  const BG = bakeBackdrop(S, ph);
+  ctx.drawImage(BG.sky, 0, 0);
 
   if(ph==='night'){
-    for(const st of stars){
-      if(Math.sin(t/600 + st.t)>0.2) px(st.x, st.y, 1,1, '#dfe8ff');
+    for(let i=0;i<stars.length;i++){
+      const st = stars[i];
+      const tw = Math.sin(t/600 + st.t);
+      if(tw>0.2) px(st.x, st.y, 1,1, '#dfe8ff');
+      /* las más brillantes centellean en cruz */
+      if(i%5===0 && tw>0.85){ px(st.x-1, st.y, 3, 1, 'rgba(223,232,255,0.55)'); px(st.x, st.y-1, 1, 3, 'rgba(223,232,255,0.55)'); }
     }
     if(G.decor && G.decor.cielo){
       for(let i=0;i<16;i++){
         const ex = (i*61+37)%158, ey = (i*29+13)%86;
         if(Math.sin(t/500+i*2)>0) px(ex, ey, 1, 1, i%3 ? '#aab6e8' : '#ffd3e2');
       }
-      px(30,34,3,1,'#8a92c8'); px(60,20,4,1,'#8a92c8'); px(110,44,3,1,'#8a92c8');
+      /* vía láctea tenue */
+      ctx.globalAlpha = 0.10; ctx.fillStyle = '#c8c0f0';
+      for(let x=0;x<160;x+=2) ctx.fillRect(x, 70 - x*0.35 + Math.sin(x/9)*4, 2, 6);
+      ctx.globalAlpha = 1;
     }
-    /* constelación de la dinastía */
-    for(let i=0;i<Math.min(24, G.ascensions);i++){
+    /* constelación de la dinastía, unida por hilos de luz */
+    const nL = Math.min(24, G.ascensions);
+    for(let i=0;i<nL;i++){
       const p = legacyStarPos(i);
+      if(i>0){
+        const q = legacyStarPos(i-1);
+        ctx.globalAlpha = 0.18; ctx.fillStyle = '#ffd94a';
+        for(let k=0;k<=12;k++) ctx.fillRect(Math.round(q.x+(p.x-q.x)*k/12)+1, Math.round(q.y+(p.y-q.y)*k/12)+1, 1, 1);
+        ctx.globalAlpha = 1;
+      }
       const tw = Math.sin(t/400 + i)>-0.3;
       px(p.x, p.y, 2, 2, tw ? '#ffd94a' : '#b89a30');
       px(p.x-1, p.y+0.5, 1,1,'#ffd94a'); px(p.x+2, p.y+0.5,1,1,'#ffd94a');
     }
-    px(118,18,10,10,'#f4f0d8'); px(120,16,6,2,'#f4f0d8'); px(120,28,6,2,'#f4f0d8');
-    px(116,20,2,6,'#f4f0d8'); px(128,20,2,6,'#f4f0d8');
-    px(121,20,3,3, S.bands[0]);
+    drawSunMoon(t, ph, S);
     /* aurora si jardín 5 */
     if(G.up.jardin>=5){
-      for(let x=0;x<160;x+=4){
-        const yy = 30 + Math.sin(x/14 + t/900)*8;
-        px(x, yy, 4, 3, 'rgba(122,199,140,0.25)');
-        px(x, yy+4, 4, 2, 'rgba(110,177,255,0.18)');
+      for(let x=0;x<160;x+=2){
+        const yy = 30 + Math.sin(x/14 + t/900)*8 + Math.sin(x/5 + t/400)*1.5;
+        px(x, yy, 2, 3, 'rgba(122,199,140,0.22)');
+        px(x, yy+3, 2, 4, 'rgba(110,177,255,0.14)');
+        px(x, yy+7, 2, 3, 'rgba(180,120,230,0.08)');
       }
     }
   } else {
-    const sc = ph==='day' ? '#ffd94a' : '#ff9d4a';
-    px(120,16,10,10,sc); px(122,14,6,2,sc); px(122,26,6,2,sc);
-    px(118,18,2,6,sc); px(130,18,2,6,sc);
+    drawSunMoon(t, ph, S);
     /* arcoíris si jardín 5 */
     if(G.up.jardin>=5 && ph==='day'){
-      const cols=['#e2574c','#f0a04b','#ffd94a','#7ac74f','#6db1ff'];
-      for(let i=0;i<5;i++){
-        for(let a=0;a<=40;a++){
-          const ang = Math.PI + (a/40)*Math.PI;
+      const cols=['#e2574c','#f0a04b','#ffd94a','#7ac74f','#6db1ff','#8a6ae8'];
+      ctx.globalAlpha = 0.55;
+      for(let i=0;i<6;i++){
+        for(let a=0;a<=60;a++){
+          const ang = Math.PI + (a/60)*Math.PI;
           const r = 54+i*2;
-          const xx = 80 + Math.cos(ang)*r, yy = 112 + Math.sin(ang)*r*0.8;
-          if(yy>0 && yy<110) px(xx, yy, 2, 2, cols[i]+'');
+          const xx = 80 + Math.cos(ang)*r, yy = 116 + Math.sin(ang)*r*0.8;
+          if(yy>0 && yy<112) px(xx, yy, 2, 2, cols[i]);
         }
       }
+      ctx.globalAlpha = 1;
     }
   }
-  for(const c of clouds){
-    c.x += 0.008*c.s; if(c.x>175) c.x=-30;
-    const cc = ph==='night' ? '#2a2e5c' : 'rgba(255,255,255,0.85)';
-    px(c.x, c.y, 18*c.s, 4, cc);
-    px(c.x+3, c.y-3, 10*c.s, 3, cc);
+  /* nubes con volumen y parallax */
+  const CS = cloudSprites(ph);
+  for(let i=0;i<clouds.length;i++){
+    const c = clouds[i];
+    c.x += 0.008*c.s*(WEATHER.kind==='wind'?3:1); if(c.x>175) c.x=-50;
+    const spr = CS[i%CS.length];
+    ctx.globalAlpha = ph==='night' ? 0.8 : 0.95;
+    ctx.drawImage(spr, Math.round(c.x), Math.round(c.y));
+    ctx.globalAlpha = 1;
   }
-  px(0,108,160,14,S.hill2);
-  for(let x=0;x<160;x+=8){ const hh = 4+Math.round(3*Math.sin(x/18)); px(x,108-hh,8,hh,S.hill2); }
-  px(0,116,160,8,S.hill);
-  for(let x=4;x<160;x+=10){ const hh = 3+Math.round(2*Math.sin(x/12+2)); px(x,116-hh,10,hh,S.hill); }
-  px(0,124,160,72,S.grass);
-  for(let x=0;x<160;x+=6){ px(x,124,3,2,S.grass2); }
+  ctx.drawImage(BG.land, 0, 0);
   /* franja 196-199: única zona que nadie más repinta por frame —
      sin esto acumula restos de paneles y del atenuado modal */
   px(0,196,160,4,K);
-
-  for(let i=0;i<8;i++){ px((i*37+11)%160, 130+(i*23)%60, 2,1, S.grass2); }
+  drawGodRays(t, ph);
+  /* hierba alta del primer plano que se mece con el viento */
+  const wind = WEATHER.kind==='wind' ? 2.2 : 1;
+  for(let i=0;i<14;i++){
+    const gx = (i*47+5)%156+2, gy = 186+(i*13)%9;
+    const sw = Math.round(Math.sin(t/(520/wind)+i*1.3)*wind*0.8);
+    px(gx, gy-2, 1, 3, S.grass2);
+    px(gx+sw, gy-4, 1, 2, S.grass2);
+    px(gx+1, gy-1, 1, 2, darkHex(S.grass,0.25));
+  }
 
   /* charcos que quedan un rato tras la lluvia */
   if(Date.now() < (G.puddlesUntil||0) && WEATHER.kind!=='rain'){
