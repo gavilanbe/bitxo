@@ -135,6 +135,10 @@ function run(){
     relicspanel: `G.relics={trebol:true,seta:true}; UI.mode='relics';`,
     offrep: `offlineReport={away:5*3600000+12*60000, motas:842, autofed:2, poops:3, lvls:1, evolved:true, robot:1, mistakes:0, ranAway:[], capped:false}; UI.repT=performance.now()-5000; UI.mode='main';`,
     motas: `for(let i=0;i<4;i++) UI.sparkles.push({x:30+i*30, y:140+(i%2)*20, born:Date.now()-1000, t:i, zone:'prado'}); G.wild={kind:'chispin', nv:5, elite:false, boss:false, zone:'prado', x:125, tx:125, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
+    constel: `MENU_DRAW.constel=drawConstel; MENU_PARENT.constel='main'; G.stars=12; G.constel={pts:7, nodes:{rocio:3,chispa:1,sueno:2,cuna:2,semilla:1,colmillo:1}, guide:null}; openConstel(false); UI.cst.sel='sangre';`,
+    constelhint: `MENU_DRAW.constel=drawConstel; MENU_PARENT.constel='main'; G.stars=5; G.constel={pts:5, nodes:{}, guide:null}; openConstel(true); UI.cst.gain=5;`,
+    constelfull: `MENU_DRAW.constel=drawConstel; MENU_PARENT.constel='main'; G.stars=40; G.ascensions=6; const _n={}; for(const n of CONSTEL) _n[n.id]=n.max; _n.furia=0; _n.herencia=0; G.constel={pts:30, nodes:_n, guide:'brasa'}; openConstel(false); UI.cst.sel='guia';`,
+    constelbuy: `MENU_DRAW.constel=drawConstel; MENU_PARENT.constel='main'; G.stars=20; const _n={}; for(const n of CONSTEL) if(n.br===2) _n[n.id]=n.max; _n.furia=0; G.constel={pts:14, nodes:_n, guide:null}; openConstel(false); UI.cst.sel='furia'; setTimeout(()=>buyConstel('furia'), 900);`,
     parqueconfirm: `G.toys={pelota:true,columpio:true}; G.motas=800; UI.mode='parqueConfirm';`
   };
   if(visuals[mode]){ E(`(function(){ ${setup} ${visuals[mode]} })()`); document.title = 'VISUAL'; return; }
@@ -417,7 +421,7 @@ function run(){
         checkEvolution(q, true);
         R.evoQueued = EVO_QUEUE.length === qn+1 && q.stage===2;
         const played = playNextEvo();
-        R.evoPlays = played && UI.mode==='evolve' && !!UI.evo && UI.evo.toName==='KIPO';
+        R.evoPlays = played && UI.mode==='evolve' && !!UI.evo && UI.evo.toName===LINES.pradera.names.childA;
         // la cinemática no revienta en ninguna fase
         let crashed = false;
         try{ for(const tt of [400, 1500, 2600, 4000, 4500, 5200]){ UI.evoT = tt; drawEvolve(16); } }
@@ -710,7 +714,8 @@ function run(){
         G.pets[0].hatchedAt = Date.now()-30000;
         UI.mode = 'main';
         liveUpdate(50);
-        R.tutorialHint = G.hints.mimos === true;
+        /* el arco de primer día ahora es la cadena de OBJETIVOS */
+        R.tutorialHint = typeof currentGoal==='function' && !!currentGoal().t && !!currentGoal().h;
         G.ascensions = stash2.asc; G.gen = stash2.gen; G.hints = stash2.hints; }
       // PWA: manifest válido y SW con caché versionada
       try{
@@ -1165,6 +1170,66 @@ function run(){
         liveUpdate(50);
         R.robotOffscreen = G.poops.length === 0;
         G.zone = 'prado'; G.poops = []; }
+      // CONSTELACION: polvo, compras, efectos y polvo retroactivo
+      { const cs0 = G.constel, st0 = G.stars, up0 = JSON.stringify(G.up);
+        G.constel = {pts:10, nodes:{}, guide:null};
+        R.cstLockedRefused = buyConstel('chispa') === false && G.constel.pts === 10;
+        const r0 = petRate(_p);
+        R.cstBuyDeducts = buyConstel('rocio') === true && G.constel.pts === 8 && perk('rocio') === 1;
+        R.cstMotaPerk = Math.abs(petRate(_p)/r0 - 1.1) < 1e-6;
+        G.constel.pts = 1;
+        R.cstPoorRefused = buyConstel('rocio') === false && perk('rocio') === 1 && G.constel.pts === 1;
+        G.constel.nodes = {rocio:3, sueno:2, huerto:2, cometa:1, colmillo:3, caparazon:3, halcon:2, botin:2, furia:1, cuna:1, semilla:1, sangre:2};
+        R.cstMaxRefused = buyConstel('rocio') === false;
+        R.cstOffline = offlineCap() === OFFLINE_CAP + 8*3600000 && Math.abs(offlineRateMult()-1.4)<1e-9;
+        R.cstExped = expedMult() === (1+0.3*G.ascensions)*legacyMult()*1.5 && expedMs(EXPEDS[0], {line:'pradera'}) === Math.round(EXPEDS[0].mins*60000*0.75);
+        R.cstAtk = Math.abs(btAtk(_p) / ((4 + _p.str*1.3 + _p.level*1.2 + 5) * (_p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1)) - 1.24) < 1e-6;
+        { const ps = G.pets.length; const e = spawnEgg(undefined, true);
+          R.cstEggPerks = e.level === 2 && e.str === 0 && e.gift && e.gift.s === 2 && e.gift.v === 2;
+          e.stage = 1; e.form = 'babyA'; e.hatchedAt = Date.now(); e.level = 3; e.mistakes = 0; e.gamesWon = 0; e.weight = 10;
+          const cs = careScore(e); const qn = EVO_QUEUE.length; checkEvolution(e, true); EVO_QUEUE.length = qn;
+          R.cstGiftOnGrow = e.stage === 2 && e.str === 2 && e.def === 2 && e.spd === 2 && !e.gift && e.form === (cs>=65 ? 'childA' : 'childB');
+          G.pets.splice(ps, 1); }
+        { const q = makePet('pradera', 1); q.stage = 1; q.xp = 0; q.level = 1;
+          const _cr = G.relics.cristal; G.relics.cristal = false;
+          for(let i=0;i<10;i++) gainXPFor(q, 1);
+          G.relics.cristal = _cr;
+          R.cstXpPerk = q.xp === 11 || (q.xp === 10 && q.xpFrac > 0.4); }
+        // HERENCIA + ESTRELLA GUIA al ascender
+        G.constel.nodes.guia = 1; G.constel.nodes.herencia = 1; G.constel.guide = 'brasa'; G.constel.pts = 0;
+        const par = makePet('pradera', 9); par.stage = 3; par.form = 'adultS'; par.level = 12; par.str = 8; par.def = 4; par.spd = 12; par.hat = 'lazo';
+        const sel0 = G.sel; G.pets[sel0] = par; UI.ascGain = 3;
+        finishAscend();
+        const kid = G.pets[sel0];
+        R.cstHeir = kid.line === 'brasa' && kid.gift && kid.gift.s === 2+2 && kid.gift.d === 1+2 && kid.gift.v === 3+2 && kid.hat === 'lazo';
+        R.cstAscDust = G.constel.pts === constelGainFor(par, 3).n && G.constel.pts >= 3+2+1 && UI.mode === 'constel';
+        // la tarjeta: tocar estrella selecciona, fuera cierra
+        UI.cst.sel = null; const nn = CONSTEL_BY.colmillo;
+        constelTap(nn.x, nn.y);
+        R.cstTapSelects = UI.cst.sel === 'colmillo' && UI.mode === 'constel';
+        constelTap(2, 2);
+        R.cstTapOutCloses = UI.mode === 'main';
+        G.pets[sel0] = _p; G.sel = sel0;
+        // partida vieja sin constelación: polvo = estrellas
+        const old = JSON.parse(JSON.stringify(G)); delete old.constel; old.stars = 9;
+        const ng = normalizeSave(old);
+        R.cstRetro = ng.constel.pts === 9 && Object.keys(ng.constel.nodes).length === 0;
+        R.cstFresh = freshGame().constel.pts === 0;
+        G.constel = cs0; G.stars = st0; UI.mode = 'main'; }
+      // OBJETIVOS: la cadena avanza y paga
+      { const g0 = G.goal; G.goal = {i:1}; G.life = {mimos:3};
+        UI.goalDoneAt = 0; goalTimer = 0; const m0 = G.motas;
+        goalsTick();
+        R.goalAdvances = G.goal.i === 2 && G.motas > m0;
+        G.goal = {i:GOALS.length}; UI.goalDoneAt = 0; goalTimer = 0;
+        const eg = currentGoal();
+        R.goalEndless = !!eg.endless && eg.prog()[1] > 0 && !!G.goal.e;
+        G.goal = g0; }
+      // actualizar: solo en un momento seguro
+      UI.mode = 'shop'; R.updUnsafeInMenu = !safeToReload();
+      UI.mode = 'main'; R.updSafeInMain = safeToReload() === (!offlineReport && !UI.expReport && !EVO_QUEUE.length && !UI.carry && !UI.zoneSlide);
+      // el bebé crece más rápido que el joven
+      R.babyTrickle = trickleMult({stage:1}) > trickleMult({stage:2}) && trickleMult({stage:3}) === 1;
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);

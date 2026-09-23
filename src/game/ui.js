@@ -52,6 +52,7 @@ function playNextEvo(){
     UI.evo = {
       from: SPR[q.fromKey][0], to: SPR[q.toKey][0],
       fromName: nameOfKey(q.fromKey), toName: nameOfKey(q.toKey),
+      toDesc: formDescOfKey(q.toKey),
       dark: q.toKey==='grimo',
       swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false
     };
@@ -61,6 +62,12 @@ function playNextEvo(){
     return true;
   }
   return false;
+}
+/* descripción de una forma por su clave 'linea_slot' (o 'grimo') */
+function formDescOfKey(key){
+  if(key==='grimo') return (typeof FORM_DESC.grimo==='string') ? FORM_DESC.grimo : '';
+  const i = key.indexOf('_'), ln = key.slice(0,i), sl = key.slice(i+1);
+  return (FORM_DESC[ln] && FORM_DESC[ln][sl]) || '';
 }
 function currentFormDef(){
   const p = AP();

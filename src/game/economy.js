@@ -23,7 +23,7 @@ function petRate(p){
   if(p.stage===STAGES.EGG || p.exped) return 0;
   const mood = 0.5 + (p.happy/100);
   const stageM = [0,1,1.5,2.2][p.stage]||1;
-  let r = (0.15 + 0.25*G.up.aura) * mood * gardenMult() * legacyMult() * stageM * (1+0.04*(p.level-1)) * (p.line==='pradera'?1.15:1) * traitWeatherMult(p);
+  let r = (0.15 + 0.25*G.up.aura) * mood * gardenMult() * legacyMult() * constelMotaMult() * stageM * (1+0.04*(p.level-1)) * (p.line==='pradera'?1.15:1) * traitWeatherMult(p);
   if(p.sick) r *= 0.5;
   if(p.sleeping) r *= 0.3;
   return r;
@@ -34,7 +34,7 @@ function motaRate(){
   let r=0; for(const p of G.pets) r += petRate(p);
   return r * motaMult();
 }
-function tapYield(){ return Math.max(1, Math.round((1 + G.up.cosecha) * legacyMult())) + (G.relics && G.relics.campanilla ? 1 : 0); }
+function tapYield(){ return Math.max(1, Math.round((1 + G.up.cosecha) * legacyMult() * constelTapMult())) + (G.relics && G.relics.campanilla ? 1 : 0); }
 function gainMotas(n, x, y){
   G.motas += n; G.totalMotas += n;
   if(x!==undefined) UI.floats.push({x, y, s:'+'+fmt(n), col:'#ffd94a', life:900, vy:-0.025});
@@ -42,7 +42,12 @@ function gainMotas(n, x, y){
 function xpNeed(l){ return Math.round(25 * Math.pow(1.35, l-1)); }
 function gainXPFor(p, n){
   if(p.stage===STAGES.EGG) return;
-  n = Math.round(n * (G.relics && G.relics.cristal ? 1.1 : 1));
+  const cm = constelXpMult();
+  if(cm > 1){
+    /* CUNA DE LUZ: la fracción se guarda para que el goteo de 1 XP también crezca */
+    const f = n * (G.relics && G.relics.cristal ? 1.1 : 1) * cm + (p.xpFrac||0);
+    n = Math.floor(f); p.xpFrac = f - n;
+  } else n = Math.round(n * (G.relics && G.relics.cristal ? 1.1 : 1));
   p.xp += n;
   while(p.xp >= xpNeed(p.level)){
     p.xp -= xpNeed(p.level); p.level++;
@@ -62,6 +67,8 @@ function ascendStars(){
   const p = AP();
   return Math.max(1, Math.floor(p.level/4) + Math.floor(Math.log10(G.totalMotas+1)) - 1) + (p.line==='astro'?1:0);
 }
+/* POLVO ESTELAR que dejaría ascender ahora (estrellas + premios) */
+function ascendDust(){ return constelGainFor(AP(), ascendStars()).n; }
 function dexCount(){ let n=0; for(const k in G.dex) n++; return n; }
 const DEX_TOTAL = LINE_KEYS.length*SLOT_KEYS.length + 1;
 function markDex(key){ if(G && !G.dex[key]) G.dex[key]=true; }
@@ -85,7 +92,7 @@ function xpEtaMs(p, targetLv){
   if(p.level>=targetLv) return 0;
   let need = xpNeed(p.level) - p.xp;
   for(let l=p.level+1;l<targetLv;l++) need += xpNeed(l);
-  return need / XP_TRICKLE_MS;
+  return need / (XP_TRICKLE_MS*trickleMult(p)*constelXpMult());
 }
 /* LEYENDA (adultS): EN SINCRONIA con predictNext y EVO_REQS.adultS */
 function isLegend(p, cs){ return cs>=80 && p.str>=5 && p.def>=5 && p.spd>=5 && p.gamesWon>=5 && p.mistakes<=1; }
@@ -98,6 +105,9 @@ function checkEvolution(p, silent){
     p.stage = STAGES.CHILD;
     p.form = (((p.str||0)+(p.def||0)+(p.spd||0))>=4 || careScore(p)>=65) ? 'childA' : 'childB';
     markDex(p.line+'_'+p.form);
+    /* CONSTELACION: el regalo de sangre/herencia llega al crecer
+       (después de elegir rama: no fuerza el camino A) */
+    if(p.gift){ p.str += p.gift.s||0; p.def += p.gift.d||0; p.spd += p.gift.v||0; p.gift = null; }
     queueEvolution(p, fromKey, evoKeyOf(p));
     return; /* una etapa por vez: cada evolución se vive entera */
   }

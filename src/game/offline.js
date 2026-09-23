@@ -7,9 +7,10 @@ let offlineReport = null;
 /* simula la ausencia en 24 pasos. La ventana simulada son las primeras
    OFFLINE_CAP del hueco; el resto cuenta como tiempo real para la fuga */
 function applyElapsed(ms){
-  const dt = Math.min(ms, OFFLINE_CAP);
+  const CAP = offlineCap(); /* SUENO LARGO alarga la ventana */
+  const dt = Math.min(ms, CAP);
   const now = Date.now(), leave = now - ms;
-  const rep = {away:ms, motas:0, autofed:0, poops:0, lvls:0, evolved:false, capped: ms>OFFLINE_CAP, ranAway:[], robot:0, mistakes:0};
+  const rep = {away:ms, motas:0, autofed:0, poops:0, lvls:0, evolved:false, capped: ms>CAP, ranAway:[], robot:0, mistakes:0};
   const STEPS = 24, sdt = dt/STEPS;
   const rz = (G.toys && G.toys.robot) ? toyZone('robot') : null;
   let robotBudget = 0;
@@ -47,7 +48,7 @@ function applyElapsed(ms){
       /* el goteo de XP también corre fuera (a media marcha, como las motas) */
       const lg = p.stage===STAGES.BABY ? EVO_LEVEL.child : (p.stage===STAGES.CHILD ? EVO_LEVEL.adult : 0);
       if(lg && p.level<lg){
-        p.xpAcc = (p.xpAcc||0) + XP_TRICKLE_MS*sdt*0.5*(p.sleeping?0.3:1)*(p.sick?0.5:1);
+        p.xpAcc = (p.xpAcc||0) + XP_TRICKLE_MS*trickleMult(p)*constelXpMult()*sdt*0.5*(p.sleeping?0.3:1)*(p.sick?0.5:1);
         if(p.xpAcc>=1){
           const w = Math.floor(p.xpAcc); p.xpAcc -= w; p.xp += w;
           while(p.xp >= xpNeed(p.level) && p.level<lg){ p.xp -= xpNeed(p.level); p.level++; rep.lvls++; }
@@ -60,7 +61,7 @@ function applyElapsed(ms){
       if(p.hunger>0) p.hungerZeroSince = null;
     }
     /* mismas reglas que motaRate (botín, trébol, amistad), a media marcha */
-    const gain = rate * motaMult(tStep) * (sdt/1000) * 0.5;
+    const gain = rate * motaMult(tStep) * (sdt/1000) * 0.5 * offlineRateMult();
     G.motas += gain; G.totalMotas += gain; rep.motas += gain;
     /* el robot sigue barriendo su zona */
     if(rz){

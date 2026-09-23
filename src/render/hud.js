@@ -166,6 +166,7 @@ function drawHUD(t){
   const xw = Math.round(160*Math.min(1, p.xp/xpNeed(p.level)));
   px(0,19,xw,2,'#7ac74f'); px(0,19,xw,1,'#bdf0a0');
   if(xw>2){ const sh = Math.floor(t/20)%200; if(sh<xw) px(sh,19,3,1,'#ffffff'); }
+  if(sceneFamily(UI.mode)==='world' && !MENU_DRAW[UI.mode]) drawGoalRibbon(t);
   if(UPDATE_READY && Math.floor(t/500)%4!==3){
     px(28,23,104,12,'#ffd94a');
     px(28,23,104,1,K); px(28,34,104,1,K); px(28,23,1,12,K); px(131,23,1,12,K);
@@ -233,7 +234,8 @@ function drawHUD(t){
     if(hot && UI.btnAt[i] < UI.flashUntil-150) UI.btnAt[i] = UI.flashUntil-150;
     const act = activeBtn===i;
     /* la acción que hace falta te llama: borde dorado y aviso */
-    const urgent = (i===0 && p.hunger<25) || (i===1 && p.happy<25) ||
+    const hinted = UI.hintBtn && UI.hintBtn.i===i && performance.now()<UI.hintBtn.until;
+    const urgent = hinted || (i===0 && p.hunger<25) || (i===1 && p.happy<25) ||
                    (i===2 && G.poops.some(pp=>(pp.zone||'prado')===G.zone)) || (i===3 && p.energy<15 && !p.sleeping);
     const pulse = urgent && !act && Math.floor(t/320)%2===0;
     const sq = springSquash(UI.btnAt[i], 0.22);
@@ -259,6 +261,40 @@ function drawHUD(t){
     const jy = age<180 ? Math.round(-2*Math.sin(age/180*Math.PI)) : 0;
     drawTextC(BTNS[UI.flashBtn].label, 80, 265+jy, K);
   }
+}
+/* ---- cinta de OBJETIVO: siempre sabes qué hacer ahora ---- */
+function drawGoalRibbon(t){
+  if(!G.goal && typeof currentGoal!=='function') return;
+  const now = performance.now();
+  const since = UI.goalDoneAt ? now - UI.goalDoneAt : 1e9;
+  const x0 = 4, y0 = 22, w = 152, h = 10;
+  /* recién cumplido: la cinta se vuelve dorada con ✓ y luego entra la siguiente */
+  if(since < 1600 && G.goal && G.goal.lastT){
+    const k = ease.outBack(clamp01(since/220));
+    const jy = Math.round((1-k)*-4);
+    px(x0, y0+jy, w, h, '#ffd94a'); px(x0, y0+jy, w, 1, '#fff8d0'); px(x0, y0+h-1+jy, w, 1, '#c8a04b');
+    drawTextC('★ '+G.goal.lastT+(G.goal.lastM?'  +'+G.goal.lastM+'✦':''), 80, y0+3+jy, K);
+    return;
+  }
+  const g = currentGoal();
+  const inK = ease.outBack(clamp01((since-1600)/300));
+  const ox = Math.round((1-inK)*-160);
+  const pr = goalProgress(g);
+  ctx.globalAlpha = 0.9;
+  px(x0+ox, y0, w, h, '#20243c');
+  ctx.globalAlpha = 1;
+  px(x0+ox, y0, w, 1, 'rgba(255,255,255,0.12)');
+  if(pr){
+    const f = Math.max(0, Math.min(1, pr[0]/Math.max(1,pr[1])));
+    px(x0+ox+1, y0+h-2, Math.round((w-2)*f), 1, '#7ac74f');
+  }
+  /* flecha que late: "esto es lo siguiente" */
+  const nud = Math.round(Math.abs(Math.sin(t/300))*1.5);
+  drawText('>', x0+ox+3+nud, y0+2, '#ffd94a');
+  let txt = g.t;
+  if(pr && !g.xpBar) txt += ' '+Math.min(pr[0],pr[1])+'/'+pr[1];
+  drawText(txt.length>34 ? txt.slice(0,34) : txt, x0+ox+10, y0+2, '#ffffff');
+  UI.goalRect = {x:x0, y:y0, w, h};
 }
 /* aviso: cinta que cae desde el HUD con rebote y se recoge al irse */
 function toastTone(s){
@@ -292,7 +328,7 @@ function drawToast(t){
   const tx = Math.round(80-wdt/2);
   /* con un menú abierto el aviso sube desde abajo (no tapa el título) */
   const low = UI.toastY!==undefined ? null : (MENU_DRAW[UI.mode] || offlineReport || UI.expReport || sceneFamily(UI.mode)!=='world');
-  const baseY = UI.toastY!==undefined ? UI.toastY : (low ? 252 - h : (sceneFamily(UI.mode)==='world' ? 24 : 248 - h));
+  const baseY = UI.toastY!==undefined ? UI.toastY : (low ? 252 - h : (sceneFamily(UI.mode)==='world' ? 35 : 248 - h));
   const ty = low ? Math.round(baseY + (1-inK)*16 + outK*14) : Math.round(baseY - (1-inK)*16 - outK*14);
   ctx.globalAlpha = 1-outK;
   const acc = toastTone(UI.msg);
@@ -335,7 +371,7 @@ function drawStats(){
   line('FALLOS', p.mistakes);
   line('AMISTAD', '♥'+(G.bond||0)+' (+'+Math.min(10,Math.round((G.bond||0)*0.2))+'%)');
   line('MOTAS TOT.', '✦'+fmt(G.totalMotas));
-  line('ESTRELLAS', '★'+G.stars+' (+'+ (G.stars*10) +'%)');
+  line('ESTRELLAS', '★'+G.stars+' (+'+ (G.stars*10) +'%) >');
   y+=2;
   const bar=(label,val,col)=>{
     drawText(label,16,y,K);
@@ -674,7 +710,8 @@ function drawLegacy(){
     }
     if(L.length>9) drawTextC('...Y '+(L.length-9)+' MAS EN EL CIELO', 80, 227, 'rgba(26,20,40,0.45)');
   }
-  drawTextC('SU LUZ GUIA A LOS QUE VIENEN', 80, 236, 'rgba(26,20,40,0.5)');
+  card(30,224,100,13); drawTextC('★ CONSTELACION', 80, 228, '#8a6a10');
+  if(CONSTEL.some(n=>constelState(n)==='ok') && Math.floor(performance.now()/400)%2===0){ px(124,226,3,3,'#e2574c'); }
 }
 
 /* ---------------- SALA DE JUEGOS ---------------- */
@@ -712,7 +749,8 @@ function drawExped(){
     px(14,y,132,25,'#f6efe0');
     px(14,y,132,1,K); px(14,y+24,132,1,K); px(14,y,1,25,K); px(145,y,1,25,K);
     drawText(E.name, 18, y+2, K);
-    drawText(E.mins>=60? (E.mins/60)+'H' : E.mins+'M', 126, y+2, '#8a6a10');
+    const em = Math.round(expedMs(E, AP())/60000);
+    drawText(em>=60? (Math.round(em/6)/10)+'H' : em+'M', 126, y+2, '#8a6a10');
     drawText('~'+fmt(Math.round(E.motas*mult))+'✦ RELIQ '+Math.round(E.relic*100)+'%', 18, y+10, 'rgba(26,20,40,0.6)');
     if(E.egg) drawText('HUEVO '+LINES[E.egg].name+' '+Math.round(E.eggP*100)+'%', 18, y+18, '#a03030');
     else drawText('VIAJE TRANQUILO', 18, y+18, 'rgba(26,20,40,0.4)');
@@ -848,7 +886,7 @@ function drawOfflineReport(){
   panel(12,y0,136,h);
   titleChip(80, y0+6, 'MIENTRAS NO ESTABAS');
   const hrs = Math.floor(r.away/3600000), mins = Math.floor((r.away%3600000)/60000);
-  drawTextC((hrs>0? hrs+'H ':'')+mins+'M FUERA'+(r.capped?' (MAX 14H)':''), 80, y0+18, 'rgba(26,20,40,0.6)');
+  drawTextC((hrs>0? hrs+'H ':'')+mins+'M FUERA'+(r.capped?' (MAX '+Math.round(offlineCap()/3600000)+'H)':''), 80, y0+18, 'rgba(26,20,40,0.6)');
   /* la cifra gorda: motas ganadas contando */
   const mv = countUp(r.motas, UI.repT, 1100);
   drawTextOC('+'+fmt(mv)+'✦', 80, y0+30, '#ffd94a', 2, '#8a6a10');
@@ -928,7 +966,7 @@ function drawBuhoShop(){
   const b = G.buho;
   if(!b) return;
   panel(8,50,144,144);
-  ctx.drawImage(SPR.grimo[0], 14, 54);
+  ctx.drawImage(SPR.buhonero[0], 14, 54);
   titleChip(84, 56, 'EL BUHONERO');
   drawTextC('RAREZAS DE PASO  ✦'+fmt(G.motas), 84, 65, 'rgba(26,20,40,0.6)');
   for(let i=0;i<b.offers.length;i++){
@@ -1053,7 +1091,11 @@ function drawEvoTree(){
   let nm = 'HUEVO '+L.name;
   if(nd.slot==='grimo') nm = seen ? 'GRIMO' : '?????';
   else if(nd.slot!=='egg') nm = seen ? L.names[nd.slot] : '?????';
-  drawTextC(nm, 80, 205, K);
+  drawTextC(nm, 80, 203, K);
+  /* qué es esta forma (solo si ya la conoces) */
+  const fdesc = nd.slot==='grimo' ? FORM_DESC.grimo : (FORM_DESC[ln] && FORM_DESC[ln][nd.slot]);
+  if(seen && fdesc && typeof fdesc==='string') drawTextC(fdesc, 80, 210, '#8a6a10');
+  else if(nd.slot==='egg' && LINE_MOTIF[ln]) drawTextC(LINE_MOTIF[ln], 80, 210, '#8a6a10');
   const reqs = EVO_REQS[nd.slot];
   const cA = G.dex[ln+'_childA'] ? L.names.childA : '???';
   const cB = G.dex[ln+'_childB'] ? L.names.childB : '???';
@@ -1061,8 +1103,8 @@ function drawEvoTree(){
     drawTextC('? ? ?', 80, 216, 'rgba(26,20,40,0.5)');
     drawTextC('UN SECRETO POR DESCUBRIR', 80, 225, 'rgba(26,20,40,0.5)');
   } else {
-    drawTextC(reqs[0].replace('{cA}',cA).replace('{cB}',cB), 80, 216, 'rgba(26,20,40,0.7)');
-    drawTextC(reqs[1].replace('{cA}',cA).replace('{cB}',cB), 80, 225, 'rgba(26,20,40,0.7)');
+    drawTextC(reqs[0].replace('{cA}',cA).replace('{cB}',cB), 80, 219, 'rgba(26,20,40,0.7)');
+    drawTextC(reqs[1].replace('{cA}',cA).replace('{cB}',cB), 80, 227, 'rgba(26,20,40,0.7)');
   }
   const p = AP();
   drawTextC('TU BITXO: FUE '+(p.str||0)+' DEF '+(p.def||0)+' VEL '+(p.spd||0), 80, 238, '#3a7048');

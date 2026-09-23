@@ -192,7 +192,7 @@ function openHuerta(){
 /* si alguien vive en la huerta, riega: la fruta madura antes */
 function huertoCycleMs(){
   const riego = G.pets.some(p=>(p.zone||'prado')==='huerta' && p.stage>STAGES.EGG);
-  return (riego ? 90 : 120) * 60 * 1000;
+  return (riego ? 90 : 120) * 60 * 1000 * (1 - 0.2*perk('huerto'));
 }
 
 /* --- tienda con scroll: alto del contenido por pestaña --- */
@@ -297,6 +297,9 @@ function relicRoll(){
   if(!pool.length) return null;
   return pool[Math.floor(Math.random()*pool.length)];
 }
+/* duración real de una expedición (FUNGO -20%, COMETA -25%) y su premio base */
+function expedMs(E, p){ return Math.round(E.mins*60000*(p.line==='fungo'?0.8:1)*(perk('cometa')?0.75:1)); }
+function expedMult(){ return (1+0.3*G.ascensions)*legacyMult()*(perk('cometa')?1.5:1); }
 function sendExpedition(i){
   const p = AP(), E = EXPEDS[i];
   if(p.exped) return;
@@ -304,16 +307,16 @@ function sendExpedition(i){
   if(p.sleeping){ toast('SHHH... DUERME'); return; }
   if(p.energy<20){ toast('SIN ENERGIA'); SFX.nope(); return; }
   p.energy -= 15;
-  p.exped = {dest:i, until: Date.now() + Math.round(E.mins*60000*(p.line==='fungo'?0.8:1))};
+  p.exped = {dest:i, until: Date.now() + expedMs(E, p)};
   toast('¡'+currentNameOf(p)+' PARTE AL '+E.name+'!', 3000);
   SFX.train(); vibrate(30);
   UI.mode='main'; saveGame();
 }
 function resolveExpedition(p){
   const E = EXPEDS[p.exped.dest];
-  const mult = (1+0.3*G.ascensions)*legacyMult();
+  const mult = expedMult();
   /* que salga a cuenta: al menos lo que habría producido en casa ×1.2 */
-  const durS = E.mins*60*(p.line==='fungo'?0.8:1);
+  const durS = expedMs(E, p)/1000;
   const casa = petRate(Object.assign({}, p, {exped:null, sleeping:false})) * motaMult() * durS * 1.2;
   const motas = Math.round(Math.max(E.motas*mult, casa)*(0.85+Math.random()*0.3));
   gainMotas(motas);
@@ -353,6 +356,7 @@ function buyUpgrade(i){
 }
 function doAscend(){
   UI.ascGain = ascendStars();
+  UI.ascPts = ascendDust(); /* POLVO ESTELAR que dejará (para la cinemática) */
   UI.mode='ascendFX'; UI.ascT=0;
   SFX.ascend(); vibrate([80,60,80,60,200]);
 }
@@ -362,11 +366,22 @@ function finishAscend(){
   G.legacy.push({name: petName(p), key: evoKeyOf(p), lv: p.level, gen: p.gen, stars: UI.ascGain});
   diaryLog(petName(p)+' ASCENDIO AL CIELO +'+UI.ascGain+'★');
   G.stars += UI.ascGain;
+  /* POLVO ESTELAR: lo que se gasta en la CONSTELACION */
+  const cst = constelEnsure();
+  const dust = constelGainFor(p, UI.ascGain);
+  cst.pts += dust.n; UI.ascPts = dust.n;
   G.ascensions++;
   const i = G.sel;
-  spawnEgg(i);
+  constelBeforeEgg();
+  const egg = spawnEgg(i);
+  constelAfterEgg(p, egg);
   G.sel = i;
   UI.sparkles=[]; UI.mode='main';
+  /* con polvo en el bolsillo, el cielo se abre para gastarlo */
+  if(cst.pts > 0){
+    openConstel(true);
+    UI.cst.gain = dust.n; UI.cst.why = dust.why;
+  }
   saveGame();
 }
 
@@ -398,6 +413,8 @@ function ensureDaily(){
   G.daily = {key, ids: idx.slice(0,3), prog:{}, claimed:{}};
 }
 function questProg(id, n){
+  /* contadores de toda la vida: los usan los objetivos */
+  if(G){ G.life = G.life||{}; G.life[id] = (G.life[id]||0) + n; }
   if(!G || !G.daily) return;
   if(!G.daily.ids.some(i=>QUESTS[i].id===id)) return;
   if(G.daily.claimed[id]) return;
@@ -415,6 +432,7 @@ function claimQuest(i){
   if(G.daily.claimed[q.id]){ SFX.tap(); return; }
   if((G.daily.prog[q.id]||0) < q.n){ SFX.tap(); return; }
   G.daily.claimed[q.id] = true;
+  G.life = G.life||{}; G.life.misiones = (G.life.misiones||0)+1;
   gainMotas(q.m); gainXP(q.xp);
   toast('¡MISION LISTA! +'+q.m+'✦', 2600);
   SFX.buy(); vibrate(25);

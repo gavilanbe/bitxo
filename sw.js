@@ -1,7 +1,7 @@
 /* BITXO service worker: red primero, caché de respaldo.
    Las actualizaciones siempre llegan (los ?v= cambian de URL) y sin
    conexión el prado sigue abierto con lo último que se descargó. */
-const CACHE = 'bitxo-cache-20260923-1624';
+const CACHE = 'bitxo-cache-20260923-1655';
 self.addEventListener('install', e => { self.skipWaiting(); });
 self.addEventListener('activate', e => {
   e.waitUntil(
@@ -20,8 +20,14 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
+  /* la página y todo lo nuestro se revalida siempre con el servidor:
+     nada de HTML viejo de la caché HTTP (GitHub Pages cachea 10 min) */
+  const same = new URL(e.request.url).origin === location.origin;
+  const req = !same ? e.request
+    : (e.request.mode==='navigate' ? new Request(e.request.url, {cache:'no-cache', credentials:'same-origin'})
+                                   : new Request(e.request, {cache:'no-cache'}));
   e.respondWith(
-    fetch(e.request).then(r => {
+    fetch(req).then(r => {
       if(r.ok && new URL(e.request.url).origin === location.origin){
         const copy = r.clone();
         caches.open(CACHE).then(c => c.put(e.request, copy));

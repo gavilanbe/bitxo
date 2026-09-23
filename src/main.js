@@ -11,7 +11,7 @@ const MENU_PARENT = {
   shop:'main', feed:'main', play:'main',
   quests:'main', buho:'main', discos:'games',
   games:'play', exped:'play', tower:'play', legacy:'main',
-  diary:'stats', rename:'stats'
+  diary:'stats', rename:'stats', constel:'main'
 };
 const MENU_DRAW = {
   stats:drawStats, album:drawAlbum, ach:drawAch, relics:drawRelics,
@@ -22,7 +22,7 @@ const MENU_DRAW = {
   discos:drawDiscos, evotree:drawEvoTree,
   beast:drawBeast, games:drawGames,
   tower:drawTower, legacy:drawLegacy,
-  diary:drawDiary, rename:drawRename
+  diary:drawDiary, rename:drawRename, constel:drawConstel
 };
 /* el mundo visible: escena + habitantes de la zona actual */
 function drawWorldScene(now){
@@ -150,7 +150,31 @@ function frame(now){
   /* los avisos van por encima de TODO: menús, combate y minijuegos */
   if(UI.mode!=='boot') drawToast(now);
   drawJuiceOverlay(rdt);
+  updateTick(now);
   requestAnimationFrame(frame);
+}
+
+/* ---------------- ACTUALIZAR SIN SUSTOS ---------------- */
+function safeToReload(){
+  return sceneFamily(UI.mode)==='world' && !MENU_DRAW[UI.mode] && !offlineReport && !UI.expReport &&
+         !EVO_QUEUE.length && !UI.carry && !UI.zoneSlide;
+}
+function applyUpdate(){
+  if(UI.updating) return;
+  UI.updating = performance.now();
+  try{ sessionStorage.setItem('bitxo-upd', String(UPDATE_READY)); }catch(e){}
+  saveGame();
+  setTimeout(()=>{ location.replace(location.pathname + '?u=' + encodeURIComponent(UPDATE_READY)); }, 450);
+}
+function updateTick(now){
+  if(UI.autoUpdate && UPDATE_READY && safeToReload()) applyUpdate();
+  if(!UI.updating) return;
+  /* telón: el prado se funde y aparece el aviso */
+  const k = Math.min(1, (now-UI.updating)/300);
+  ctx.fillStyle = 'rgba(14,16,48,'+(0.85*k).toFixed(3)+')'; ctx.fillRect(0,0,LW,LH);
+  drawTextOC('ACTUALIZANDO', 80, 124, '#ffd94a', 2);
+  const d = Math.floor(now/200)%4;
+  drawTextC('EL PRADO SE PONE GUAPO'+'...'.slice(0,d), 80, 142, '#f6efe0');
 }
 
 /* ---------------- ARRANQUE ---------------- */
@@ -180,6 +204,10 @@ function normalizeSave(g){
   g.combos3 = g.combos3||0; g.parries = g.parries||0; g.harvests = g.harvests||0;
   g.items = g.items||[]; g.criaNextAt = g.criaNextAt||0; g.slowRing = !!g.slowRing;
   g.eggWaiting = g.eggWaiting||null;
+  /* CONSTELACION: partidas de antes reciben polvo = estrellas ya ganadas */
+  if(!g.constel || typeof g.constel!=='object') g.constel = {pts: g.stars||0, nodes:{}, guide:null};
+  g.constel.nodes = g.constel.nodes||{}; g.constel.pts = g.constel.pts||0;
+  if(g.constel.guide===undefined) g.constel.guide = null;
   g.poops = g.poops||[];
   for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
@@ -218,40 +246,50 @@ function normalizeSave(g){
   }
   checkDailyGift();
   /* la PWA actualiza en silencio (SW red-primero): al arrancar con una
-     versión nueva, que se note — aviso y entrada en el diario */
+     versión nueva, que se note — aviso con la novedad y entrada en el diario */
   try{
     const seen = localStorage.getItem('bitxo-ver');
     if(seen && seen !== GAME_VERSION){
-      toast('¡PRADO ACTUALIZADO!', 4200);
+      toast('¡PRADO ACTUALIZADO!', 3000);
       diaryLog('EL PRADO SE ACTUALIZO');
-      /* si la versión trae nota de novedades, al diario */
       fetch('version.json?t='+Date.now(), {cache:'no-store'})
         .then(r=>r.json())
-        .then(j=>{ if(j.note){ diaryLog('NOVEDAD: '+String(j.note).toUpperCase().slice(0,30)); saveGame(); } })
+        .then(j=>{ if(j.note){ const n = String(j.note).toUpperCase(); toast('NOVEDAD: '+n, 5200); diaryLog('NOVEDAD: '+n.slice(0,30)); saveGame(); } })
         .catch(()=>{});
       saveGame();
     }
     localStorage.setItem('bitxo-ver', GAME_VERSION);
+    /* la URL de recarga forzada (?u=) no se queda en la barra */
+    if(/[?&]u=/.test(location.search)) history.replaceState(null, '', location.pathname);
   }catch(e){}
-  /* aviso de versión nueva: consulta version.json saltándose la caché */
-  async function checkUpdate(){
+  /* ---- actualizaciones ----
+     version.json (sin caché) dice si hay versión nueva. Al ENTRAR o VOLVER
+     a la app se aplica sola en cuanto es seguro (en el prado, sin paneles ni
+     cinemáticas): guarda, muestra "ACTUALIZANDO" y recarga saltándose la
+     caché HTTP. A mitad de partida solo aparece el aviso para tocar. */
+  async function checkUpdate(auto){
     try{
       const r = await fetch('version.json?t='+Date.now(), {cache:'no-store'});
       if(!r.ok) return;
       const j = await r.json();
-      if(j.v && String(j.v)!==GAME_VERSION) UPDATE_READY = true;
-      /* y que el SW también se revise a sí mismo */
+      if(j.v && String(j.v)!==GAME_VERSION){
+        UPDATE_READY = String(j.v);
+        /* un solo intento automático por versión: si la CDN aún sirve lo
+           viejo, no entramos en bucle (queda el aviso manual) */
+        let tried = null; try{ tried = sessionStorage.getItem('bitxo-upd'); }catch(e){}
+        if(auto && tried!==UPDATE_READY) UI.autoUpdate = true;
+      }
       if('serviceWorker' in navigator){
         navigator.serviceWorker.getRegistration().then(g=>{ if(g) g.update(); }).catch(()=>{});
       }
     }catch(e){}
   }
-  checkUpdate();
-  setInterval(checkUpdate, 5*60*1000);
+  checkUpdate(true);
+  setInterval(()=>checkUpdate(false), 5*60*1000);
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).catch(()=>{});
   }
-  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkUpdate(); });
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkUpdate(true); });
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveGame(); });
   /* al volver (pestaña/PWA): simula el hueco con applyElapsed y guarda */
   document.addEventListener('visibilitychange', ()=>{

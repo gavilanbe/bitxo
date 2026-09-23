@@ -25,6 +25,23 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 
+## 🌱 Bitxos con sentido y metas (sep 2026)
+
+- ✅ **Las 7 líneas redibujadas**: cada línea es UNA especie cuyo rasgo crece
+  (la hoja, la llama, la aleta, el sombrero, el cristal, el rayo, la
+  estrella). Bebés hermanos, joven disciplinado o despreocupado, y cuatro
+  adultos que se leen de un vistazo: guerrero, tanque, ágil y gordito, más
+  la forma LEYENDA. GRIMO es ahora una sombra triste. Cada forma tiene su
+  descripción en el árbol y en la evolución.
+- ✅ **Objetivos encadenados**: una cinta bajo el HUD dice siempre qué hacer
+  ahora (tócala para una pista); 20 metas que enseñan el juego y luego hitos
+  sin fin. Cada una paga.
+- ✅ **Primera evolución en la primera sesión**: el bebé crece x4.
+- ✅ **CONSTELACIÓN**: el polvo estelar de cada ascenso se gasta en un árbol
+  de 15 estrellas (PRADO, CRIANZA, COMBATE) con decisiones de verdad.
+- ✅ **PWA que se actualiza sola** al entrar o volver, en un momento seguro,
+  sin bucles y saltándose la caché HTTP.
+
 ## 🎮 Mecánicas grandes
 
 - ✅ **⚔️ Combate v3: aro, combos y paradas** — el aro de puntería respira

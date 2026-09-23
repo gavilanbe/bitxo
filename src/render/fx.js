@@ -348,6 +348,11 @@ function drawEvolve(dt){
       ctx.globalAlpha = 1;
     }
     stampText(e.toName+'!', 80, 204, dark?'#b08ae0':'#ffd94a', rt-480);
+    if(rt>760 && e.toDesc){
+      ctx.globalAlpha = ease.outCubic(clamp01((rt-760)/300));
+      drawTextOC(e.toDesc, 80, 222, dark?'#c8b8f0':'#fff8d0', 1);
+      ctx.globalAlpha = 1;
+    }
     if(rt>480 && !e.stampFx){ e.stampFx = true; shake(0.25); tone({f:1568, d:0.12, type:'p25', vol:0.04}); }
   }
   if(t > EVO_T.reveal+900 && Math.floor(now/400)%2===0){

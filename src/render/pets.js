@@ -408,7 +408,7 @@ function drawSign(t){
 function drawBuho(t){
   if(!G.buho || G.zone!=='prado') return;
   const b = G.buho;
-  const spr = SPR.grimo[0];
+  const spr = SPR.buhonero[0];
   const bx = Math.round(b.x);
   px(bx-6, 161, 12, 2, 'rgba(0,0,0,0.25)');
   /* hatillo al hombro */

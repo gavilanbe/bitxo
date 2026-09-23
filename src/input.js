@@ -176,6 +176,7 @@ function handleTap(x,y){
     SFX.tap(); vibrate(10);
     return;
   }
+  if(UI.mode==='constel'){ constelTap(x,y); return; }
   /* confirmaciones: SOLO la tarjeta del SÍ confirma; cualquier otro toque cancela */
   const onYes = (x>=24 && x<=76 && y>=152 && y<=172);
   if(UI.mode==='ascendConfirm'){
@@ -229,6 +230,7 @@ function handleTap(x,y){
       UI.mode = 'rename'; SFX.tap(); return;
     }
     if(canAscend() && y>186 && y<204){ UI.mode='ascendConfirm'; SFX.tap(); return; }
+    if(y>=119 && y<=127 && x>=14 && x<=146){ openConstel(false); SFX.tap(); return; }
     if(y>=205 && y<=222){
       if(x>=8 && x<43){ exportSave(); return; }
       if(x>=45 && x<80){ importSave(); return; }
@@ -298,7 +300,10 @@ function handleTap(x,y){
     }
     UI.mode='play'; SFX.tap(); return;
   }
-  if(UI.mode==='legacy'){ UI.mode='main'; SFX.tap(); return; }
+  if(UI.mode==='legacy'){
+    if(y>=222 && y<=238 && x>=30 && x<=130){ openConstel(false); SFX.tap(); return; }
+    UI.mode='main'; SFX.tap(); return;
+  }
   if(UI.mode==='diary'){ UI.mode='stats'; SFX.tap(); return; }
   if(UI.mode==='rename'){
     const buf = UI.nickBuf||'';
@@ -379,7 +384,7 @@ function handleTap(x,y){
   }
 
   /* ---- modo principal ---- */
-  if(UPDATE_READY && y>=22 && y<=36 && x>26 && x<134){ saveGame(); location.reload(); return; }
+  if(UPDATE_READY && y>=22 && y<=36 && x>26 && x<134){ applyUpdate(); return; }
   if(x>142 && y<16){
     G.sound = G.sound===undefined ? 1 : (G.sound+2)%3; /* 2→1→0→2 */
     G.muted = G.sound===0;
@@ -438,6 +443,8 @@ function handleTap(x,y){
       return;
     }
   }
+  /* cinta de objetivo: pista */
+  if(y>=21 && y<=33 && x>=4 && x<=156 && !UPDATE_READY){ goalTap(); return; }
   /* toque preciso sobre un bitxo: gana a juguetes, carteles y senderos */
   if(y>132 && y<168){
     const pi = nearestPetAt(x, 9);
@@ -590,6 +597,8 @@ document.addEventListener('keydown', ev=>{
     const idx = ZONE_ORDER.indexOf(G.zone) + (k==='ArrowRight' ? 1 : -1);
     const z = ZONE_ORDER[idx];
     if(z && (z==='prado' || G.zonesOpen[z])){ audio(); askTravel(z); }
+  } else if(UI.mode==='constel' && constelKey(k)){
+    ev.preventDefault();
   } else if(k==='Escape' && MENU_PARENT[UI.mode]){
     UI.mode = MENU_PARENT[UI.mode];
     SFX.tap();

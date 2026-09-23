@@ -13,11 +13,14 @@ const T_HATCH = 45*1000;
    El ascenso (LV8) solo se gana jugando. */
 const EVO_LEVEL = { child:3, adult:6 };
 const XP_TRICKLE_MS = 1.5/60000; /* 1.5 XP por minuto despierto */
+/* el bebé crece deprisa (la primera evolución cae en la primera sesión:
+   ~10 min sin hacer nada, ~5 jugando); de joven, algo más que la base */
+function trickleMult(p){ return p.stage===STAGES.BABY ? 4 : (p.stage===STAGES.CHILD ? 1.35 : 1); }
 const POOP_EVERY = 4*60*1000;
 const OFFLINE_CAP = 14*60*60*1000;
 const RUNAWAY_AFTER = 14*60*60*1000;
 const COST_MEAL = 5, COST_SNACK = 8;
 
 /* versión desplegada: la estampa tools/stamp.sh en cada publicación */
-const GAME_VERSION = '20260923-1624';
+const GAME_VERSION = '20260923-1655';
 let UPDATE_READY = false;

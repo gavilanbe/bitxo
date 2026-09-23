@@ -200,6 +200,8 @@ grimo:{pal:{k:K,u:'#9d7bd8',d:'#6b4fa3',w:'#f4f0ff'},rows:[
 blink:[[5,"kuukuuuuuukuuk"]]}
 };
 let SPR = {};
+/* el buhonero conserva el viejo arte de grimo (grimo ahora es la sombra triste de data/lines/grimo.js) */
+RAW.buhonero = RAW.grimo;
 /* volumen automático: sobre el color dominante del cuerpo, luz arriba-izquierda
    (filo claro y brillo) y sombra abajo-derecha junto al contorno */
 function shadeRows(pal, rows){
@@ -235,13 +237,14 @@ function buildAllSprites(){
   SPR = {};
   for(const key in RAW){
     const d = RAW[key];
-    const sh = shadeRows(d.pal, d.rows);
+    /* el arte que ya trae su propio sombreado pide shade:false */
+    const sh = d.shade===false ? {pal:d.pal, rows:d.rows} : shadeRows(d.pal, d.rows);
     const f0 = mkSprite(sh.pal, sh.rows);
     let f1 = f0;
     if(d.blink){
       const rows2 = d.rows.slice();
       for(const pair of d.blink) rows2[pair[0]] = pair[1];
-      const sh2 = shadeRows(d.pal, rows2);
+      const sh2 = d.shade===false ? {pal:d.pal, rows:rows2} : shadeRows(d.pal, rows2);
       f1 = mkSprite(sh2.pal, sh2.rows);
     }
     SPR[key] = [f0, f1];

@@ -38,3 +38,9 @@ const TRAITS = {
   CURIOSO: 'APRENDE X2 DE CHISPAS'
 };
 const TRAIT_KEYS = Object.keys(TRAITS);
+
+/* descripción breve de cada forma (la rellena cada archivo de data/lines/):
+   FORM_DESC[linea][slot] = 'GUERRERO DE HOJAS' (máx. 26 caracteres) */
+const FORM_DESC = {};
+/* motivo de cada línea: el rasgo que crece etapa a etapa */
+const LINE_MOTIF = {};

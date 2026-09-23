@@ -95,7 +95,7 @@ function liveUpdate(dtMs){
     /* crecer también es tiempo: XP pasiva hasta el nivel de madurez */
     const lvlGate = p.stage===STAGES.BABY ? EVO_LEVEL.child : (p.stage===STAGES.CHILD ? EVO_LEVEL.adult : 0);
     if(lvlGate && p.level<lvlGate){
-      p.xpAcc = (p.xpAcc||0) + XP_TRICKLE_MS*dtMs*(p.sleeping?0.3:1)*(p.sick?0.5:1);
+      p.xpAcc = (p.xpAcc||0) + XP_TRICKLE_MS*trickleMult(p)*dtMs*(p.sleeping?0.3:1)*(p.sick?0.5:1);
       if(p.xpAcc>=1){
         const w = Math.floor(p.xpAcc); p.xpAcc -= w;
         gainXPFor(p, w);
@@ -387,7 +387,7 @@ function liveUpdate(dtMs){
   if(sparkleTimer > spawnEvery && UI.sparkles.length < 5 && UI.mode==='main'){
     sparkleTimer = 0;
     UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:now, t:Math.random()*7, zone:G.zone});
-    if(!G.hints.sparkle){ G.hints.sparkle=true; toast('¡TOCA LAS MOTAS ✦!', 2600); }
+
   }
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
@@ -504,19 +504,8 @@ function liveUpdate(dtMs){
     }
   }
 
-  /* --- arco de primer día: el prado te va enseñando --- */
-  if(G.ascensions===0 && G.gen<=1 && UI.mode==='main'){
-    const h2 = G.hints;
-    const p0 = G.pets[0];
-    if(p0 && p0.stage>STAGES.EGG){
-      if(!h2.mimos && Date.now()-(p0.hatchedAt||0)>20000){ h2.mimos=true; toast('ACARICIALO: TOCA A TU BITXO', 3200); }
-      else if(!h2.comer && p0.hunger<70){ h2.comer=true; toast('TIENE HAMBRE: BOTON COMER', 3200); }
-      else if(!h2.limpiar && G.poops.length>0){ h2.limpiar=true; toast('¡UNA CACA! BOTON LIMPIAR', 3200); }
-      else if(!h2.luz && p0.energy<45){ h2.luz=true; toast('ESTA CANSADO: BOTON LUZ', 3200); }
-      else if(!h2.gym && (p0.stage>=STAGES.CHILD || p0.level>=2)){ h2.gym=true; toast('YA PUEDE ENTRENAR: JUGAR > GYM', 3600); }
-      else if(!h2.lucha && G.wild){ h2.lucha=true; toast('¡TOCA AL SALVAJE PARA LUCHAR!', 3600); }
-    }
-  }
+  /* el arco de primer día ahora lo guían los OBJETIVOS (game/goals.js) */
+  goalsTick();
 
   achTimer += dtMs;
   if(achTimer > 3000){ achTimer=0; checkAchievements(); ensureDaily(); if(UI.mode==='main') checkDailyGift(); }

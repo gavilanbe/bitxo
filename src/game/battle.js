@@ -134,11 +134,11 @@ function startBattle(){
     /* +20% de vida: el combo multiplica tu ritmo de daño */
     ehp: Math.round((12 + nv*4) * 1.2 * (E.hpM||1) * (elite?1.45:1) * (G.wild.boss?2.3:1)),
     eatk: (2.6 + nv*1.25) * (E.atkM||1) * (elite?1.2:1) * (G.wild.boss?1.35:1),
-    php: Math.round(24 + p.level*2.5 + p.weight*0.4),
+    php: Math.round((24 + p.level*2.5 + p.weight*0.4) * (1 + 0.10*perk('caparazon'))),
     phase:'intro', t:0, mk:Math.random(), mdir:1,
     dmg:0, crit:false, resolved:false,
     shake:0, stop:0, zoomT:0,
-    super:0, superMax:4,
+    super:perk('furia') ? 2 : 0, superMax:4,
     eCharge:0, bigAtk:false, blocked:false, blockFxT:0,
     bubble: E.quirk==='bubble', burnT:0, stolen:0, willDouble:false,
     combo:0, comboIdle:0, lastGood:false, miss:false,
@@ -160,7 +160,7 @@ function startBattle(){
 
 /* daño base de tu bitxo */
 function btAtk(p){
-  return (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1);
+  return (4 + p.str*1.3 + p.level*1.2 + [0,0,2,5][p.stage]) * (p.trait==='VALIENTE'?1.25:1) * (G.relics.pluma?1.10:1) * (1 + 0.08*perk('colmillo'));
 }
 /* color del número según la eficacia */
 function btDmgCol(b){ return b.mult>1 ? '#a8f07a' : (b.mult<1 ? '#b8bccc' : '#ffffff'); }
@@ -373,7 +373,7 @@ function btAttack(b){
 function btSuper(b){
   const p = AP();
   b.super = 0; b.combo = 0;
-  b.dmg = Math.max(2, Math.round(btAtk(p)*2.2*b.mult));
+  b.dmg = Math.max(2, Math.round(btAtk(p)*2.2*b.mult*(perk('furia')?1.25:1)));
   if(b.paraT){ b.dmg = Math.max(1, Math.round(b.dmg*0.7)); b.paraT = 0; }
   b.crit = true;
   b.phase = 'superAnim'; b.t = 0; b.resolved = false; b.boulderDone = false; b.superAcc = 0;
@@ -387,7 +387,7 @@ function btGuard(b){
   if(tti <= BTG.BLOCK && tti >= -40){
     b.blocked = true;
     b.blockAt = b.clock;
-    if(tti <= BTG.PARRY){ b.parry = true; b.parryFxT = now; }
+    if(tti <= BTG.PARRY*(1 + 0.25*perk('halcon'))){ b.parry = true; b.parryFxT = now; }
     SFX.tap(); vibrate(15);
   } else if(tti > BTG.BLOCK){
     /* demasiado pronto: un respiro de bloqueo para que machacar no sirva */
@@ -697,6 +697,7 @@ function endBattle(win, fled){
     /* revancha del bestiario: botín reducido, sin jefe ni reliquias (no se farmea) */
     if(rev) reward = Math.max(3, Math.round(reward*0.35));
     if(b.stolen){ b.recovered = b.stolen*2; reward += b.recovered; }
+    reward = Math.round(reward * (1 + 0.25*perk('botin')));
     b.reward = reward;
     gainMotas(reward);
     const xp = rev ? Math.round((10 + b.nv)*0.5) : 10 + b.nv;

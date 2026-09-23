@@ -53,6 +53,11 @@ function spawnEgg(slotIdx, silent){
   const ln = rollLine();
   G.gen++;
   const p = makePet(ln, G.gen);
+  /* CONSTELACION: SEMILLA (nace a NV2) y SANGRE FUERTE (+stats) */
+  if(typeof perk==='function'){
+    p.level += perk('semilla');
+    const sb = perk('sangre'); if(sb) p.gift = {s:sb, d:sb, v:sb};
+  }
   p.rx = Math.min(134, 30 + (slotIdx!==undefined? slotIdx: G.pets.length)*45 + Math.random()*20);
   if(slotIdx!==undefined && slotIdx < G.pets.length) G.pets[slotIdx] = p;
   else G.pets.push(p);
@@ -65,7 +70,8 @@ function freshGame(){
     v:5, gen:0, sel:0, pets:[],
     motas:30, totalMotas:0,
     up:{cosecha:0,aura:0,iman:0,comedero:0,juguete:0,cama:0,jardin:0,nido:0},
-    stars:0, ascensions:0, dex:{}, muted:false, sound:2,
+    stars:0, ascensions:0, dex:{},
+    constel:{pts:0, nodes:{}, guide:null}, muted:false, sound:2,
     battlesWon:0, boostUntil:0,
     ach:{}, bond:0, lastGift:null, giftStreak:0,
     relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null, eggWaiting:null,
@@ -88,6 +94,7 @@ function migrateOld(o){
   g.totalMotas = o.totalMotas||0;
   g.up = Object.assign(g.up, o.up||{});
   g.stars = o.stars||0; g.ascensions = o.ascensions||0;
+  g.constel.pts = g.stars; /* polvo retroactivo para veteranos */
   g.dex = o.dex||{}; g.muted = o.muted||false;
   g.poops = o.poops||[];
   const p = makePet(o.line||'pradera', o.gen||1);
