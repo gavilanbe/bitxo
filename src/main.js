@@ -225,6 +225,9 @@ function normalizeSave(g){
 (async function init(){
   buildAllSprites();
   buildEnemySprites();
+  /* arte que vive en su propio archivo (data/art/): pisa lo anterior */
+  if(typeof buildToyArt==='function') buildToyArt();
+  if(typeof buildEnemyArt==='function') buildEnemyArt();
   const saved = await loadGame();
   if(saved && saved.v===5){
     G = normalizeSave(saved);

@@ -92,6 +92,32 @@ if(!MASK){
   g.drawImage(egg, 6, 60-egg.height);
 }
 
+/* pantalla de arranque de iOS: ?splash=W,H → cielo a sangre, escena centrada y el título */
+const SPL = Q.get('splash');
+if(SPL){
+  const [W,H] = SPL.split(',').map(Number);
+  const out = document.getElementById('icon'); out.width = W; out.height = H;
+  const o = out.getContext('2d'); o.imageSmoothingEnabled = false;
+  /* fondo: la franja superior e inferior de la escena estiradas */
+  const k = Math.floor(W/N);
+  const ox = Math.round(W/2 - N*k/2), oy = Math.round(H*0.56 - N*k/2);
+  o.fillStyle = '#2a2466'; o.fillRect(0,0,W,oy+2);
+  o.fillStyle = '#3a8a4c'; o.fillRect(0,oy+N*k-2,W,H);
+  /* estrellas en el cielo alto */
+  for(let i=0;i<22;i++){ const sx2=(i*397+61)%W, sy2=(i*211+37)%Math.max(1,oy-k); o.fillStyle = i%3?'#e8e0ff':'#8a82c8'; o.fillRect(sx2, sy2, k*(i%4?1:2)/2|0||2, k*(i%4?1:2)/2|0||2); }
+  o.drawImage(c, 0,0,1,N, 0,oy,ox,N*k); o.drawImage(c, N-1,0,1,N, ox+N*k,oy,W,N*k);
+  o.drawImage(c, ox, oy, N*k, N*k);
+  /* título con la fuente del juego a escala entera */
+  const F = {B:'110101110101110',I:'111010010010111',T:'111010010010010',X:'101101010101101',O:'010101101101010'};
+  const word = 'BITXO', ts = Math.max(4, Math.floor(k*0.9)), tw = word.length*4*ts - ts;
+  let tx = Math.round(W/2 - tw/2); const ty = Math.round(oy*0.45);
+  for(const ch of word){ const gl = F[ch];
+    for(let p=0;p<15;p++) if(gl[p]==='1'){ o.fillStyle = '#1a1428'; o.fillRect(tx+(p%3)*ts+ts/2, ty+Math.floor(p/3)*ts+ts/2, ts, ts); }
+    for(let p=0;p<15;p++) if(gl[p]==='1'){ o.fillStyle = '#ffd94a'; o.fillRect(tx+(p%3)*ts, ty+Math.floor(p/3)*ts, ts, ts); }
+    tx += 4*ts; }
+  document.title = 'ICON-READY';
+  throw 'splash';
+}
 /* escalado entero al tamaño pedido */
 const out = document.getElementById('icon');
 out.width = SIZE; out.height = SIZE;
