@@ -3,6 +3,8 @@
    BITXO — config: resolución lógica y constantes de juego
    ========================================================= */
 const LW = 160, LH = 272;
+/* cada zona es más ancha que la pantalla: la cámara la recorre */
+const WORLD_W = 320;
 
 /* ---------------- ESTADO (v6 multi-bitxo) ---------------- */
 const STAGES = { EGG:0, BABY:1, CHILD:2, ADULT:3 };

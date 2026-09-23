@@ -138,7 +138,7 @@ function gotoZone(z){
   G.zone = z;
   if(prev!==z){
     /* deslizamiento de cámara estilo Zelda */
-    UI.zoneSlide = {from: prev, dir: ZONE_ORDER.indexOf(z) > ZONE_ORDER.indexOf(prev) ? 1 : -1, t:0};
+    UI.zoneSlide = {from: prev, camFrom: CAM.x, dir: ZONE_ORDER.indexOf(z) > ZONE_ORDER.indexOf(prev) ? 1 : -1, t:0};
     if(z!=='prado') questProg('visita', 1);
   }
   /* nadie se queda columpiándose en una zona que ya no ves */
@@ -233,7 +233,7 @@ function travelWith(idx){
   if(!o) return;
   if(o.block){ toast(o.block); SFX.nope(); return; }
   const p = o.p;
-  const entering = ZONE_ORDER.indexOf(dest) > ZONE_ORDER.indexOf(G.zone) ? 26 : 134;
+  const entering = ZONE_ORDER.indexOf(dest) > ZONE_ORDER.indexOf(G.zone) ? 26 : WORLD_W-26;
   p.zone = dest;
   p.rx = entering; p.tx = entering; p.nextWalk = 0;
   p.petT = performance.now(); p.joyAt = performance.now();
@@ -263,7 +263,7 @@ function dropCarry(x){
   if(vecinos>=zoneCap(G.zone)){ toast('AQUI YA VIVEN '+zoneCap(G.zone)); SFX.nope(); return; }
   const moved = (p.zone||'prado')!==G.zone;
   p.zone = G.zone;
-  p.rx = Math.max(22, Math.min(138, x)); p.tx = p.rx; p.nextWalk = 0;
+  p.rx = Math.max(22, Math.min(WORLD_W-22, x)); p.tx = p.rx; p.nextWalk = 0;
   p.petT = performance.now(); p.joyAt = performance.now();
   UI.carry = null;
   spawnHearts(1);
@@ -278,7 +278,7 @@ function openCaja(){
     gainMotas(g, 106, 140);
     toast('¡CAJA: +'+g+'✦!', 2600);
   } else if(r<0.8){
-    for(let i=0;i<5;i++) UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:Date.now(), t:Math.random()*7, zone:G.zone});
+    for(let i=0;i<5;i++) UI.sparkles.push({x:Math.max(20, Math.min(WORLD_W-20, CAM.x+10+Math.random()*140)), y:130+Math.random()*50, born:Date.now(), t:Math.random()*7, zone:G.zone});
     toast('¡LLUVIA DE CHISPAS!', 2600);
   } else {
     gainXP(20);

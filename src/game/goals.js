@@ -81,8 +81,10 @@ function goalComplete(g){
   diaryLog('OBJETIVO: '+g.t.slice(0,28));
   /* celebración: la cinta estalla y las motas vuelan al marcador */
   if(sceneFamily(UI.mode)==='world'){
-    confetti(80, 28, 26); ringFx(80, 28, '#ffd94a', 40, 420);
-    if(g.m) flyCoins(80, 28, Math.min(10, 3+Math.round(g.m/20)));
+    withScreen(()=>{
+      confetti(80, 28, 26); ringFx(80, 28, '#ffd94a', 40, 420);
+      if(g.m) flyCoins(80, 28, Math.min(10, 3+Math.round(g.m/20)));
+    });
     flash('#ffd94a', 0.15, 180);
   }
   SFX.buy(); vibrate([20,30,40]);

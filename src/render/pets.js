@@ -625,7 +625,8 @@ function drawCarried(t){
   const spr = SPR[def][1];
   const bob = Math.round(Math.sin(t/240)*2);
   /* colgando en brazos: se balancea y patalea un poco */
-  const x = 80 + Math.round(Math.sin(t/520)), y = 192 + bob;
+  /* en brazos: siempre en el centro de la PANTALLA (el mundo está desplazado) */
+  const x = Math.round(CAM.x) + 80 + Math.round(Math.sin(t/520)), y = 192 + bob;
   const kick = Math.sin(t/110)*0.03;
   px(x-9, 193, 18, 2, 'rgba(0,0,0,0.2)');
   ctx.save();

@@ -164,7 +164,7 @@ function drawHUD(t){
     UI.coinLossT = performance.now();
     /* gastar también se ve: la cifra perdida cae del marcador */
     const lost = Math.round(UI.lastMotas - G.motas);
-    if(lost>=1) popText(96, 14, '-'+fmt(lost), '#ff8a7a', {vy:0.02, life:800});
+    if(lost>=1) popText(96, 14, '-'+fmt(lost), '#ff8a7a', {vy:0.02, life:800, screen:true});
   }
   UI.lastMotas = G.motas;
   const bumpT = performance.now() - Math.max(UI.coinT||0, JUICE.coinBumpAt||0);

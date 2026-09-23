@@ -26,15 +26,21 @@ const MENU_DRAW = {
 };
 /* el mundo visible: escena + habitantes de la zona actual */
 function drawWorldScene(now){
-  drawScene(now);
-  drawShoot(now);
+  drawScene(now);           /* cielo en pantalla; suelo y atrezo en el mundo */
+  drawShoot(now);           /* la fugaz vive en el cielo: no se desplaza */
+  /* habitantes: coordenadas del mundo ancho */
+  ctx.save();
+  ctx.translate(-Math.round(CAM.x), 0);
   drawPoops(now);
   drawToys(now);
+  if(typeof drawDecorWorld==='function') drawDecorWorld(now);
   drawSign(now);
   drawSparkles(now);
   drawWild(now);
   drawBuho(now);
   drawPets(now);
+  if(UI.decorEdit && typeof drawDecorEditOverlay==='function') drawDecorEditOverlay(now);
+  ctx.restore();
 }
 function drawModals(now){
   const menuFn = MENU_DRAW[UI.mode] || null;
@@ -71,6 +77,7 @@ function frame(now){
   /* dt de JUEGO: se congela durante un hitstop; el juice usa el real */
   const dt = juiceStep(rdt);
   wipeCheck();
+  camStep(rdt);
   liveUpdate(dt);
   const shaking = JUICE.sx!==0 || JUICE.sy!==0;
   if(shaking) px(0,0,LW,LH,K);
@@ -118,10 +125,12 @@ function frame(now){
       const sdir = UI.zoneSlide.dir;
       ctx.save();
       ctx.beginPath(); ctx.rect(0,0,LW,196); ctx.clip();
-      const realZone = G.zone;
+      const realZone = G.zone, realCam = CAM.x;
       ctx.save();
       ctx.translate(Math.round(-sdir*se*LW), 0);
-      G.zone = UI.zoneSlide.from; drawWorldScene(now); G.zone = realZone;
+      /* la zona que dejas, con la cámara donde la dejaste */
+      G.zone = UI.zoneSlide.from; CAM.x = UI.zoneSlide.camFrom!==undefined ? UI.zoneSlide.camFrom : CAM.x;
+      drawWorldScene(now); G.zone = realZone; CAM.x = realCam;
       ctx.restore();
       ctx.save();
       ctx.translate(Math.round(sdir*(1-se)*LW), 0);
@@ -138,8 +147,11 @@ function frame(now){
     UI.dimA = (UI.dimA||0) + ((AP().sleeping?0.38:0) - (UI.dimA||0))*Math.min(1, rdt/260);
     if(UI.dimA>0.01) px(0,0,160,196,'rgba(10,8,30,'+UI.dimA.toFixed(3)+')');
     drawVignette();
-    drawParticles(dt);
+    ctx.save(); ctx.translate(-Math.round(CAM.x), 0);
+    drawParticles(dt);        /* corazones, huellas, flotantes: en el mundo */
+    ctx.restore();
     drawFx(rdt); JUICE.fxDrawn = true;
+    if(!UI.zoneSlide && !MENU_DRAW[UI.mode]){ camOffscreen(now); camMinimap(now); }
     /* el HUD no tiembla: se lee siempre */
     ctx.restore(); ctx.save();
     drawHUD(now);

@@ -769,16 +769,16 @@ function run(){
       G.toys = {pelota:true, columpio:true, huerto:true};
       R.zoneDefaults = toyZone('columpio') === 'prado' && toyZone('huerto') === 'prado';
       R.senderoEligible = parqueEligible() === true;
-      handleTap(152, 172); // el cartelito ?
+      CAM.x = camMax(), handleTap(152, 172); // el cartelito ?
       R.senderoConfirm = UI.mode === 'parqueConfirm';
       const mz0 = G.motas;
       handleTap(50, 160); // ¡SI!
       R.parqueOpens = G.zonesOpen.parque === true && G.zone === 'parque' &&
                       G.motas === mz0 - ZONES.parque.cost && UI.mode === 'main';
       R.toysMudan = toyZone('columpio')==='parque' && toyZone('pelota')==='parque' && toyZone('huerto')==='prado';
-      handleTap(6, 172); // flecha <
+      CAM.x = 0, handleTap(6, 172); // flecha <
       R.zoneBack = G.zone === 'prado';
-      handleTap(152, 172); // flecha >
+      CAM.x = camMax(), handleTap(152, 172); // flecha >
       R.zoneGo = G.zone === 'parque';
       // el salvaje recuerda dónde apareció y no se toca desde otra zona
       // (el salvaje solo sale si hay un luchador despierto en ESA zona)
@@ -805,11 +805,11 @@ function run(){
       UI.sparkles.length = 0;
       // sin requisitos, el sendero avisa y no abre
       G.zonesOpen = {}; G.zone = 'prado'; G.toys = {pelota:true}; UI.mode = 'main';
-      handleTap(152, 172);
+      CAM.x = camMax(), handleTap(152, 172);
       R.senderoGuard = UI.mode === 'main';
       // con requisitos pero sin motas, tampoco
       G.toys = {pelota:true, columpio:true}; G.motas = 10;
-      handleTap(152, 172);
+      CAM.x = camMax(), handleTap(152, 172);
       R.senderoPobre = UI.mode === 'main';
       G.motas = 3000; G.zonesOpen = {parque:true}; G.zone = 'prado'; UI.mode = 'main';
       // RESIDENTES: en brazos, mudanza, guardas y tope por zona
@@ -820,7 +820,7 @@ function run(){
       R.carryStarts = !!UI.carry && UI.carry.i === 0;
       G.zone = 'parque';
       handleTap(80, 150); // suelta en el parque
-      R.carryDrops = UI.carry === null && _p.zone === 'parque' && Math.abs(_p.rx-80)<3;
+      R.carryDrops = UI.carry === null && _p.zone === 'parque' && Math.abs(_p.rx-toWorldX(80))<3;
       // el bebé no puede vivir fuera del prado
       const beb = makePet('pradera', 1); beb.stage = 1; beb.form = 'babyA'; beb.zone = 'prado'; beb.hatchedAt = Date.now();
       G.pets.push(beb);
@@ -843,14 +843,14 @@ function run(){
       G.toys = {pelota:true, columpio:true, banera:true, huerto:true, fuente:true};
       G.expedsDone = 2;
       R.huertaTease = huertaTeaser() === true && huertaEligible() === true;
-      handleTap(6, 172); // cartelito ? izquierdo
+      CAM.x = 0, handleTap(6, 172); // cartelito ? izquierdo
       R.huertaConfirmOpens = UI.mode === 'huertaConfirm';
       const mh0 = G.motas;
       handleTap(50, 160); // ¡SI!
       R.huertaOpens = G.zonesOpen.huerta === true && G.zone === 'huerta' && G.motas === mh0 - ZONES.huerta.cost;
       R.huertaToys = toyZone('banera')==='huerta' && toyZone('huerto')==='huerta' &&
                      toyZone('fuente')==='huerta' && toyZone('robot')==='prado' && toyZone('pelota')==='parque';
-      handleTap(152, 172); // flecha > vuelve al prado
+      CAM.x = camMax(), handleTap(152, 172); // flecha > vuelve al prado
       R.huertaBack = G.zone === 'prado';
       // bonus de zona: el parque cuida el ánimo, la huerta el hambre
       { const q = makePet('pradera',1); q.stage=3; q.form='adultA';
@@ -908,11 +908,11 @@ function run(){
       _p.stage = 3; _p.zone = 'prado'; _p.exped = null; _p.sleeping = false;
       const cp = makePet('pradera',1); cp.stage=3; cp.form='adultA'; cp.zone='prado'; cp.rx=60; cp.hatchedAt=Date.now();
       G.pets.push(cp);
-      handleTap(152, 172);
+      CAM.x = camMax(), handleTap(152, 172);
       R.travelAsks = UI.mode==='travelPick' && UI.travelDest==='parque';
       handleTap(80, 86 + 1*27 + 10); // segunda carta: el compañero
       R.travelMoves = cp.zone==='parque' && G.zone==='parque' && UI.mode==='main';
-      handleTap(6, 172); // aquí solo vive él: navegación directa
+      CAM.x = 0, handleTap(6, 172); // aquí solo vive él: navegación directa
       R.travelDirect = G.zone==='prado' && UI.mode==='main';
       cp.zone = 'prado'; G.pets.pop(); G.sel = 0;
       G.zone = 'prado'; UI.mode = 'main';

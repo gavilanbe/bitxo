@@ -88,8 +88,18 @@ function drawWipe(dt){
 
 /* ---------- partículas v2: velocidad, gravedad, rozamiento, fundido ---------- */
 /* kinds: 'px' (cuadrado), 'spark' (estela), 'star' (cruz), 'ring', 'heart', 'txt' */
+/* ¿en qué espacio nace una partícula? En el prado (sin panel encima) se
+   ancla al MUNDO y viaja con la cámara; el resto, a la pantalla.
+   withScreen(fn) fuerza pantalla (HUD, cinta de objetivos...) */
+function fxSpace(o){
+  if((o && o.screen) || JUICE.scr) return 'screen';
+  return (sceneFamily(UI.mode)==='world' && !(typeof MENU_DRAW!=='undefined' && MENU_DRAW[UI.mode])) ? 'world' : 'screen';
+}
+function withScreen(fn){ JUICE.scr = true; try{ fn(); } finally { JUICE.scr = false; } }
+function camOff(sp){ return (sp==='world' && typeof CAM!=='undefined') ? -Math.round(CAM.x) : 0; }
 function fx(o){
   if(JUICE.fx.length>420) JUICE.fx.shift();
+  o.space = fxSpace(o);
   o.life0 = o.life = o.life||600;
   o.vx = o.vx||0; o.vy = o.vy||0; o.g = o.g||0; o.drag = o.drag===undefined?0:o.drag;
   o.size = o.size||1; o.kind = o.kind||'px';
@@ -134,10 +144,12 @@ function dustFx(x, y, n, col){
   }
 }
 function drawFx(dt){
+  const inWorld = sceneFamily(UI.mode)==='world';
   for(let i=JUICE.fx.length-1;i>=0;i--){
     const p = JUICE.fx[i];
     p.life -= dt;
     if(p.life<=0){ JUICE.fx.splice(i,1); continue; }
+    if(p.space==='world' && !inWorld) continue;
     if(p.drag){ const k = Math.exp(-p.drag*dt); p.vx*=k; p.vy*=k; }
     p.vy += p.g*dt;
     p.x += p.vx*dt; p.y += p.vy*dt;
@@ -145,6 +157,8 @@ function drawFx(dt){
     const k = p.life/p.life0; /* 1 → 0 */
     const a = p.fade===false ? 1 : Math.min(1, k*2.2);
     ctx.globalAlpha = a;
+    const cox = camOff(p.space);
+    if(cox) ctx.translate(cox, 0);
     if(p.kind==='px'){
       const s = p.shrink ? Math.max(1, Math.round(p.size*k)) : p.size;
       const wx = p.wob!==undefined ? Math.round(Math.sin(p.life/90+p.wob)) : 0;
@@ -173,6 +187,7 @@ function drawFx(dt){
     } else if(p.kind==='txt'){
       drawText(p.s, Math.round(p.x), Math.round(p.y), p.col);
     }
+    if(cox) ctx.translate(-cox, 0);
   }
   ctx.globalAlpha = 1;
 }
@@ -194,7 +209,7 @@ function drawTextOC(s, cx, y, col, sc, oc){ drawTextO(s, Math.round(cx - textWS(
 /* ---------- textos que saltan (daño, +motas, ¡NIVEL!) ---------- */
 function popText(x, y, s, col, o){
   o = o||{};
-  JUICE.pops.push({x, y, s:String(s), col:col||'#ffffff', t:0, life:o.life||900, sc:o.big?2:1, vy:o.vy===undefined?-0.018:o.vy, delay:o.delay||0});
+  JUICE.pops.push({x, y, s:String(s), col:col||'#ffffff', t:0, life:o.life||900, sc:o.big?2:1, vy:o.vy===undefined?-0.018:o.vy, delay:o.delay||0, space:fxSpace(o)});
 }
 function drawPops(dt){
   for(let i=JUICE.pops.length-1;i>=0;i--){
@@ -208,7 +223,8 @@ function drawPops(dt){
     const y = p.y + p.vy*p.t - (1-jump)*-4 - jump*3;
     ctx.globalAlpha = k>0.75 ? (1-k)/0.25 : 1;
     const sc = (p.sc===2 && p.t<90) ? 3 : p.sc;
-    drawTextOC(p.s, p.x, Math.round(y), p.col, sc);
+    if(p.space==='world' && sceneFamily(UI.mode)!=='world'){ ctx.globalAlpha = 1; continue; }
+    drawTextOC(p.s, p.x + camOff(p.space), Math.round(y), p.col, sc);
     ctx.globalAlpha = 1;
   }
 }
@@ -217,6 +233,7 @@ function drawPops(dt){
 const COIN_TARGET = {x:78, y:5};
 function flyCoins(x, y, n){
   n = Math.min(12, Math.max(1, n|0));
+  if(fxSpace({})==='world') x += camOff('world');
   for(let i=0;i<n;i++){
     const a = Math.random()*Math.PI*2, sp = 0.04+Math.random()*0.05;
     JUICE.coins.push({x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-0.03, t:0, delay:i*35, wait:170+Math.random()*90, sx:0, sy:0});

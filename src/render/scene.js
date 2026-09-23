@@ -10,8 +10,8 @@ const SKY = {
 };
 const stars = []; for(let i=0;i<26;i++) stars.push({x:Math.random()*160,y:Math.random()*90,t:Math.random()*6});
 const clouds = [{x:20,y:18,s:1},{x:100,y:44,s:0.7},{x:-40,y:8,s:1.2},{x:60,y:68,s:0.5}];
-const fireflies = []; for(let i=0;i<9;i++) fireflies.push({x:Math.random()*160,y:130+Math.random()*55,a:Math.random()*7});
-const butterflies = []; for(let i=0;i<6;i++) butterflies.push({x:Math.random()*160,y:126+Math.random()*50,a:Math.random()*7,c:['#f2a2b8','#fff8d0','#ffd94a'][i%3]});
+const fireflies = []; for(let i=0;i<14;i++) fireflies.push({x:Math.random()*320,y:130+Math.random()*55,a:Math.random()*7});
+const butterflies = []; for(let i=0;i<10;i++) butterflies.push({x:Math.random()*320,y:126+Math.random()*50,a:Math.random()*7,c:['#f2a2b8','#fff8d0','#ffd94a'][i%3]});
 /* mezcla gradual entre fases del día: nada de saltos de color */
 function lerpHexCol(a, b, t){
   const pa = [parseInt(a.slice(1,3),16), parseInt(a.slice(3,5),16), parseInt(a.slice(5,7),16)];
@@ -70,69 +70,73 @@ function hillY(x, base, amp, seed){
   return Math.round(base - amp*(0.55*Math.sin(x/23+seed) + 0.3*Math.sin(x/11+seed*2.3) + 0.15*Math.sin(x/5.3+seed*4.1)));
 }
 const _bgCache = {key:null, cv:null};
+/* las colinas lejanas se mueven a esta fracción de la cámara (parallax) */
+const HILL_PAR = 0.45;
 function bakeBackdrop(S, ph){
   const key = S.bands.join()+S.hill+S.hill2+S.grass+S.grass2+ph+(G&&G.zone);
   if(_bgCache.key===key) return _bgCache.cv;
+  const WW = WORLD_W, HW = LW + Math.ceil((WW-LW)*HILL_PAR) + 2;
   const sky = (_bgCache.cv && _bgCache.cv.sky) || document.createElement('canvas');
+  const hl = (_bgCache.cv && _bgCache.cv.hills) || document.createElement('canvas');
   const c = (_bgCache.cv && _bgCache.cv.land) || document.createElement('canvas');
   sky.width = LW; sky.height = 126;
-  c.width = LW; c.height = 196;
-  const g = c.getContext('2d');
-  g.clearRect(0,0,LW,196);
+  hl.width = HW; hl.height = 128;
+  c.width = WW; c.height = 196;
   /* cielo */
   ditherGradInto(sky.getContext('2d'), 0, 0, LW, 126, [[0,S.bands[0]],[48,S.bands[1]],[104,S.bands[2]],[126,lightHex(S.bands[2],0.18)]], 5);
-  /* montañas lejanas: aire entre medias (perspectiva atmosférica) */
+  /* ---- capa de colinas (parallax lento): montañas lejanas y arboleda ---- */
+  const h = hl.getContext('2d'); h.clearRect(0,0,HW,128);
   const far = lerpHexA(S.hill2, S.bands[2], 0.55), farHi = lerpHexA(far, S.bands[2], 0.35);
-  for(let x=0;x<LW;x++){
+  for(let x=0;x<HW;x++){
     const y = hillY(x, 100, 11, 1.3);
-    g.fillStyle = far; g.fillRect(x, y, 1, 126-y);
-    if(hillY(x-1,100,11,1.3) > y) { g.fillStyle = farHi; g.fillRect(x, y, 1, 1); }
+    h.fillStyle = far; h.fillRect(x, y, 1, 128-y);
+    if(hillY(x-1,100,11,1.3) > y) { h.fillStyle = farHi; h.fillRect(x, y, 1, 1); }
   }
-  /* colina media con arboleda */
   const mid = S.hill2, midHi = lightHex(S.hill2, 0.12);
-  for(let x=0;x<LW;x++){
+  for(let x=0;x<HW;x++){
     const y = hillY(x, 111, 6, 4.2);
-    g.fillStyle = mid; g.fillRect(x, y, 1, 126-y);
-    g.fillStyle = midHi; g.fillRect(x, y, 1, 1);
+    h.fillStyle = mid; h.fillRect(x, y, 1, 128-y);
+    h.fillStyle = midHi; h.fillRect(x, y, 1, 1);
   }
   const treeDark = darkHex(S.hill2, 0.22), treeLt = lightHex(S.hill2, 0.14);
-  for(let i=0;i<11;i++){
-    const tx = (i*37+9)%156 + 2;
+  for(let i=0;i<Math.round(11*HW/LW);i++){
+    const tx = (i*37+9)%(HW-4) + 2;
     const ty = hillY(tx, 111, 6, 4.2);
     const r = 3 + (i*7)%3;
-    g.fillStyle = darkHex(S.hill2,0.35); g.fillRect(tx, ty-1, 1, 3);
+    h.fillStyle = darkHex(S.hill2,0.35); h.fillRect(tx, ty-1, 1, 3);
     for(let yy=-r;yy<=r;yy++) for(let xx=-r;xx<=r;xx++){
       if(xx*xx+yy*yy*1.3 > r*r+1) continue;
-      g.fillStyle = (xx+yy < -r*0.4) ? treeLt : ((xx-yy > r*0.5) ? treeDark : mid);
-      g.fillRect(tx+xx, ty-r-1+yy, 1, 1);
+      h.fillStyle = (xx+yy < -r*0.4) ? treeLt : ((xx-yy > r*0.5) ? treeDark : mid);
+      h.fillRect(tx+xx, ty-r-1+yy, 1, 1);
     }
   }
-  /* colina cercana */
+  /* ---- capa de suelo (se mueve con la cámara): colina cercana y prado ---- */
+  const g = c.getContext('2d');
+  g.clearRect(0,0,WW,196);
   const near = S.hill, nearHi = lightHex(S.hill, 0.14);
-  for(let x=0;x<LW;x++){
+  for(let x=0;x<WW;x++){
     const y = hillY(x, 121, 3, 7.7);
     g.fillStyle = near; g.fillRect(x, y, 1, 128-y);
     g.fillStyle = nearHi; g.fillRect(x, y, 1, 1);
   }
   /* prado: más claro lejos, más oscuro cerca (profundidad) */
-  ditherGradInto(g, 0, 124, LW, 72, [[0,lightHex(S.grass,0.1)],[26,S.grass],[72,darkHex(S.grass,0.16)]], 4);
-  /* borde del horizonte del prado */
-  for(let x=0;x<LW;x+=1){ if(((x*7)%5)<3){ g.fillStyle = S.grass2; g.fillRect(x, 124+((x*13)%3===0?1:0), 1, 1); } }
+  ditherGradInto(g, 0, 124, WW, 72, [[0,lightHex(S.grass,0.1)],[26,S.grass],[72,darkHex(S.grass,0.16)]], 4);
+  for(let x=0;x<WW;x+=1){ if(((x*7)%5)<3){ g.fillStyle = S.grass2; g.fillRect(x, 124+((x*13)%3===0?1:0), 1, 1); } }
   /* matas de hierba deterministas, más grandes cuanto más cerca */
-  for(let i=0;i<46;i++){
-    const gx = (i*53+17)%158+1, gy = 128 + (i*29)%64;
+  for(let i=0;i<Math.round(46*WW/LW);i++){
+    const gx = (i*53+17)%(WW-2)+1, gy = 128 + (i*29)%64;
     const big = gy>168 ? 2 : 1;
     g.fillStyle = S.grass2;
     g.fillRect(gx, gy, 1, 1+big); g.fillRect(gx-1, gy+big, 1, 1); g.fillRect(gx+1, gy+big-1, 1, 1+big-1);
     g.fillStyle = lightHex(S.grass, 0.18); g.fillRect(gx, gy-1, 1, 1);
   }
   /* guijarros */
-  for(let i=0;i<7;i++){
-    const gx = (i*71+33)%150+5, gy = 134 + (i*41)%56;
+  for(let i=0;i<Math.round(7*WW/LW);i++){
+    const gx = (i*71+33)%(WW-10)+5, gy = 134 + (i*41)%56;
     g.fillStyle = darkHex(S.grass,0.3); g.fillRect(gx, gy+1, 3, 1);
     g.fillStyle = lerpHexA(S.grass, '#d8d0c0', 0.55); g.fillRect(gx, gy, 2, 1);
   }
-  _bgCache.key = key; _bgCache.cv = {sky, land:c};
+  _bgCache.key = key; _bgCache.cv = {sky, hills:hl, land:c};
   return _bgCache.cv;
 }
 /* nubes esponjosas: tres formas horneadas por paleta */
@@ -238,6 +242,8 @@ function legacyStarPos(i){
 }
 
 function drawScene(t){
+  /* en el mundo la cámara manda; minijuegos y cinemáticas ven el tramo inicial */
+  const cam = (sceneFamily(UI.mode)==='world' && typeof CAM!=='undefined') ? Math.round(CAM.x) : 0;
   /* reloj propio: la escena anima igual a 60 o 120 Hz (y no corre doble en el deslizamiento de zona) */
   const sdt = Math.min(50, Math.max(0, t-(UI.sceneT||t))); UI.sceneT = t;
   const fk = sdt/16.67;
@@ -314,15 +320,20 @@ function drawScene(t){
     ctx.drawImage(spr, Math.round(c.x), Math.round(c.y));
     ctx.globalAlpha = 1;
   }
-  ctx.drawImage(BG.land, 0, 0);
+  /* colinas con parallax y suelo con la cámara */
+  ctx.drawImage(BG.hills, Math.round(cam*HILL_PAR), 0, LW, 128, 0, 0, LW, 128);
+  ctx.drawImage(BG.land, cam, 0, LW, 196, 0, 0, LW, 196);
   /* franja 196-199: única zona que nadie más repinta por frame —
      sin esto acumula restos de paneles y del atenuado modal */
   px(0,196,160,4,K);
   drawGodRays(t, ph);
+  /* desde aquí, coordenadas del MUNDO */
+  ctx.save();
+  ctx.translate(-cam, 0);
   /* hierba alta del primer plano que se mece con el viento */
   const wind = WEATHER.kind==='wind' ? 2.2 : 1;
-  for(let i=0;i<14;i++){
-    const gx = (i*47+5)%156+2, gy = 186+(i*13)%9;
+  for(let i=0;i<Math.round(14*WORLD_W/LW);i++){
+    const gx = (i*47+5)%(WORLD_W-4)+2, gy = 186+(i*13)%9;
     const sw = Math.round(Math.sin(t/(520/wind)+i*1.3)*wind*0.8);
     px(gx, gy-2, 1, 3, S.grass2);
     px(gx+sw, gy-4, 1, 2, S.grass2);
@@ -331,7 +342,7 @@ function drawScene(t){
 
   /* charcos que quedan un rato tras la lluvia */
   if(Date.now() < (G.puddlesUntil||0) && WEATHER.kind!=='rain'){
-    for(const pd of [[44,176],[108,184]]){
+    for(const pd of [[44,176],[108,184],[190,180],[270,186]]){
       px(pd[0]-6,pd[1],12,3,'rgba(94,155,224,0.4)');
       px(pd[0]-4,pd[1]-1,8,1,'rgba(154,220,240,0.5)');
       px(pd[0]-3,pd[1]+3,6,1,'rgba(94,155,224,0.28)');
@@ -345,8 +356,8 @@ function drawScene(t){
   /* decoración base + jardín (paleta de flores elegible) */
   if(G.zone==='prado'){
     const fp = FLOWER_PALS[(G.decor && G.decor.flores) || 'clasico'] || FLOWER_PALS.clasico;
-    const deco = [[14,182,fp[0]],[52,190,fp[1]],[96,186,fp[2]],[136,180,fp[3]]];
-    if(G.up.jardin>=1) deco.push([30,166,fp[1]],[118,168,fp[2]],[70,176,fp[4]],[144,192,fp[1]],[8,170,fp[2]]);
+    const deco = [[14,182,fp[0]],[52,190,fp[1]],[96,186,fp[2]],[136,180,fp[3]],[178,188,fp[1]],[214,181,fp[4]],[262,189,fp[0]],[300,183,fp[2]]];
+    if(G.up.jardin>=1) deco.push([30,166,fp[1]],[118,168,fp[2]],[70,176,fp[4]],[144,192,fp[1]],[8,170,fp[2]],[196,170,fp[0]],[240,166,fp[3]],[282,174,fp[1]],[312,168,fp[4]]);
     const fw = WEATHER.kind==='wind' ? 1 : 0;
     for(let i=0;i<deco.length;i++){
       const d = deco[i];
@@ -359,12 +370,12 @@ function drawScene(t){
   /* valla y caminito comprados */
   if(G.zone==='prado' && G.decor && G.decor.valla){
     /* valla de madera al fondo: largueros sombreados y postes con remate */
-    for(const ry of [115,120]){ px(0,ry,160,2,TA.wood[2]); px(0,ry,160,1,TA.wood[3]); px(0,ry+2,160,1,'rgba(26,20,40,0.35)'); }
-    for(let x=4;x<160;x+=22) ctx.drawImage(SPR.valla_poste, x, 110);
+    for(const ry of [115,120]){ px(0,ry,WORLD_W,2,TA.wood[2]); px(0,ry,WORLD_W,1,TA.wood[3]); px(0,ry+2,WORLD_W,1,'rgba(26,20,40,0.35)'); }
+    for(let x=4;x<WORLD_W;x+=22) ctx.drawImage(SPR.valla_poste, x, 110);
   }
   if(G.zone==='prado' && G.decor && G.decor.camino){
     /* losas redondeadas con canto claro, sombra y musgo */
-    for(let x=4;x<156;x+=14){
+    for(let x=4;x<WORLD_W-4;x+=14){
       const y = 168+((x/14)%2)*3, w = 8 + (x%3);
       px(x+1, y+4, w-1, 1, 'rgba(20,40,30,0.25)');
       px(x, y+1, w, 3, '#b8ae96'); px(x+1, y, w-2, 1, '#b8ae96'); px(x+1, y+4, w-2, 1, '#8a826e');
@@ -375,11 +386,11 @@ function drawScene(t){
   }
   /* mariposas al sol (más con jardín) */
   if(ph==='day' || ph==='dawn'){
-    const nB = 3 + Math.min(3, G.up.jardin);
+    const nB = 5 + Math.min(5, G.up.jardin);
     for(let i=0;i<nB;i++){
       const b = butterflies[i];
       b.x += Math.sin(t/700+b.a)*0.22*fk; b.y += Math.cos(t/860+b.a*2)*0.12*fk;
-      if(b.x<4) b.x=4; if(b.x>156) b.x=156;
+      if(b.x<4) b.x=4; if(b.x>WORLD_W-4) b.x=WORLD_W-4;
       if(b.y<122) b.y=122; if(b.y>186) b.y=186;
       const open = Math.floor(t/160+b.a)%2===0;
       px(b.x, b.y, 1, 1, b.c);
@@ -439,6 +450,7 @@ function drawScene(t){
     }
   }
   if(sceneFamily(UI.mode)==='world') drawZoneEdges(t);
+  ctx.restore();
 }
 
 /* copa de árbol: blobs con luz arriba-izquierda, sombra abajo-derecha */
@@ -588,15 +600,17 @@ function drawZoneEdges(t){
     drawTextC('?', sx+6, 170, blink ? '#ffd94a' : '#f6efe0');
     px(sx+2,188,12,3,'rgba(190,182,160,0.4)');
   };
+  /* el borde derecho vive al final del mundo ancho */
+  const R = fn=>{ ctx.save(); ctx.translate(WORLD_W-LW, 0); fn(); ctx.restore(); };
   if(G.zone==='prado'){
-    if(G.zonesOpen.parque) arrowR();
-    else if(Object.keys(G.toys).length>=1) teaser(146);
+    if(G.zonesOpen.parque) R(arrowR);
+    else if(Object.keys(G.toys).length>=1) R(()=>teaser(146));
     if(G.zonesOpen.huerta) arrowL();
     else if(huertaTeaser()) teaser(2);
   } else if(G.zone==='parque'){
     arrowL();
   } else if(G.zone==='huerta'){
-    arrowR();
+    R(arrowR);
   }
 }
 

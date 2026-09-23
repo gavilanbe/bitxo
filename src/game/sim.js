@@ -39,6 +39,11 @@ function collectSparkle(i, auto){
   return got;
 }
 
+/* a dónde pasea: por todo el mundo ancho, con preferencia por su rincón */
+function wanderX(p){
+  const home = p.homeX!==undefined ? p.homeX : (p.homeX = 40 + Math.random()*(WORLD_W-80));
+  return Math.max(22, Math.min(WORLD_W-22, Math.random()<0.6 ? home + (Math.random()-0.5)*110 : 22 + Math.random()*(WORLD_W-44)));
+}
 function liveUpdate(dtMs){
   if(!G || UI.mode==='boot') return;
   const now = Date.now();
@@ -127,13 +132,13 @@ function liveUpdate(dtMs){
         if(p.trait==='GLOTON' && p.hunger<85){
           p.thought = {icon:'meal', until: performance.now()+2000};
         } else if(p.trait==='JUGUETON'){
-          if(dayPhase()!=='night'){ p.tx = 24+Math.random()*112; p.joyAt = performance.now(); }
+          if(dayPhase()!=='night'){ p.tx = 24+Math.random()*(WORLD_W-48); p.joyAt = performance.now(); }
           else p.thought = {icon:'ball', until: performance.now()+2000};
         } else if(p.trait==='DORMILON'){
           p.thought = {icon:'zzz', until: performance.now()+2000};
         } else if(p.trait==='CURIOSO'){
           const sp2 = UI.sparkles.find(s2=>(s2.zone||'prado')===G.zone);
-          p.tx = sp2 ? Math.max(22,Math.min(138,sp2.x)) : 130;
+          p.tx = sp2 ? Math.max(22,Math.min(WORLD_W-22,sp2.x)) : p.rx;
           p.thought = {icon:'que', until: performance.now()+2000};
         } else if(p.trait==='VALIENTE' && !G.wild){
           p.joyAt = performance.now();
@@ -141,7 +146,7 @@ function liveUpdate(dtMs){
       }
       if(G.wild && (G.wild.zone||'prado')===G.zone){
         if(p.trait==='VALIENTE' && Math.random() < dtMs*0.0004){
-          p.tx = Math.max(22, Math.min(138, G.wild.x + (p.rx<G.wild.x ? -14 : 14)));
+          p.tx = Math.max(22, Math.min(WORLD_W-22, G.wild.x + (p.rx<G.wild.x ? -14 : 14)));
         }
         if(p.trait==='TIMIDO'){
           p.scaredT = now + 600;
@@ -165,9 +170,9 @@ function liveUpdate(dtMs){
           const others = G.pets.filter(o=>o!==p && o.stage>STAGES.EGG && (o.zone||'prado')===(p.zone||'prado'));
           if(others.length){
             const o = others[Math.floor(Math.random()*others.length)];
-            p.tx = Math.max(22, Math.min(138, o.rx + (Math.random()<0.5?-12:12)));
-          } else p.tx = 22 + Math.random()*116;
-        } else p.tx = 22 + Math.random()*116;
+            p.tx = Math.max(22, Math.min(WORLD_W-22, o.rx + (Math.random()<0.5?-12:12)));
+          } else p.tx = wanderX(p);
+        } else p.tx = wanderX(p);
         p.nextWalk = now + 2500 + Math.random()*4000;
       }
       const d = p.tx - p.rx;
@@ -273,7 +278,8 @@ function liveUpdate(dtMs){
   if(WEATHER.kind==='rain') spawnEvery *= 0.6;
   if(sparkleTimer > spawnEvery && UI.sparkles.length < 5 && UI.mode==='main'){
     sparkleTimer = 0;
-    UI.sparkles.push({x:20+Math.random()*120, y:130+Math.random()*50, born:now, t:Math.random()*7, zone:G.zone});
+    /* las motas brotan cerca de donde miras (a veces un poco fuera: ¡ve a por ellas!) */
+    UI.sparkles.push({x:Math.max(20, Math.min(WORLD_W-20, CAM.x - 30 + Math.random()*220)), y:130+Math.random()*50, born:now, t:Math.random()*7, zone:G.zone});
 
   }
   for(let i=UI.sparkles.length-1;i>=0;i--){
@@ -319,7 +325,7 @@ function liveUpdate(dtMs){
         const elite = !boss && G.battlesWon>=8 && Math.random()<0.10;
         if(elite) nv += 2;
         const stealMs = 75000+(G.relics && G.relics.hueso?30000:0);
-        G.wild = {kind, boss, elite, nv, zone:G.zone, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealMs, stealAt: now+stealMs};
+        G.wild = {kind, boss, elite, nv, zone:G.zone, x: Math.random()<0.5? -14:WORLD_W+14, tx: 40+Math.random()*(WORLD_W-80), arriveAt:now, stealMs, stealAt: now+stealMs};
         G.wild.dir = G.wild.x<80? 1:-1;
         toast(boss? '¡EL JEFE '+ENEMIES[kind].name+'!' : (elite? '¡'+ENEMIES[kind].name+' ELITE NV'+nv+'!' : '¡UN '+ENEMIES[kind].name+' NV'+nv+'!'), 2600);
         SFX.nope(); vibrate([40,40,40]);
@@ -330,7 +336,7 @@ function liveUpdate(dtMs){
       const w = G.wild;
       const d = w.tx - w.x;
       if(Math.abs(d)>1){ w.x += Math.sign(d)*dtMs*0.02; w.dir = Math.sign(d)||w.dir; }
-      else if(Math.random()<dtMs*0.0004){ w.tx = 30+Math.random()*100; }
+      else if(Math.random()<dtMs*0.0004){ w.tx = 30+Math.random()*(WORLD_W-60); }
       /* la cuenta atrás del robo solo corre mientras lo estás viendo;
          stealAt se deriva de ella (partidas viejas / arnés la fijan) */
       if(w.stealMs===undefined) w.stealMs = Math.max(0, (w.stealAt||now+75000) - now);
@@ -350,7 +356,7 @@ function liveUpdate(dtMs){
   if(UI.mode==='main' || UI.mode==='buho'){
     if(!G.buhoNextAt) G.buhoNextAt = now + 20*60*1000;
     if(!G.buho && now > G.buhoNextAt && UI.mode==='main'){
-      G.buho = {until: now + 150000, x: -14, tx: 128, dir: 1, offers: buhoOffers()};
+      G.buho = {until: now + 150000, x: -14, tx: 196, dir: 1, offers: buhoOffers()};
       toast('¡EL BUHONERO HA LLEGADO!', 3000);
       SFX.buy(); vibrate(30);
     }
@@ -358,7 +364,7 @@ function liveUpdate(dtMs){
       const b = G.buho;
       const d = b.tx - b.x;
       if(Math.abs(d)>1){ b.x += Math.sign(d)*dtMs*0.015; b.dir = Math.sign(d)||1; }
-      else if(Math.random() < dtMs*0.0003){ b.tx = 118 + Math.random()*20; }
+      else if(Math.random() < dtMs*0.0003){ b.tx = 186 + Math.random()*20; }
       if(now > b.until){
         G.buho = null;
         G.buhoNextAt = now + (2 + Math.random()*3)*3600*1000;
@@ -444,7 +450,7 @@ function toySpot(id, p){
 function toyLeave(p, now, happy){
   p.toyGo = null;
   const away = (Math.random()<0.5?-1:1)*(24+Math.random()*30);
-  p.tx = Math.max(22, Math.min(138, p.rx + away));
+  p.tx = Math.max(22, Math.min(WORLD_W-22, p.rx + away));
   if(Math.abs(p.tx-p.rx)<12) p.tx = p.rx < 80 ? p.rx+30 : p.rx-30;
   p.nextWalk = now + 3000 + Math.random()*2500;
   if(happy){

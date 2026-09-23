@@ -42,6 +42,9 @@ cv.addEventListener('pointerdown', ev=>{
   handleTap(p.x, p.y);
   armCarry(p.x, p.y);
   if(UI.mode==='battle') btSwipe = {x:p.x, y:p.y, done:false};
+  /* en el prado, arrastrar desplaza la cámara por el mundo ancho */
+  if(UI.mode==='main' && !UI.decorEdit && p.y>24 && p.y<196) camDragStart(p.x);
+  if(UI.decorEdit && typeof decorEditDown==='function') decorEditDown(toWorldX(p.x), p.y);
 });
 let shopTouch = null, btSwipe = null;
 cv.addEventListener('pointermove', ev=>{
@@ -51,6 +54,12 @@ cv.addEventListener('pointermove', ev=>{
       btSwipe.done = true;
       battleSwipe();
     }
+    return;
+  }
+  if(UI.decorEdit && typeof decorEditMove==='function'){ const q3 = canvasPos(ev); decorEditMove(toWorldX(q3.x), q3.y); return; }
+  if(CAM.drag){
+    const q4 = canvasPos(ev);
+    if(camDragMove(q4.x) && carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
     return;
   }
   if(UI.mode.startsWith('mg') && typeof mgDrag==='function' && (ev.buttons||ev.pointerType==='touch')){
@@ -72,6 +81,7 @@ function armCarry(x, y){
   if(carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
   if(UI.mode!=='main' || UI.carry) return;
   if(y<105 || y>190) return;
+  x = toWorldX(x);
   let best=-1, bd=27;
   for(let i=0;i<G.pets.length;i++){
     if((G.pets[i].zone||'prado')!==G.zone) continue;
@@ -90,6 +100,8 @@ for(const evn of ['pointerup','pointercancel','pointerleave']){
   cv.addEventListener(evn, ev=>{
     if(carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
     btSwipe = null;
+    camDragEnd();
+    if(UI.decorEdit && typeof decorEditUp==='function') decorEditUp();
     if(shopTouch){
       const t = shopTouch; shopTouch = null;
       if(evn==='pointerup' && !t.dragged) handleTap(t.x, t.y);
@@ -99,7 +111,7 @@ for(const evn of ['pointerup','pointercancel','pointerleave']){
 /* flechas y senderos de los bordes: true si el toque era navegación */
 function zoneArrowTap(x, y){
   if(!(y>166 && y<198)) return false;
-  if(x>=144){
+  if(x>=WORLD_W-16){
     if(G.zone==='prado'){
       if(G.zonesOpen.parque){ askTravel('parque'); return true; }
       if(Object.keys(G.toys).length>=1){ tapSendero(); return true; }
@@ -186,8 +198,8 @@ function handleTap(x,y){
   }
   /* con el bitxo en brazos: las flechas navegan, el suelo lo suelta */
   if(UI.carry){
-    if(zoneArrowTap(x, y)) return;
-    if(y>100 && y<198){ dropCarry(x); return; }
+    if(zoneArrowTap(toWorldX(x), y)) return;
+    if(y>100 && y<198){ dropCarry(toWorldX(x)); return; }
     UI.carry = null; /* toque al HUD: se baja donde estaba */
   }
   /* la constelación: tu dinastía */
@@ -200,16 +212,22 @@ function handleTap(x,y){
   /* estrella fugaz */
   if(UI.shoot && Math.abs(x-UI.shoot.x)<15 && Math.abs(y-UI.shoot.y)<15){
     const g = Math.round(25*legacyMult()) * (G.relics.lagrima?2:1) * (G.starShower?2:1);
-    gainMotas(g, UI.shoot.x, UI.shoot.y);
-    flyCoins(UI.shoot.x, UI.shoot.y, 10);
-    burst(UI.shoot.x, UI.shoot.y, {n:22, cols:['#ffffff','#ffd94a','#fff8d0'], speed:0.12, g:0.00008, kind:'star', life:700});
-    ringFx(UI.shoot.x, UI.shoot.y, '#fff8d0', 22, 420);
+    gainMotas(g, toWorldX(UI.shoot.x), UI.shoot.y);
+    withScreen(()=>{
+      flyCoins(UI.shoot.x, UI.shoot.y, 10);
+      burst(UI.shoot.x, UI.shoot.y, {n:22, cols:['#ffffff','#ffd94a','#fff8d0'], speed:0.12, g:0.00008, kind:'star', life:700});
+      ringFx(UI.shoot.x, UI.shoot.y, '#fff8d0', 22, 420);
+    });
     flash('#fff8d0', 0.35, 220); shake(0.25);
     toast('¡DESEO CONCEDIDO! +'+g+'✦', 2800);
     SFX.wish(); vibrate([20,20,40]);
     UI.shoot = null;
     return;
   }
+  /* cinta de objetivo: pista (es HUD: coordenadas de pantalla) */
+  if(y>=21 && y<=33 && x>=4 && x<=156 && !UPDATE_READY){ goalTap(); return; }
+  /* desde aquí todo es MUNDO: la x de pantalla pasa a x del mundo ancho */
+  x = toWorldX(x);
   /* chispas */
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
@@ -219,8 +237,6 @@ function handleTap(x,y){
       return;
     }
   }
-  /* cinta de objetivo: pista */
-  if(y>=21 && y<=33 && x>=4 && x<=156 && !UPDATE_READY){ goalTap(); return; }
   /* toque preciso sobre un bitxo: gana a juguetes, carteles y senderos */
   if(y>132 && y<168){
     const pi = nearestPetAt(x, 9);

@@ -156,7 +156,7 @@ function checkAchievements(){
       if(a.m){ gainMotas(a.m); toast('¡LOGRO: '+a.name+'! +'+a.m+'✦', 3200); }
       else { G.stars += a.s; toast('¡LOGRO: '+a.name+'! +'+a.s+'★', 3200); }
       SFX.levelup();
-      if(sceneFamily(UI.mode)==='world'){ confetti(80, 40, 24); flash('#ffd94a', 0.22, 220); }
+      if(sceneFamily(UI.mode)==='world'){ withScreen(()=>confetti(80, 40, 24)); flash('#ffd94a', 0.22, 220); }
       break;
     }
   }
