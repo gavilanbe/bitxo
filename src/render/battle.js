@@ -417,7 +417,8 @@ function drawBattle(t, dt){
   const th = btTheme(b);
   const pd = currentFormDef();
   const pspr = SPR[pd.spr][Math.floor(t/2600)%14===0 && b.phase!=='end' ? 1 : 0] || SPR[pd.spr][0];
-  const espr = btESpr(b);
+  /* segundo fotograma de vez en cuando: el rival respira, parpadea, olfatea */
+  const espr = (!b.fspr && ESPR[b.kind+'_b'] && (t%2200)<220) ? ESPR[b.kind+'_b'] : btESpr(b);
   const esc = btEScale(b);
   const {P, E} = btPoses(b, t);
   const ec = btECenter(b), pc = btPCenter();
@@ -494,11 +495,10 @@ function drawBattle(t, dt){
   const pimg = P.white ? silhouette(pspr) : (P.dark ? darkSilhouette(pspr) : pspr);
   if(P.ghosts) P.ghosts.forEach((g, i)=> btSpr(btTint(pspr, sup ? S.col : '#bff0ff'), g[0], g[1], 2, {alpha:0.35-i*0.12}));
   btSpr(pimg, P.x, P.y, 2, {sx:P.sx, sy:P.sy});
-  if(p.hat && SPR['hat_'+p.hat] && !P.white){
-    const hs = SPR['hat_'+p.hat];
-    const hdy = (HAT_BY_ID[p.hat] && HAT_BY_ID[p.hat].dy) || 0;
-    const hy = P.y - Math.round((pspr.height - 2 - hdy)*2*P.sy);
-    btSpr(hs, P.x + (P.sx<0 ? 0 : 0), hy, 2, {sx:P.sx, sy:P.sy});
+  if(p.hat && !P.white){
+    ctx.save(); ctx.translate(Math.round(P.x), Math.round(P.y)); ctx.scale(2*(P.sx||1), 2*(P.sy||1));
+    drawPetHat(p, pspr, -Math.floor(pspr.width/2), -pspr.height, false);
+    ctx.restore();
   }
   if(sup && b.t<BTG.SIMP){
     const a = 0.25 + 0.35*(Math.floor(b.t/60)%2);

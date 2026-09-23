@@ -17,7 +17,11 @@ function toast(s, ms=2000){
   const now = performance.now();
   s = String(s);
   /* un "no" siempre se nota: el panel abierto tiembla */
-  if(/FALTAN|NO TIENE|SIN MOTAS|SIN ENERGIA|AL MAXIMO|LLENA|AUN NO|NO PUEDE|MUY PEQUE/.test(s)){ UI.denyAt = now; }
+  if(/FALTAN|NO TIENE|SIN MOTAS|SIN ENERGIA|AL MAXIMO|LLENA|AUN NO|NO PUEDE|MUY PEQUE/.test(s)){
+    UI.denyAt = now;
+    /* los paneles rediseñados ya dicen el porqué en la fila: sin aviso doble */
+    if(typeof MENU_DRAW!=='undefined' && MENU_DRAW[UI.mode] && ['shop','feed','play','games','discos','exped','tower','buho','quests'].includes(UI.mode)) return;
+  }
   if(UI.msg===s && now<UI.msgUntil){ UI.msgUntil = Math.max(UI.msgUntil, now+Math.min(ms,1400)); return; }
   if(TOASTQ.some(q=>q.s===s)) return;
   if(UI.msg && now<UI.msgUntil){

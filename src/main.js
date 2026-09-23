@@ -211,7 +211,7 @@ function normalizeSave(g){
   g.poops = g.poops||[];
   for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
-    p.swingT=0; p.kickAt=0; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
+    p.swingT=0; p.kickAt=0; p.drumT=0; p.kiteT=0; p.toyGo=null; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
     p.hat = p.hat||null;
     if(p.str===undefined) p.str = p.discipline||0;
     p.def = p.def||0; p.spd = p.spd||0;

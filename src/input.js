@@ -34,9 +34,9 @@ cv.addEventListener('pointerdown', ev=>{
   audio();
   const p = canvasPos(ev);
   tapRipple(p.x, p.y);
-  if(UI.mode==='shop' || UI.mode==='ach'){
+  if(UI_SCROLLABLE[UI.mode] || UI.mode==='ach'){
     /* paneles que se deslizan: el toque se decide al soltar */
-    shopTouch = {x:p.x, y:p.y, mode:UI.mode, s: UI.mode==='shop' ? (UI.shopScroll||0) : (UI.achScroll||0), dragged:false};
+    shopTouch = {x:p.x, y:p.y, mode:UI.mode, s: UI_SCROLLABLE[UI.mode] ? UI_SCROLLABLE[UI.mode].get() : (UI.achScroll||0), dragged:false};
     return;
   }
   handleTap(p.x, p.y);
@@ -61,7 +61,8 @@ cv.addEventListener('pointermove', ev=>{
   const dy = q.y - shopTouch.y;
   if(Math.abs(dy)>4) shopTouch.dragged = true;
   if(shopTouch.dragged){
-    if(shopTouch.mode==='shop') UI.shopScroll = Math.max(0, Math.min(shopMaxScroll(), shopTouch.s - dy));
+    const SC = UI_SCROLLABLE[shopTouch.mode];
+    if(SC) SC.set(Math.max(0, Math.min(SC.max(), shopTouch.s - dy)));
     else UI.achScroll = Math.max(0, Math.min(achMaxScroll(), shopTouch.s - dy));
   }
 });
@@ -147,6 +148,7 @@ function handleTap(x,y){
   /* insignia X: cierra cualquier panel hacia su pantalla madre */
   if(MENU_PARENT[UI.mode] && UI.closeAt &&
      Math.abs(x-UI.closeAt.x)<=8 && Math.abs(y-UI.closeAt.y)<=8){
+    UI.closePressT = now;
     UI.mode = MENU_PARENT[UI.mode];
     SFX.tap(); vibrate(10);
     return;

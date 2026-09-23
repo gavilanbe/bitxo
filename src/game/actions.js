@@ -533,7 +533,7 @@ function useBattleItem(i){
 }
 
 /* ---------------- LOGROS: scroll del panel ---------------- */
-function achMaxScroll(){ return Math.max(0, ACH.length*11 - 165); }
+function achMaxScroll(){ return typeof co_achMax==='function' ? co_achMax() : Math.max(0, ACH.length*11 - 165); }
 
 /* ---------------- GORROS ---------------- */
 function tapHat(i){

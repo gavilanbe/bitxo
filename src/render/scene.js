@@ -347,22 +347,30 @@ function drawScene(t){
     const fp = FLOWER_PALS[(G.decor && G.decor.flores) || 'clasico'] || FLOWER_PALS.clasico;
     const deco = [[14,182,fp[0]],[52,190,fp[1]],[96,186,fp[2]],[136,180,fp[3]]];
     if(G.up.jardin>=1) deco.push([30,166,fp[1]],[118,168,fp[2]],[70,176,fp[4]],[144,192,fp[1]],[8,170,fp[2]]);
-    for(const d of deco){
-      px(d[0],d[1]-3,1,3,S.grass2);
-      px(d[0]-1,d[1]-5,3,2,d[2]);
-      px(d[0],d[1]-6,1,1,d[2]);
+    const fw = WEATHER.kind==='wind' ? 1 : 0;
+    for(let i=0;i<deco.length;i++){
+      const d = deco[i];
+      /* flor con hojas y corazón amarillo; con viento cabecea */
+      const nod = fw && Math.sin(t/260+i)>0.3 ? 1 : 0;
+      ctx.drawImage(florSpr(d[2]), d[0]-3+nod, d[1]-8);
     }
   }
 
   /* valla y caminito comprados */
   if(G.zone==='prado' && G.decor && G.decor.valla){
-    for(let x=6;x<160;x+=22){ px(x,112,3,12,'#8a6a3a'); px(x,112,3,1,K); }
-    px(0,115,160,2,'#a4834e'); px(0,120,160,2,'#a4834e');
+    /* valla de madera al fondo: largueros sombreados y postes con remate */
+    for(const ry of [115,120]){ px(0,ry,160,2,TA.wood[2]); px(0,ry,160,1,TA.wood[3]); px(0,ry+2,160,1,'rgba(26,20,40,0.35)'); }
+    for(let x=4;x<160;x+=22) ctx.drawImage(SPR.valla_poste, x, 110);
   }
   if(G.zone==='prado' && G.decor && G.decor.camino){
+    /* losas redondeadas con canto claro, sombra y musgo */
     for(let x=4;x<156;x+=14){
-      px(x, 168+((x/14)%2)*3, 8, 4, 'rgba(190,182,160,0.85)');
-      px(x+1, 167+((x/14)%2)*3, 6, 1, 'rgba(220,214,196,0.85)');
+      const y = 168+((x/14)%2)*3, w = 8 + (x%3);
+      px(x+1, y+4, w-1, 1, 'rgba(20,40,30,0.25)');
+      px(x, y+1, w, 3, '#b8ae96'); px(x+1, y, w-2, 1, '#b8ae96'); px(x+1, y+4, w-2, 1, '#8a826e');
+      px(x+1, y, w-3, 1, '#dcd4bc'); px(x, y+1, 1, 2, '#dcd4bc');
+      px(x+w-1, y+2, 1, 2, '#8a826e');
+      if(x%28===4) px(x+w-3, y+3, 2, 1, '#6a9a4a');
     }
   }
   /* mariposas al sol (más con jardín) */
@@ -396,6 +404,18 @@ function drawScene(t){
     px(cx-8+sh*6,cy+1,6,1,'#bde8f8'); px(cx+4,cy+4,5,1,'#bde8f8');
     /* nenúfar con flor */
     px(cx+6, cy-2, 5, 2, '#57a05e'); px(cx+7, cy-3, 3, 1, '#57a05e'); px(cx+8, cy-3, 1, 1, '#f2a2b8');
+    px(cx+6, cy-1, 5, 1, '#3f7f3a'); px(cx-12, cy+2, 4, 1, '#57a05e'); px(cx-11, cy+1, 2, 1, '#7ac74f');
+    /* piedras de la orilla */
+    for(const r of [[-19,-2,4],[-17,3,3],[16,-3,4],[17,2,3],[-4,-8,3],[8,7,4]]){
+      const rx0 = cx+r[0], ry0 = cy+r[1];
+      px(rx0, ry0, r[2], 2, '#8a8aa0'); px(rx0, ry0, r[2]-1, 1, '#c2c2d4'); px(rx0+1, ry0+2, r[2]-1, 1, '#5a5a6e');
+    }
+    /* juncos con espiga que se mecen */
+    for(let k=0;k<4;k++){
+      const jx = cx+14+k*2, jy = cy-4-(k%2)*2, sw = Math.round(Math.sin(t/700+k)*0.6);
+      px(jx, jy-6, 1, 7, k%2 ? '#4f9a42' : '#3f7f3a');
+      if(k%2===0){ px(jx-1+sw, jy-9, 2, 3, '#8a5a30'); px(jx-1+sw, jy-9, 1, 1, '#b08050'); }
+    }
     /* onda que se expande cada pocos segundos */
     const rp = (t%3200)/3200;
     if(rp<0.6){ const rr = Math.round(2+rp*14); ctx.globalAlpha = 0.5*(1-rp/0.6); px(cx-6-rr, cy+1, 2, 1, '#e8f6ff'); px(cx-6+rr, cy+1, 2, 1, '#e8f6ff'); px(cx-6, cy+1-Math.round(rr*0.4), 1, 1, '#e8f6ff'); ctx.globalAlpha = 1; }
@@ -403,12 +423,13 @@ function drawScene(t){
   if(G.zone==='prado' && G.up.jardin>=4){
     /* farolillos */
     for(const lx of [22, 126]){
-      px(lx,138,2,18,'#5a4632');
-      px(lx-2,132,6,7,'#8a6a3a');
-      px(lx-1,133,4,5, ph==='night' ? '#ffd94a' : '#f2b06b');
-      if(ph==='night'){
-        glowDisc(lx+1, 136, 11 + Math.round(Math.sin(t/400+lx)*0.8), '#ffd94a', 0.35);
-      }
+      const on = ph==='night' || ph==='dusk';
+      if(on) glowDisc(lx+1, 135, 12 + Math.round(Math.sin(t/400+lx)*0.8), '#ffd94a', ph==='night' ? 0.35 : 0.18);
+      ctx.drawImage(SPR.farol, lx-3, 130);
+      /* cristal con llama que titila */
+      const fl = on ? (Math.sin(t/90+lx)>0 ? '#fff0a0' : '#ffd94a') : '#f2c890';
+      px(lx-1, 133, 4, 4, on ? '#f0a04b' : '#c89a6a'); px(lx, 134, 2, 2, fl);
+      px(lx-1, 133, 1, 1, 'rgba(255,255,255,0.6)');
     }
     if(ph==='night' || ph==='dusk'){
       for(const f of fireflies){
@@ -450,9 +471,7 @@ function treeCanopy(S){
 /* ---------------- EL PARQUE: escenografía propia ---------------- */
 function drawParqueProps(t, S){
   /* arco de entrada: la puerta de vuelta al prado */
-  px(0,128,3,32,'#8a6a3a'); px(9,128,3,32,'#8a6a3a');
-  px(0,124,12,4,'#a4834e');
-  px(0,124,12,1,K); px(0,127,12,1,K);
+  ctx.drawImage(SPR.arco, -2, 123);
   /* el gran árbol: copa redonda sombreada (horneada) que se mece */
   const sway = Math.round(Math.sin(t/1400));
   px(74,118,8,42,'#6a4e2e');
@@ -460,15 +479,16 @@ function drawParqueProps(t, S){
   px(70,158,16,3,'#5a3e24'); px(68,159,4,2,'#6a4e2e'); px(84,159,4,2,'#6a4e2e');
   ctx.drawImage(treeCanopy(S), 51+sway, 84);
   /* banco de madera */
-  px(104,127,22,3,'#a4834e');
-  px(104,127,22,1,'#c8a04b');
-  px(106,130,2,5,'#5a4632'); px(122,130,2,5,'#5a4632');
+  ctx.drawImage(SPR.banco, 102, 124);
   /* muñeco de entreno: tócalo y el GYM abre sin menús */
-  px(52,134,3,24,'#8a6a3a');
-  px(51,124,5,4,'#5a4632');
-  px(47,128,12,12,'#c98a4b');
-  px(47,128,12,1,K); px(47,139,12,1,K); px(47,128,1,12,K); px(58,128,1,12,K);
-  px(49,131,3,2,'#a4713a'); px(54,134,3,2,'#a4713a');
+  {
+    const hitK = Math.max(0, 1 - (performance.now()-(UI.dummyHitAt||0))/400);
+    const wob = Math.round(Math.sin(t/60)*2*hitK);
+    softShadow(53, 158, 10);
+    ctx.save(); ctx.translate(53, 158); ctx.rotate(wob*0.04);
+    ctx.drawImage(SPR.muneco, -7, -35);
+    ctx.restore();
+  }
   /* si hay pareja de residentes, ¡duelo! */
   const duo = G.pets.filter(q=>(q.zone||'prado')==='parque' && q.stage>=STAGES.CHILD && !q.sleeping && !q.exped);
   if(duo.length>=2 && Math.floor(t/400)%2===0) drawTextC('¡VS!', 53, 112, '#e2574c');
@@ -476,29 +496,41 @@ function drawParqueProps(t, S){
 
 /* ---------------- LA HUERTA: escenografía propia ---------------- */
 function drawHuertaProps(t, S){
-  /* surcos labrados con brotes */
+  /* bancales labrados: caballones con sombra y hortalizas */
   for(let r=0;r<3;r++){
     const y = 130 + r*7;
-    px(22,y,44,4,'#6a4e2e');
-    px(22,y,44,1,'#5a3e24');
-    px(24,y+2,40,1,'#7a5e3a');
-  }
-  for(let i=0;i<6;i++){
-    px(27+i*7, 128+(i%3)*7, 2, 2, S.grass);
+    px(22,y,44,4,'#6a4a30');
+    px(22,y,44,1,'#8a6a48');
+    px(22,y+3,44,1,'#4a3424');
+    px(21,y+1,1,2,'#6a4a30'); px(66,y+1,1,2,'#4a3424');
+    for(let i=0;i<6;i++){
+      const hx = 25 + i*7 + (r%2)*3, hy = y;
+      if(r===0){
+        /* lechugas */
+        px(hx-1,hy-2,4,3,'#7ac74f'); px(hx,hy-3,2,1,'#b4ec84'); px(hx-1,hy,4,1,'#3f7f3a'); px(hx,hy-1,1,1,'#b4ec84');
+      } else if(r===1){
+        /* zanahorias: hojas y hombro naranja */
+        const sw = Math.round(Math.sin(t/800+i)*0.6);
+        px(hx+sw,hy-4,1,3,'#4f9a42'); px(hx-1,hy-3,1,2,'#7ac74f'); px(hx+1+sw,hy-3,1,2,'#7ac74f');
+        px(hx-1,hy,3,1,'#f0a04b'); px(hx-1,hy,1,1,'#ffc88a');
+      } else {
+        /* coles moradas */
+        px(hx-1,hy-2,4,3,'#8a6ae0'); px(hx,hy-3,2,1,'#b89af0'); px(hx-1,hy,4,1,'#5a3fa8'); px(hx+2,hy-2,1,1,'#7ac74f');
+      }
+    }
   }
   /* espantapájaros (a veces con cuervo confianzudo) */
-  px(112,130,2,28,'#8a6a3a');
-  px(105,136,16,2,'#8a6a3a');
-  px(109,127,8,7,'#e8d8a0');
-  px(110,129,2,1,K); px(114,129,2,1,K);
-  px(108,124,10,3,'#a03030');
-  px(107,126,12,1,K);
-  if(Math.floor(t/900)%5===0){ px(104,132,3,2,'#2a2438'); px(103,131,1,1,'#2a2438'); }
-  /* girasoles */
-  for(const gx of [141,148]){
-    px(gx,140,1,16,'#57a05e');
-    px(gx-2,135,5,5,'#ffd94a');
-    px(gx-1,136,3,3,'#8a6a10');
+  softShadow(113, 158, 12);
+  ctx.drawImage(SPR.espanta, 104, 123);
+  if(Math.floor(t/900)%5===0){
+    const cy = Math.floor(t/150)%2;
+    px(103,133-cy,4,3,'#2a2438'); px(102,132-cy,2,2,'#2a2438'); px(101,133-cy,1,1,'#f0a04b'); px(103,132-cy,1,1,'#ffffff');
+  }
+  /* girasoles que siguen al sol (cabecean) */
+  for(const [gx,i] of [[136,0],[145,1]]){
+    const nod = Math.round(Math.sin(t/1400+i*2)*0.7);
+    softShadow(gx+4, 158, 6);
+    ctx.drawImage(SPR.girasol, gx+nod, 134+i*2);
   }
 }
 

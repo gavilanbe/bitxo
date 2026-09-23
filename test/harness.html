@@ -19,14 +19,14 @@ function run(){
   const visuals = {
     train: `UI.mode = 'train';`,
     discos: `G.motas = 500; G.discos.verbena = true; UI.mode = 'discos';`,
-    evotree: `G.dex = {pradera_babyA:true, pradera_childA:true, pradera_adultA:true}; _p.str=5; _p.def=2; _p.spd=1; UI.evoLine = 0; UI.evoSel = 5; UI.mode = 'evotree';`,
+    evotree: `G.dex = {pradera_babyA:true, pradera_childA:true, pradera_adultA:true}; _p.str=5; _p.def=2; _p.spd=1; UI.evoLine = 0; UI.evoSel = 5; UI.mode = 'evotree'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     playmenu: `UI.mode = 'play';`,
     salta: `G.games.salta = true; startJump(); UI.mg.intro = 0; UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
     evomorph: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[{r:24,a:0.4},{r:44,a:0.22}], sfxBurst:true, sfxReveal:true}; UI.evoT=2600; UI.mode='evolve';`,
     evoreveal: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:true, sfxReveal:true}; UI.evoT=4800; UI.mode='evolve';`,
     statsbackup: `G.bond=24; UI.mode='stats';`,
     statsrumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex.pradera_childA=true; UI.mode='stats';`,
-    treerumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex={pradera_babyA:true, pradera_childA:true}; UI.evoLine=0; UI.evoSel=1; UI.mode='evotree';`,
+    treerumbo: `_p.stage=1; _p.form='babyA'; _p.hatchedAt=Date.now()-10*60*1000; _p.str=2; _p.def=1; _p.spd=1; G.dex={pradera_babyA:true, pradera_childA:true}; UI.evoLine=0; UI.evoSel=1; UI.mode='evotree'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     park: `G.motas=137; _p.str=3; _p.def=1; _p.spd=0; UI.mode='train'; UI.park={phase:'idle', px:80, t:0};`,
     parktrain: `G.motas=137; _p.line='brasa'; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:36, tx:36, kind:'str', t:600, gain:2};`,
     toysprado: `G.toys={pelota:true, caja:true, columpio:true, banera:true, tambor:true, huerto:true}; G.huertoReadyAt=Date.now()-1; G.ballX=105; _p.rx=40; _p.tx=40; UI.mode='main';`,
@@ -34,15 +34,15 @@ function run(){
     topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.intro=0; UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
     pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.intro=0; UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
     renamekb: `_p.stage=3; UI.nickBuf='KIR'; UI.mode='rename';`,
-    diarypanel: `G.diary=[{d:'1/7',txt:'NACIO MIRU (GEN 1)'},{d:'1/7',txt:'BAUTIZADO COMO KIRA'},{d:'2/7',txt:'KIRA EVOLUCIONO EN KIPO'},{d:'3/7',txt:'KIRA VENCIO A SU PRIMER ELITE'},{d:'3/7',txt:'KIRA SE PUSO MALITO'},{d:'3/7',txt:'KIRA SE CURO CON LA MEDICINA'}]; UI.mode='diary';`,
+    diarypanel: `G.diary=[{d:'1/7',txt:'NACIO MIRU (GEN 1)'},{d:'1/7',txt:'BAUTIZADO COMO KIRA'},{d:'2/7',txt:'KIRA EVOLUCIONO EN KIPO'},{d:'3/7',txt:'KIRA VENCIO A SU PRIMER ELITE'},{d:'3/7',txt:'KIRA SE PUSO MALITO'},{d:'3/7',txt:'KIRA SE CURO CON LA MEDICINA'}]; UI.mode='diary'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     pradodeco: `G.decor={owned:{flores_fuego:true,valla:true,camino:true,cielo:true}, flores:'fuego', valla:true, camino:true, cielo:true}; UI.mode='main';`,
     sickpet: `_p.sick=true; _p.sickAt=Date.now(); UI.mode='main';`,
     feedmed: `_p.sick=true; UI.mode='feed';`,
     towerintro: `G.battlesWon=15; G.motas=260; UI.mode='tower';`,
     towerrun: `G.battlesWon=15; G.tower={floor:3, php:31}; UI.mode='tower';`,
-    legacypanel: `G.stars=7; G.legacy=[{name:'RAYON',key:'pradera_adultA',lv:9,gen:1,stars:2},{name:'IGNIS',key:'brasa_adultS',lv:12,gen:2,stars:3},{name:'GRIMO',key:'grimo',lv:8,gen:3,stars:1}]; UI.mode='legacy';`,
+    legacypanel: `G.stars=7; G.legacy=[{name:'RAYON',key:'pradera_adultA',lv:9,gen:1,stars:2},{name:'IGNIS',key:'brasa_adultS',lv:12,gen:2,stars:3},{name:'GRIMO',key:'grimo',lv:8,gen:3,stars:1}]; UI.mode='legacy'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     questsweekly: `ensureDaily(); ensureWeekly(); G.weekly.prog=9; G.daily.prog[QUESTS[G.daily.ids[0]].id]=99; UI.mode='quests';`,
-    beastpanel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1}}; UI.mode='beast';`,
+    beastpanel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1}}; UI.mode='beast'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     wildnv: `G.wild={kind:'roquijo', nv:playerPower(_p)+4, elite:true, boss:false, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
     breyseto: `_p.energy=90; G.wild={kind:'reyseto', nv:14, elite:false, boss:true, x:110, tx:110, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.35; UI.bt.super=2; for(let i=0;i<26;i++){ UI.bt.fx.push({x:Math.random()*160, y:30+Math.random()*90, vx:-0.008, vy:0.012, life:1600, col:'rgba(201,116,58,0.8)', size:1}); }`,
     btiming: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.42; UI.bt.super=3;`,
@@ -52,6 +52,8 @@ function run(){
     bsuper: `_p.energy=90; _p.line='brasa'; _p.form='adultA'; G.wild={kind:'sombrio',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); UI.bt.phase='superAnim'; UI.bt.t=400; for(let i=0;i<24;i++) spawnSuperFx(UI.bt), UI.bt.t+=18; UI.bt.t=430;`,
     bend: `_p.energy=90; G.wild={kind:'ratuco',boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1}; startBattle(); endBattle(true); UI.bt.t=900;`,
     hat: `G.hats.corona = true; _p.hat = 'corona'; UI.mode = 'main';`,
+    hatadult: `_p.stage=3; _p.form='adultA'; _p.line='brasa'; _p.hat='vikingo'; const q=makePet('marea',1); q.stage=3; q.form='adultD'; q.hat='gafas'; q.hatchedAt=Date.now(); q.rx=110; q.tx=110; G.pets.push(q); const q2=makePet('fungo',1); q2.stage=1; q2.form='babyA'; q2.hat='pajarita'; q2.hatchedAt=Date.now(); q2.rx=40; q2.tx=40; G.pets.push(q2); UI.mode = 'main';`,
+    hatbattle: `_p.stage=3; _p.form='adultS'; _p.line='astro'; _p.hat='halo'; UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.t=0; UI.bt.mk=0.45; UI.bt.hold=true;`,
     buhoprado: `G.buho = {until: Date.now()+120000, x: 120, tx: 122, dir: -1, offers: buhoOffers()}; UI.mode = 'main';`,
     quests: `ensureDaily(); G.daily.prog[QUESTS[G.daily.ids[0]].id] = 99; UI.mode = 'quests';`,
     buho: `G.buho = {until: Date.now()+90000, x: 120, tx: 122, dir: 1, offers: buhoOffers()}; UI.mode = 'buho';`,
@@ -61,6 +63,14 @@ function run(){
     brazos: `G.zonesOpen={parque:true}; G.zone='parque'; G.toys={columpio:true,tambor:true}; UI.carry={i:0}; UI.mode='main';`,
     huertaconfirm: `G.zonesOpen={parque:true}; G.toys={banera:true,huerto:true}; G.expedsDone=2; G.motas=900; UI.mode='huertaConfirm';`,
     viaje: `G.zonesOpen={parque:true}; const q2=makePet('brasa',1); q2.stage=3; q2.form='adultA'; q2.hatchedAt=Date.now(); q2.nick='BRASI'; G.pets.push(q2); UI.travelDest='parque'; UI.mode='travelPick';`,
+    ascendconfirm: `_p.stage=3; _p.form='adultA'; _p.level=12; UI.mode='ascendConfirm';`,
+    expedaway: `const a=makePet('brasa',1); a.stage=3; a.form='adultA'; a.hatchedAt=Date.now(); a.exped={dest:2, until:Date.now()+100*60000}; G.pets.push(a); _p.exped={dest:0, until:Date.now()+6*60000}; UI.mode='exped';`,
+    questsdone: `ensureDaily(); ensureWeekly(); const _q=QUESTS[G.daily.ids[1]]; G.daily.claimed[_q.id]=true; G.daily.prog[_q.id]=_q.n; G.daily.prog[QUESTS[G.daily.ids[2]].id]=1; G.weekly.prog=99; UI.mode='quests';`,
+    buhopoor: `G.motas=70; G.items=['pocion']; G.buho={until:Date.now()+20000, x:120, tx:122, dir:1, offers:buhoOffers()}; G.buho.offers[0].sold=true; UI.mode='buho';`,
+    gamesall: `G.games={salta:true,topo:true,pesca:true,memo:true,globo:true}; G.best={mgCatch:30,mgSimon:5,mgJump:12,mgTopo:9,mgPesca:2,mgMemo:4,mgGlobo:25,mgDance:40}; UI.mode='games';`,
+    gamesdeny: `G.motas=20; UI.mode='games'; setTimeout(()=>handleTap(80,150), 1100);`,
+    towercool: `G.battlesWon=15; G.towerNextAt=Date.now()+2*3600e3; UI.mode='tower';`,
+    discoplay: `G.discos.verbena=true; G.motas=130; UI.mode='discos'; setTimeout(()=>handleTap(20,112), 1000);`,
     burbuja: `_p.bubbleT=performance.now()+999999; _p.hunger=64; _p.energy=38; _p.hygiene=85; UI.mode='main';`,
     duelo: `G.zonesOpen={parque:true}; G.zone='parque'; _p.zone='parque'; const q3=makePet('brasa',1); q3.stage=3; q3.form='adultA'; q3.zone='parque'; q3.hatchedAt=Date.now(); q3.energy=90; G.pets.push(q3); startDuel(); UI.bt.phase='timing'; UI.bt.mk=0.5; G.items=['pocion','chispa'];`,
     bt3timing: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.t=0; UI.bt.mk=0.45; UI.bt.super=2; UI.bt.hold=true;`,
@@ -129,11 +139,29 @@ function run(){
     sendero: `G.toys={pelota:true,columpio:true}; UI.mode='main';`,
     pradozonas: `G.zonesOpen={parque:true}; G.zone='prado'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.up.jardin=4; G.huertoReadyAt=Date.now()-1; UI.mode='main';`,
     tiendamejora: `G.motas=500; UI.mode='shop'; UI.shopTab=0;`,
-    achpanel: `G.ach={primer:true}; UI.mode='ach';`,
-    albumpanel: `G.dex={pradera_babyA:true,pradera_childA:true,brasa_babyB:true}; UI.mode='album';`,
+    tiendadeny: `G.motas=40; G.up.cosecha=3; G.up.iman=1; UI.mode='shop'; UI.shopTab=0; setTimeout(()=>handleTap(80, 64+2*19+8), 1500);`,
+    tiendaprado: `G.motas=260; G.decor={owned:{flores_pastel:true, valla:true}, flores:'pastel', valla:false}; UI.mode='shop'; UI.shopTab=3;`,
+    tiendascroll: `G.motas=300; G.toys={pelota:true}; UI.mode='shop'; UI.shopTab=1; UI.shopScroll=40;`,
+    statsasc: `_p.level=12; G.stars=3; G.bond=30; _p.nick='KIRA'; G.slowRing=true; UI.mode='stats';`,
+    statsegg: `_p.stage=0; _p.form=null; _p.hatchedAt=0; _p.bornAt=Date.now()-60000; UI.mode='stats';`,
+    statschild: `_p.stage=2; _p.form='childA'; _p.level=4; _p.hatchedAt=Date.now()-3*86400000; _p.str=6; _p.def=3; _p.spd=2; _p.mistakes=4; _p.weight=44; UI.mode='stats';`,
+    feeddeny: `G.motas=9; _p.sick=false; UI.mode='feed'; setTimeout(()=>handleTap(114, 60+41*2), 1500);`,
+    playlocked: `G.battlesWon=3; _p.stage=1; _p.form='babyA'; UI.mode='play'; setTimeout(()=>handleTap(114, 188), 1500);`,
+    renamefull: `UI.nickBuf='BARTOLOM'; UI.mode='rename'; setTimeout(()=>handleTap(22, 95), 1500);`,
+    achpanel: `G.ach={primer:true}; UI.mode='ach'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    albumpanel: `G.dex={pradera_babyA:true,pradera_childA:true,brasa_babyB:true}; UI.mode='album'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    albumfull: `G.ascensions=3; G.dex={}; for(const s of SLOT_KEYS){ G.dex['pradera_'+s]=true; } G.dex.brasa_babyA=true; G.dex.marea_childB=true; G.dex.grimo=true; G.ach.col10=true; UI.albumPage=0; UI.mode='album'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    albumgrimo: `G.dex={pradera_babyA:true}; UI.albumPage=LINE_KEYS.length; UI.mode='album'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    evotreeS: `G.dex={pradera_babyA:true, pradera_childA:true, pradera_adultA:true, pradera_adultS:true}; _p.stage=2; _p.form='childA'; _p.level=5; _p.str=6; _p.def=5; _p.spd=3; _p.gamesWon=2; UI.evoLine=0; UI.evoSel=7; UI.mode='evotree'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    achscroll: `G.ach={hatch:true,joven:true,adulto:true,col10:true,leye:true}; G.battlesWon=3; G.totalMotas=4200; UI.achScroll=30; UI.mode='ach'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    relicsfull: `G.relics={}; for(const r of RELICS) G.relics[r.id]=true; G.relics.ojo=false; UI.relicSel=2; UI.mode='relics'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    beastsel: `G.beast={ratuco:{seen:4,wins:3},pinchon:{seen:2,wins:1},chispin:{seen:1,wins:0},burbujon:{seen:1,wins:1},lobruno:{seen:1,wins:1},setazo:{seen:2,wins:2}}; UI.beastSel=11; UI.mode='beast'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    legacyfull: `G.stars=19; G.ascensions=10; G.legacy=[]; const _k=['pradera_adultA','brasa_adultS','grimo','marea_adultC','fungo_adultB','petrea_adultD','voltio_adultA','astro_adultS','pradera_adultD','brasa_adultB']; _k.forEach((k,i)=>G.legacy.push({name:['RAYON','IGNIS','GRIMO','SURFIN','BOLETON','PEDRON','VOLTAR','COSMO','MOFLE','VULCAN'][i], key:k, lv:8+i, gen:i+1, stars:1+(i%3)})); UI.mode='legacy'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    diarylong: `G.diary=[]; const _t=['NACIO MIRU (GEN 1)','BAUTIZADO COMO KIRA','KIRA EVOLUCIONO EN KIPO','KIRA VENCIO A SU PRIMER ELITE','KIRA SE PUSO MALITO','KIRA SE CURO CON LA MEDICINA','SE ABRIO EL PARQUE','OBJETIVO: HAZ QUE NAZCA EL HUEVO','KIRA PESCO UN PEZ DORADO','KIRA SE FUE EN BUSCA DE COMIDA','KIRA ASCENDIO AL CIELO +2★','SE ENCENDIO ROCIO 1','NOVEDAD: NUEVAS LINEAS EN EL PRADO']; _t.forEach((t,i)=>G.diary.push({d:(1+Math.floor(i/3))+'/7', txt:t})); UI.mode='diary'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    exprep: `UI.expReport={name:'KIRA', dest:'PICO ARDIENTE', motas:180, xp:25, relicName:'PLUMA ROJA', extra:40, eggline:'brasa', eggWait:false}; UI.mode='main'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     expedpanel: `UI.mode='exped';`,
-    relicspanel: `G.relics={trebol:true,seta:true}; UI.mode='relics';`,
-    offrep: `offlineReport={away:5*3600000+12*60000, motas:842, autofed:2, poops:3, lvls:1, evolved:true, robot:1, mistakes:0, ranAway:[], capped:false}; UI.repT=performance.now()-5000; UI.mode='main';`,
+    relicspanel: `G.relics={trebol:true,seta:true}; UI.mode='relics'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
+    offrep: `offlineReport={away:5*3600000+12*60000, motas:842, autofed:2, poops:3, lvls:1, evolved:true, robot:1, mistakes:0, ranAway:[], capped:false}; UI.repT=performance.now()-5000; UI.mode='main'; UI.msgUntil=0; setInterval(()=>{UI.msgUntil=0; TOASTQ.length=0;},100);`,
     motas: `for(let i=0;i<4;i++) UI.sparkles.push({x:30+i*30, y:140+(i%2)*20, born:Date.now()-1000, t:i, zone:'prado'}); G.wild={kind:'chispin', nv:5, elite:false, boss:false, zone:'prado', x:125, tx:125, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
     constel: `MENU_DRAW.constel=drawConstel; MENU_PARENT.constel='main'; G.stars=12; G.constel={pts:7, nodes:{rocio:3,chispa:1,sueno:2,cuna:2,semilla:1,colmillo:1}, guide:null}; openConstel(false); UI.cst.sel='sangre';`,
     constelhint: `MENU_DRAW.constel=drawConstel; MENU_PARENT.constel='main'; G.stars=5; G.constel={pts:5, nodes:{}, guide:null}; openConstel(true); UI.cst.gain=5;`,
@@ -400,9 +428,9 @@ function run(){
       R.burnTicks = bb.php < 50 && bb.burnT === 1 && bb.phase === 'timing';
       UI.bt = null; G.wild = null; UI.mode = 'main';
       // bestiario desde DATOS
-      UI.mode = 'stats'; handleTap(108, 175);
+      UI.mode = 'stats'; handleTap(108, 205);
       R.beastOpens = UI.mode === 'beast';
-      handleTap(80, 250);
+      handleTap(80, 264); // fuera del panel
       R.beastCloses = UI.mode === 'stats';
       // álbum con 6 líneas → árbol fungo
       // predicción de evolución (en sincronía con checkEvolution)
@@ -470,11 +498,11 @@ function run(){
         R.sleepCharges = _p.energy > 50;
         _p.sleeping=false; UI.mode='main'; }
       // navegación JUGAR → GYM / JUEGOS / EXPLORACION
-      UI.mode = 'play'; handleTap(80, 95);
+      UI.mode = 'play'; handleTap(46, 108);
       R.playToGym = UI.mode === 'train';
-      UI.mode = 'play'; handleTap(80, 135);
+      UI.mode = 'play'; handleTap(114, 108);
       R.playToGames = UI.mode === 'games';
-      UI.mode = 'play'; _p.stage = 3; handleTap(80, 170);
+      UI.mode = 'play'; _p.stage = 3; handleTap(46, 188);
       R.playToExped = UI.mode === 'exped';
       // insignia X universal
       UI.mode = 'shop'; UI.closeAt = {x:150, y:40}; handleTap(150, 40);
@@ -517,7 +545,7 @@ function run(){
       R.elemVoltio = elemMult('voltio','marea') === 1.3 && elemMult('marea','voltio') === 0.75 && elemMult('petrea','voltio') === 1.3;
       R.expedFive = EXPEDS.length === 5 && EXPEDS[4].egg === 'voltio';
       // wearables nuevos: dy y compra en rejilla
-      R.hatsTen = HATS.length === 11 && HAT_BY_ID.gafas.dy === 4 && !!SPR.hat_halo && !!SPR.hat_laurel;
+      R.hatsTen = HATS.length === 11 && HAT_BY_ID.gafas.slot === 'eyes' && typeof drawPetHat === 'function' && !!SPR.hat_halo && !!SPR.hat_laurel;
       G.motas = 3000; UI.mode = 'shop'; UI.shopTab = 2;
       handleTap(30, 64 + 1*28 + 10); // fila 1, col 0 = pajarita
       R.hatGridBuy = !!G.hats.pajarita;
@@ -557,7 +585,7 @@ function run(){
       _p.exped = null; UI.mode = 'main';
       // LA TORRE: entrar pagando, avanzar pisos, corona final
       G.battlesWon = 15; G.motas = 500; _p.energy = 90; _p.stage = 3;
-      UI.mode = 'play'; handleTap(80, 208);
+      UI.mode = 'play'; handleTap(114, 188);
       R.towerDoor = UI.mode === 'tower';
       const mt0 = G.motas;
       handleTap(100, 165);
@@ -586,7 +614,7 @@ function run(){
       R.weeklyClaim = G.weekly.claimed && G.motas === mw0 + W2.m;
       // REVANCHA desde el bestiario
       G.beast.ratuco = {seen:2, wins:1}; _p.energy = 90;
-      UI.mode = 'beast'; handleTap(80, 40);
+      UI.mode = 'beast'; UI.beastSel = undefined; handleTap(22, 55); /* ficha de RATUCO */ handleTap(120, 202); /* REVANCHA */
       R.rematch = UI.mode === 'battle' && UI.bt.kind === 'ratuco' && G.wild.revenge === true;
       UI.bt = null; G.wild = null; UI.mode = 'main';
       // DINASTIA: el ascenso deja huella y el cielo la enseña
@@ -681,7 +709,7 @@ function run(){
       R.decorDraws = !decorCrash;
       // BAUTIZO: teclado pixel
       _p.stage = 3; UI.mode = 'stats';
-      handleTap(80, 33); // tocar el nombre
+      handleTap(100, 50); // tocar el nombre
       R.renameOpens = UI.mode === 'rename';
       UI.nickBuf = '';
       handleTap(13+2*19+9, 86+9);  // C
@@ -696,7 +724,7 @@ function run(){
       const dn0 = G.diary.length;
       diaryLog('PRUEBA DEL ARNES');
       R.diaryLogs = G.diary.length === dn0+1;
-      UI.mode = 'stats'; handleTap(139, 175);
+      UI.mode = 'stats'; handleTap(139, 205);
       R.diaryOpens = UI.mode === 'diary';
       handleTap(80, 100);
       R.diaryCloses = UI.mode === 'stats';
@@ -726,13 +754,15 @@ function run(){
         const ic = await fetch('../icons/icon-512.png');
         R.pwaIcon = ic.ok;
       }catch(err){ R.pwaManifest = false; }
-      UI.mode = 'album'; handleTap(80, 33+3*27+10);
+      UI.mode = 'album'; handleTap(8+3*18+8, 50); /* pestaña FUNGO */ R.albumTabs = UI.albumPage === 3; handleTap(30, 100); /* primera forma */
       R.albumFungoRow = UI.mode === 'evotree' && UI.evoLine === 3 && LINE_KEYS[3] === 'fungo';
       UI.mode = 'main';
-      UI.mode = 'album'; handleTap(80, 50);
+      UI.mode = 'album'; UI.albumPage = 0; handleTap(30, 100);
       R.albumToTree = UI.mode === 'evotree' && (UI.evoLine === 0);
       handleTap(150, 30);
       R.treeArrows = UI.evoLine === 1;
+      handleTap(20, 163); // <ALBUM
+      R.treeBack = UI.mode === 'album' && UI.albumPage === 1;
       UI.mode = 'main';
       // ZONAS: sendero, apertura del parque, mudanza de juguetes y navegación
       G.motas = 3000; G.zonesOpen = {}; G.zone = 'prado'; UI.mode = 'main';
@@ -937,7 +967,7 @@ function run(){
       UI.zoneSlide = null; gotoZone('prado'); UI.zoneSlide = null;
       // aro tranquilo: la carta ARO de DATOS
       G.slowRing = false; UI.mode = 'stats';
-      handleTap(136, 212);
+      handleTap(136, 222);
       R.slowRingToggle = G.slowRing===true;
       G.slowRing = false; UI.mode = 'main';
       // mochila: comprar pocion al buhonero y usarla en combate
@@ -1026,7 +1056,7 @@ function run(){
       UI.mode = 'main'; UI.mg = null;
       // GYM v3: dormido no entra, reps con el dedo y sesión perfecta
       _p.sleeping = true; _p.exped = null; UI.mode = 'play';
-      handleTap(80, 95);
+      handleTap(46, 108);
       R.gymSleepBlocked = UI.mode==='play';
       _p.sleeping = false; _p.sick = false; UI.mode = 'main';
       G.motas = 500; _p.energy = 90;

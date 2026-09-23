@@ -4,48 +4,79 @@
    ========================================================= */
 /* registro de toques por pantalla: lo rellenan render/screens/*.js y lo usa input.js */
 const SCREEN_TAP = {};
-/* ------ paneles: esquinas recortadas, brillo y sombra ------ */
+/* ------ paneles v2: papel con canto, sombra suave y trama (ver uikit.js) ------ */
 function panel(x,y,w,h){
-  px(x+2,y+h,w-2,2,'rgba(26,20,40,0.28)');
-  px(x+w,y+3,1,h-2,'rgba(26,20,40,0.18)');
-  px(x+1,y,w-2,h,'#e8e0c8');
-  px(x,y+1,w,h-2,'#e8e0c8');
+  /* sombra suave desplazada */
+  px(x+3,y+h,w-3,1,'rgba(8,9,28,0.30)');
+  px(x+2,y+h+1,w-3,1,'rgba(8,9,28,0.16)');
+  px(x+w,y+3,1,h-2,'rgba(8,9,28,0.22)');
+  px(x+w+1,y+4,1,h-3,'rgba(8,9,28,0.10)');
+  /* cuerpo: canto oscuro por dentro del contorno */
+  px(x+1,y,w-2,h,'#c9bb98');
+  px(x,y+1,w,h-2,'#c9bb98');
+  px(x+2,y+1,w-4,h-3,'#e8e0c8');
+  px(x+1,y+2,w-2,h-5,'#e8e0c8');
+  /* trama de papel muy sutil */
+  ctx.globalAlpha = 0.045; ctx.fillStyle = K;
+  for(let yy=y+4; yy<y+h-4; yy+=3) for(let xx=x+3+((yy-y)%2)*2; xx<x+w-3; xx+=4) ctx.fillRect(xx,yy,1,1);
+  ctx.globalAlpha = 1;
+  /* contorno con esquinas redondeadas */
   px(x+2,y,w-4,1,K); px(x+2,y+h-1,w-4,1,K);
   px(x,y+2,1,h-4,K); px(x+w-1,y+2,1,h-4,K);
   px(x+1,y+1,1,1,K); px(x+w-2,y+1,1,1,K);
   px(x+1,y+h-2,1,1,K); px(x+w-2,y+h-2,1,1,K);
-  px(x+2,y+1,w-4,1,'#f8f2e0');
-  px(x+2,y+h-2,w-4,1,'#d6cdb4');
+  /* luz arriba e izquierda, canto abajo */
+  px(x+2,y+1,w-4,1,'#fbf6e6');
+  px(x+1,y+2,1,h-5,'#f6efdc');
+  px(x+2,y+h-3,w-4,1,'#b8a98a');
   UI.panelRect = {x,y,w,h};
+  UI.panelHead = null;
 }
 function card(x,y,w,h,disabled){
-  const bg = disabled ? '#d0c8b0' : '#f6efe0';
+  const bg = disabled ? '#d2c9b1' : '#f6efe0';
+  if(!disabled) px(x+1,y+h,w-2,1,'rgba(26,20,40,0.2)');
   px(x+1,y,w-2,h,bg); px(x,y+1,w,h-2,bg);
-  px(x+1,y,w-2,1,K); px(x+1,y+h-1,w-2,1,K);
-  px(x,y+1,1,h-2,K); px(x+w-1,y+1,1,h-2,K);
-  if(!disabled) px(x+1,y+1,w-2,1,'#fffaf0');
+  px(x+1,y,w-2,1,disabled?'#6a6072':K); px(x+1,y+h-1,w-2,1,disabled?'#6a6072':K);
+  px(x,y+1,1,h-2,disabled?'#6a6072':K); px(x+w-1,y+1,1,h-2,disabled?'#6a6072':K);
+  if(!disabled){ px(x+1,y+1,w-2,1,'#fffaf0'); px(x+1,y+h-2,w-2,1,'rgba(26,20,40,0.1)'); }
 }
-/* chip oscuro de título: mismo baseline que el texto que sustituye */
+/* cinta de título: mismo baseline que el texto que sustituye */
 function titleChip(cx,y,text){
-  const w = textW(text)+12;
+  const w = textW(text)+14;
   const x = Math.round(cx-w/2);
-  px(x+1,y-3,w-2,10,'#3b3552');
-  px(x,y-2,1,8,'#3b3552'); px(x+w-1,y-2,1,8,'#3b3552');
-  px(x+1,y-4,w-2,1,K); px(x+1,y+7,w-2,1,K);
-  px(x,y-3,1,1,K); px(x+w-1,y-3,1,1,K);
-  px(x,y+6,1,1,K); px(x+w-1,y+6,1,1,K);
+  /* colas de cinta */
+  px(x-3,y-1,4,7,'#2a2540'); px(x-4,y,1,5,'#2a2540'); px(x-3,y-1,4,1,K); px(x-3,y+5,4,1,K); px(x-4,y,1,1,K); px(x-4,y+4,1,1,K);
+  px(x+w-1,y-1,4,7,'#2a2540'); px(x+w+3,y,1,5,'#2a2540'); px(x+w-1,y-1,4,1,K); px(x+w-1,y+5,4,1,K); px(x+w+3,y,1,1,K); px(x+w+3,y+4,1,1,K);
+  /* cuerpo */
+  px(x+1,y-4,w-2,12,'#443c60');
+  px(x,y-3,w,10,'#443c60');
+  px(x+1,y-5,w-2,1,K); px(x+1,y+8,w-2,1,K);
+  px(x-1,y-3,1,10,K); px(x+w,y-3,1,10,K);
+  px(x,y-4,1,1,K); px(x+w-1,y-4,1,1,K); px(x,y+7,1,1,K); px(x+w-1,y+7,1,1,K);
+  px(x+1,y-4,w-2,1,'#6a5f8c');
+  px(x+1,y+7,w-2,1,'#2e2844');
+  px(x+2,y-2,1,1,'#ffd94a'); px(x+w-3,y-2,1,1,'#ffd94a');
+  drawTextC(text, cx, y+1, K);
   drawTextC(text, cx, y, '#ffe9a8');
 }
 /* insignia X de cierre en la esquina del panel activo */
 function drawCloseBadge(){
   const r = UI.panelRect; if(!r) return;
   const bx = r.x + r.w - 6, by = r.y + 1;
-  px(bx-4,by-3,11,9,'#e2574c');
-  px(bx-3,by-4,9,11,'#e2574c');
-  px(bx-3,by-4,9,1,K); px(bx-3,by+6,9,1,K);
-  px(bx-4,by-3,1,9,K); px(bx+6,by-3,1,9,K);
-  px(bx-3,by-3,9,1,'#f08a80');
-  drawText('X', bx-1, by-1, '#ffffff');
+  const dn = UI.closePressT && performance.now()-UI.closePressT < 130 ? 1 : 0;
+  /* sombra */
+  px(bx-3,by+7,9,1,'rgba(8,9,28,0.35)');
+  const y0 = by+dn;
+  px(bx-4,y0-3,11,9,'#e2574c');
+  px(bx-3,y0-4,9,11,'#e2574c');
+  px(bx-3,y0+5,9,1,'#a8352c'); px(bx-4,y0+4,11,1,'#c8443a');
+  px(bx-3,y0-4,9,1,K); px(bx-3,y0+6,9,1,K);
+  px(bx-4,y0-3,1,9,K); px(bx+6,y0-3,1,9,K);
+  px(bx-3,y0-3,9,1,'#f59a90'); px(bx-3,y0-2,1,5,'#f08a80');
+  /* aspa pixel 5x5 */
+  const cx = bx-1, cy = y0-1;
+  for(let i=0;i<5;i++){ px(cx+i,cy+i+1,1,1,'#8a2a24'); px(cx+4-i,cy+i+1,1,1,'#8a2a24'); }
+  for(let i=0;i<5;i++){ px(cx+i,cy+i,1,1,'#ffffff'); px(cx+4-i,cy+i,1,1,'#ffffff'); }
   UI.closeAt = {x:bx+1, y:by+1};
 }
 
@@ -255,7 +286,7 @@ function drawHUD(t){
     px(ox, oy+1, 1, h2-2, bc); px(ox+w2-1, oy+1, 1, h2-2, bc);
     px(ox+1, oy+1, w2-2, 1, '#fffaf0');
     px(ox+2, oy+h2-3, w2-4, 2, ACC[i]);
-    ctx.drawImage(IC[BTNS[i].ic], ox+Math.round((w2-9)/2)-1+1, oy+4-(hot?0:0));
+    ctx.drawImage(IC[BTNS[i].ic], ox+Math.round((w2-IC[BTNS[i].ic].width)/2), oy+4);
     if(pulse) drawTextOC('!', bx+11, BTN_Y-10, '#ffd94a');
   }
   if(UI.flashBtn>=0 && performance.now()<UI.flashUntil+900){

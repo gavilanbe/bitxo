@@ -25,6 +25,25 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 
+## 🎨 Menús, complementos y PWA (sep 2026)
+
+- ✅ **Kit de interfaz** (`render/uikit.js`): cabeceras por categoría, filas con
+  icono, pastillas de precio, pestañas, botones que se hunden, listas con
+  inercia y rebote, filas que entran escalonadas y el porqué de cada "no"
+  dentro del propio panel. Cada pantalla vive en `render/screens/`.
+- ✅ **Todas las pantallas rehechas**: ficha, tienda, despensa, puertas de
+  JUGAR, recreativas, discos de vinilo, expediciones con paisaje, torre de
+  piedra, tablón de misiones, puesto del buhonero, álbum-libro, árbol con
+  requisitos de color, vitrina de reliquias, cartas del bestiario, dinastía,
+  diario y los informes.
+- ✅ **Complementos**: gorros redibujados que se colocan solos en la cabeza
+  de los 64 bitxos (también gafas, pajarita y halo), comidas, iconos de la
+  botonera, 13 enemigos nuevos con fotograma de reposo, y 9 juguetes que los
+  bitxos usan solos (pases de pelota, columpio de verdad, baño, tambor,
+  cometa, fuente, robot que barre, huerto que crece, caja que salta).
+- ✅ **PWA**: icono nuevo pintado con el arte real (normal, enmascarable y
+  iOS), favicon y pantallas de arranque para iPhone.
+
 ## 🌱 Bitxos con sentido y metas (sep 2026)
 
 - ✅ **Las 7 líneas redibujadas**: cada línea es UNA especie cuyo rasgo crece

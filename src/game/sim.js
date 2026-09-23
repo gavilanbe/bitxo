@@ -235,98 +235,7 @@ function liveUpdate(dtMs){
   }
 
   /* juguetes vivos */
-  if(G.toys && UI.mode==='main'){
-    if(G.toys.pelota && toyZone('pelota')===G.zone){
-      G.ballVX = G.ballVX||0;
-      if(G.ballX===undefined) G.ballX = 80;
-      G.ballX += G.ballVX*dtMs;
-      G.ballVX *= Math.exp(-dtMs*0.0018);
-      if(G.ballX<16){ G.ballX=16; G.ballVX=Math.abs(G.ballVX)*0.8; if(G.ballVX>0.03) SFX.bounce(); }
-      if(G.ballX>144){ G.ballX=144; G.ballVX=-Math.abs(G.ballVX)*0.8; if(-G.ballVX>0.03) SFX.bounce(); }
-      if(Math.abs(G.ballVX)<0.005) G.ballVX=0;
-      for(const p of G.pets){
-        if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !p.swingT &&
-           Math.abs(p.rx-G.ballX)<10 && Math.abs(G.ballVX)<0.02 && now>(p.kickAt||0)){
-          p.kickAt = now + 9000;
-          G.ballVX = (p.dir||1)*(0.08+Math.random()*0.05);
-          p.joyAt = performance.now();
-          p.happy = Math.min(100, p.happy+3);
-          SFX.ballKick();
-          break;
-        }
-      }
-    }
-    if(G.toys.banera && toyZone('banera')===G.zone){
-      for(const p of G.pets){
-        if((p.batheT||0)>0){
-          p.batheT -= dtMs;
-          p.hygiene = Math.min(100, p.hygiene + dtMs*0.012);
-          if(p.batheT<=0){ p.batheT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
-        } else if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) &&
-                  p.hygiene<72 && now>(p.batheCd||0) && Math.random() < dtMs*0.00004){
-          p.tx = 59;
-        }
-        if(!(p.batheT>0) && petHere(p) && p.tx===59 && Math.abs(p.rx-59)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
-          p.batheT = 3000; p.batheCd = now + 60000;
-          SFX.clean();
-        }
-      }
-    }
-    if(G.toys.tambor && toyZone('tambor')===G.zone){
-      for(const p of G.pets){
-        if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !(p.batheT>0) &&
-           Math.abs(p.rx-127)<12 && now>(p.drumAt||0) && Math.random() < dtMs*0.0001){
-          p.drumAt = now + 25000;
-          p.joyAt = performance.now();
-          const base = [262,330,392][Math.floor(Math.random()*3)];
-          [0,4,7,12].forEach((sv,j)=> tone({f:NOTE(base,sv), at:sfxAt(j*0.11), d:0.13, type:'p25', vol:0.04, send:0.3}));
-          for(let j=0;j<4;j++) UI.particles.push({x:123+Math.random()*8, y:148, vy:-0.028, life:900, ch:'✦', col:'#ffd94a'});
-          for(const q of G.pets) if(q!==p && q.stage>STAGES.EGG) q.happy = Math.min(100, q.happy+3);
-          p.happy = Math.min(100, p.happy+4);
-        }
-      }
-    }
-    if(G.toys.fuente && toyZone('fuente')===G.zone){
-      for(const p of G.pets){
-        if((p.drinkT||0)>0){
-          p.drinkT -= dtMs;
-          if(p.drinkT<=0){ p.drinkT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
-        } else if(p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !(p.swingT>0) && !(p.batheT>0) &&
-                  p.energy<45 && now>(p.drinkCd||0) && Math.random() < dtMs*0.00005){
-          p.tx = 12;
-        }
-        if(!(p.drinkT>0) && petHere(p) && p.tx===12 && Math.abs(p.rx-12)<4 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
-          p.drinkT = 2200; p.drinkCd = now + 120000;
-          p.energy = Math.min(100, p.energy+10);
-          p.joyAt = performance.now();
-          for(let j=0;j<3;j++) UI.particles.push({x:8+Math.random()*10, y:146, vy:-0.02, life:600, ch:'.', col:'#9adcf0'});
-        }
-      }
-    }
-    if(G.toys.robot && UI.mode==='main' && toyZone('robot')===G.zone){
-      if(UI.robotX===undefined) UI.robotX = 60;
-      if(!UI.robotAt) UI.robotAt = 0;
-      /* el robot solo barre la mugre de su zona */
-      const rz = toyZone('robot');
-      const pi = G.poops.findIndex(pp=>(pp.zone||'prado')===rz);
-      if(pi>=0 && now>UI.robotAt){
-        const target = G.poops[pi].x;
-        const d = target - UI.robotX;
-        if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*dtMs*0.012; }
-        else {
-          G.poops.splice(pi,1);
-          UI.robotAt = now + ROBOT_EVERY;
-          for(let j=0;j<5;j++) UI.particles.push({x:UI.robotX-4+Math.random()*8, y:152, vy:-0.02, life:600, ch:'.', col:'#bdf0f5'});
-          SFX.clean();
-          for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
-        }
-      } else {
-        /* patrulla tranquila */
-        if(!UI.robotTx || Math.abs(UI.robotX-UI.robotTx)<2){ UI.robotTx = 35+Math.random()*95; }
-        UI.robotX += Math.sign(UI.robotTx-UI.robotX)*dtMs*0.004;
-      }
-    }
-  }
+  toyLife(dtMs, now);
   /* sin mirarlo, el robot sigue barriendo su zona (1 caca cada ~90 s) */
   if(G.toys && G.toys.robot && !(UI.mode==='main' && toyZone('robot')===G.zone) && now>(UI.robotAt||0)){
     const rz = toyZone('robot');
@@ -337,28 +246,6 @@ function liveUpdate(dtMs){
       for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
     }
   }
-  if(G.toys && UI.mode==='main'){
-    if(G.toys.columpio && toyZone('columpio')===G.zone){
-      const someone = G.pets.some(q=>(q.swingT||0)>0);
-      for(const p of G.pets){
-        if((p.swingT||0)>0){
-          p.swingT -= dtMs;
-          if(!p.creakAt || now > p.creakAt){ SFX.creak(); p.creakAt = now + 1880; }
-          p.happy = Math.min(100, p.happy + dtMs*0.0012);
-          p.energy = Math.min(100, p.energy + dtMs*0.0008);
-          if(p.swingT<=0){ p.swingT=0; p.nextWalk=0; p.tx = 40+Math.random()*90; }
-        } else if(!someone && p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !p.trainT && Math.random() < dtMs*0.00002){
-          p.tx = 27;
-        }
-        if(!(p.swingT>0) && !someone && petHere(p) && p.tx===27 && Math.abs(p.rx-27)<5 && p.stage>STAGES.EGG && !p.sleeping && !p.exped){
-          p.swingT = 6000;
-          p.petT = performance.now();
-          SFX.yay();
-        }
-      }
-    }
-  }
-
   /* estrella fugaz nocturna */
   if(UI.mode==='main' && dayPhase()==='night'){
     if(!UI.shoot && Math.random() < dtMs*0.000005){
@@ -526,4 +413,304 @@ function hatchPet(i){
   diaryLog('NACIO '+LINES[p.line].names[p.form]+' (GEN '+p.gen+')');
    vibrate([40,40,40,40,80]);
   saveGame();
+}
+
+/* =========================================================
+   JUGUETES VIVOS: los bitxos eligen un juguete, van, lo usan y se van
+   (con un corazoncito). Estados por bitxo: swingT, batheT, drinkT,
+   drumT, kiteT (en uso) y toyGo {id,x,until} (de camino).
+   ========================================================= */
+function petHalfW(p){ const f = SPR[p.form==='grimo' ? 'grimo' : p.line+'_'+(p.form||'babyA')]; return f ? Math.floor(f[0].width/2) : 6; }
+function toyBusy(p){ return (p.swingT>0)||(p.batheT>0)||(p.drinkT>0)||(p.drumT>0)||(p.kiteT>0); }
+function toyFree(p){
+  return p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !p.trainT && !toyBusy(p);
+}
+function toyHere(id){ return !!(G.toys && G.toys[id]) && toyZone(id)===G.zone; }
+/* dónde se pone cada bitxo para usar cada juguete */
+function toySpot(id, p){
+  const hw = petHalfW(p);
+  switch(id){
+    case 'columpio': return SWING.px;
+    case 'banera':   return 59;
+    case 'fuente':   return 21 + hw;
+    case 'tambor':   return TAMBOR.x + 6 + hw;
+    case 'cometa':   return 158 - hw;
+    case 'huerto':   return 85;
+    case 'caja':     return 107 - 7 - hw;
+    case 'pelota':   return G.ballX + (p.rx < G.ballX ? -(hw+3) : (hw+3));
+  }
+  return p.rx;
+}
+function toyLeave(p, now, happy){
+  p.toyGo = null;
+  const away = (Math.random()<0.5?-1:1)*(24+Math.random()*30);
+  p.tx = Math.max(22, Math.min(138, p.rx + away));
+  if(Math.abs(p.tx-p.rx)<12) p.tx = p.rx < 80 ? p.rx+30 : p.rx-30;
+  p.nextWalk = now + 3000 + Math.random()*2500;
+  if(happy){
+    const pn = performance.now();
+    p.thought = {icon:'love', until: pn+1800};
+    p.squashAt = pn;
+    fx({x:p.rx, y:140, vy:-0.03, life:900, kind:'heart', col:'#f2a2b8'});
+  }
+}
+/* elige juguete según lo que necesita (sucio → bañera, cansado → fuente...) */
+function toyPick(p, now){
+  const opts = [];
+  const add = (id, w)=>{ if(w>0 && toyHere(id)) opts.push([id, w]); };
+  const busyBy = id=>G.pets.some(q=>q!==p && q.toyGo && q.toyGo.id===id);
+  add('banera', now>(p.batheCd||0) && !G.pets.some(q=>q.batheT>0) && !busyBy('banera') ? (p.hygiene<72 ? 4 : 0.5) : 0);
+  add('fuente', now>(p.drinkCd||0) && !G.pets.some(q=>q.drinkT>0) && !busyBy('fuente') ? (p.energy<45 ? 4 : 0.7) : 0);
+  add('columpio', !G.pets.some(q=>q.swingT>0) && !busyBy('columpio') ? 1.5 : 0);
+  add('tambor', now>(p.drumCd||0) && !G.pets.some(q=>q.drumT>0) && !busyBy('tambor') ? 1.3 : 0);
+  add('pelota', (UI.ballZ||0)<1 ? (p.trait==='JUGUETON' ? 2.5 : 1) : 0);
+  add('cometa', WEATHER.kind==='wind' && !G.pets.some(q=>q.kiteT>0) && !busyBy('cometa') ? 2.5 : 0);
+  add('caja', Date.now()>=(G.cajaReadyAt||0) ? 0.8 : 0);
+  add('huerto', Date.now()>=(G.huertoReadyAt||0) ? 0.8 : 0);
+  if(!opts.length) return;
+  let r = Math.random()*opts.reduce((a,o)=>a+o[1],0), id = opts[0][0];
+  for(const o of opts){ r -= o[1]; if(r<=0){ id = o[0]; break; } }
+  toyGo(p, id, now);
+}
+function toyGo(p, id, now){
+  const x = toySpot(id, p);
+  p.toyGo = {id, x, until: now + 9000};
+  p.tx = Math.max(10, Math.min(146, x)); p.nextWalk = now + 9000;
+}
+/* patada: con destino (pase a un amigo) o al azar */
+function ballKick(p, target){
+  const pn = performance.now();
+  const dir = p.rx < G.ballX ? 1 : -1;
+  let vx;
+  if(target!==null && target!==undefined && Math.sign(target-G.ballX)===dir){
+    vx = (target - G.ballX)*0.0019;
+    vx = Math.sign(vx)*Math.max(0.045, Math.min(0.15, Math.abs(vx)));
+  } else vx = dir*(0.08+Math.random()*0.05);
+  G.ballVX = vx;
+  UI.ballVZ = 0.08 + Math.random()*0.05; UI.ballZ = Math.max(UI.ballZ||0, 0.5);
+  p.dir = dir; p.squashAt = pn; p.kickAnimAt = pn;
+  p.happy = Math.min(100, p.happy+3);
+  SFX.ballKick();
+  dustFx(G.ballX - dir*3, 161, 4); ringFx(G.ballX, 156, '#ffffff', 6, 200);
+}
+function toyLife(dtMs, now){
+  if(!G.toys || UI.mode!=='main') return;
+  const pn = performance.now();
+
+  /* ---- pelota: física con bote, giro y rozamiento ---- */
+  if(toyHere('pelota')){
+    G.ballVX = G.ballVX||0;
+    if(G.ballX===undefined) G.ballX = 80;
+    if(G.ballHopAt && G.ballHopAt!==UI.ballHopSeen){ UI.ballHopSeen = G.ballHopAt; UI.ballVZ = 0.12; UI.ballZ = Math.max(UI.ballZ||0, 0.5); UI.ballRally = 0; }
+    UI.ballZ = UI.ballZ||0; UI.ballVZ = UI.ballVZ||0;
+    G.ballX += G.ballVX*dtMs;
+    UI.ballRot = (UI.ballRot||0) + G.ballVX*dtMs;
+    if(UI.ballZ>0 || UI.ballVZ>0){
+      UI.ballVZ -= 0.0005*dtMs;
+      UI.ballZ += UI.ballVZ*dtMs;
+      if(UI.ballZ<=0){
+        UI.ballZ = 0;
+        if(UI.ballVZ < -0.04){ UI.ballVZ = -UI.ballVZ*0.5; UI.ballSquashAt = pn; SFX.bounce(); dustFx(G.ballX, 161, 2); }
+        else UI.ballVZ = 0;
+      }
+      G.ballVX *= Math.exp(-dtMs*0.0004);
+    } else G.ballVX *= Math.exp(-dtMs*0.0018);
+    if(G.ballX<16){ G.ballX=16; G.ballVX=Math.abs(G.ballVX)*0.8; if(G.ballVX>0.03){ SFX.bounce(); UI.ballSquashAt = pn; } }
+    if(G.ballX>144){ G.ballX=144; G.ballVX=-Math.abs(G.ballVX)*0.8; if(-G.ballVX>0.03){ SFX.bounce(); UI.ballSquashAt = pn; } }
+    if(Math.abs(G.ballVX)<0.005) G.ballVX=0;
+    const slow = Math.abs(G.ballVX)<0.03 && UI.ballZ<3;
+    for(const p of G.pets){
+      if(!toyFree(p)) continue;
+      const hw = petHalfW(p);
+      const chasing = p.toyGo && p.toyGo.id==='pelota';
+      /* quien va a por la pelota ajusta el rumbo mientras rueda */
+      if(chasing){ p.toyGo.x = toySpot('pelota', p); p.tx = Math.max(10, Math.min(146, p.toyGo.x)); p.nextWalk = now + 3000; }
+      const near = Math.abs(p.rx-G.ballX) < hw+5;
+      if(near && slow && (chasing || now>(p.kickAt||0))){
+        /* ¿hay un amigo libre para pasársela? */
+        const mates = G.pets.filter(q=>q!==p && toyFree(q) && Math.abs(q.rx-G.ballX)>24 && !(q.toyGo && q.toyGo.id!=='pelota'));
+        const rally = UI.ballRally||0;
+        let mate = null;
+        if(mates.length && rally < 5 + Math.floor(Math.random()*3) && Math.random()<0.8) mate = mates[Math.floor(Math.random()*mates.length)];
+        const dir = p.rx < G.ballX ? 1 : -1;
+        if(mate && Math.sign(mate.rx-G.ballX)!==dir) mate = null;
+        ballKick(p, mate ? mate.rx - dir*(petHalfW(mate)+3) : null);
+        p.kickAt = now + (chasing ? 2500 : 9000);
+        if(mate){
+          UI.ballRally = rally+1;
+          toyGo(mate, 'pelota', now); mate.toyGo.until = now + 7000;
+          mate.thought = {icon:'ball', until: pn+900};
+          if(UI.ballRally>=3 && UI.ballRally%3===0){ p.happy = Math.min(100,p.happy+2); mate.happy = Math.min(100,mate.happy+2); fx({x:(p.rx+mate.rx)/2, y:136, vy:-0.03, life:900, kind:'heart', col:'#f2a2b8'}); }
+          p.toyGo = null; p.tx = p.rx; p.nextWalk = now + 2000;
+        } else {
+          if((UI.ballRally||0)>=2){ toyLeave(p, now, true); for(const q of G.pets) if(q!==p && q.toyGo && q.toyGo.id==='pelota') toyLeave(q, now, true); }
+          else if(chasing){ p.toyGo = null; p.thought = {icon:'love', until: pn+1400}; }
+          UI.ballRally = 0;
+        }
+        break;
+      }
+    }
+  }
+
+  /* ---- bitxos que usan, van o eligen juguete ---- */
+  for(const p of G.pets){
+    if(p.stage===STAGES.EGG) continue;
+    const here = petHere(p);
+    /* fuera de la vista, dormido o en brazos: se acabó el juego */
+    if(!here || p.sleeping || p.exped){
+      if(p.drumT>0) p.drumT = 0;
+      if(p.kiteT>0) p.kiteT = 0;
+      if(p.toyGo) p.toyGo = null;
+      continue;
+    }
+    if(toyBusy(p)){
+      p.tx = p.rx; p.nextWalk = now + 1500;
+      if(p.swingT>0){
+        p.swingT -= dtMs;
+        if(!p.creakAt || now > p.creakAt){ SFX.creak(); p.creakAt = now + 940; }
+        p.happy = Math.min(100, p.happy + dtMs*0.0012);
+        p.energy = Math.min(100, p.energy + dtMs*0.0008);
+        if(p.swingT<=0 || !toyHere('columpio')){
+          p.swingT = 0;
+          /* salta del asiento */
+          p.rx = Math.round(swingSeat(pn).x); p.squashAt = pn; dustFx(p.rx, 161, 5);
+          toyLeave(p, now, true);
+        }
+      } else if(p.batheT>0){
+        p.batheT -= dtMs;
+        p.hygiene = Math.min(100, p.hygiene + dtMs*0.012);
+        if(every(700, pn)) toyFx({kind:'drop', x:59-8+Math.random()*16, y:150, vx:(Math.random()-0.5)*0.05, vy:-0.07, g:0.0003, life:600, floor:160});
+        if(p.batheT<=0 || !toyHere('banera')){
+          p.batheT = 0;
+          /* sale y se sacude el agua */
+          p.rx = 59 + (Math.random()<0.5?-16:16); p.dir = p.rx<59 ? -1 : 1; p.squashAt = pn;
+          burst(p.rx, 150, {n:12, cols:['#9adcf0','#e8faff','#5e9be0'], speed:0.09, g:0.0004, life:520, up:0.04, floor:160});
+          toyLeave(p, now, true);
+        }
+      } else if(p.drinkT>0){
+        p.drinkT -= dtMs;
+        p.dir = -1;
+        if(every(380, pn)) toyFx({kind:'drop', x:19, y:155, vx:0.02, vy:-0.05, g:0.0003, life:420});
+        if(p.drinkT<=0 || !toyHere('fuente')){ p.drinkT = 0; toyLeave(p, now, true); }
+      } else if(p.drumT>0){
+        p.drumT -= dtMs;
+        p.dir = -1;
+        if(now >= (p.drumNext||0)){
+          const n = p.drumBeatN = (p.drumBeatN||0)+1;
+          p.drumNext = now + 330;
+          UI.drumHitAt = pn; p.squashAt = pn;
+          const scale = [0,4,7,12,7,4,7,12];
+          const base = p.drumBase || 262;
+          tone({f:NOTE(base, scale[(n-1)%scale.length]), d:0.12, type:'p25', vol:0.045, send:0.3});
+          kick(sfxAt(0), 0.05);
+          toyFx({kind:'note', x:TAMBOR.x-4+Math.random()*6, y:146, vx:(Math.random()-0.3)*0.02, vy:-0.03, life:1000, col:['#ffd94a','#f2a2b8','#5ec8d8','#7ac74f'][n%4], wob:Math.random()*6});
+          /* los demás bailan un saltito */
+          if(n%2===0) for(const q of G.pets) if(q!==p && petHere(q) && q.stage>STAGES.EGG && !q.sleeping && !toyBusy(q)) q.joyAt = pn;
+        }
+        if(p.drumT<=0 || !toyHere('tambor')){
+          p.drumT = 0; p.drumCd = now + 25000;
+          /* acorde final */
+          [0,4,7,12].forEach((sv,j)=> tone({f:NOTE(p.drumBase||262, sv), at:sfxAt(j*0.02), d:0.35, type:'p25', vol:0.03, send:0.4}));
+          for(let j=0;j<4;j++) toyFx({kind:'note', x:TAMBOR.x-9+Math.random()*16, y:144, vx:(Math.random()-0.5)*0.04, vy:-0.035, life:1200, col:'#ffd94a', wob:j*2});
+          for(const q of G.pets) if(q!==p && q.stage>STAGES.EGG && petHere(q)) q.happy = Math.min(100, q.happy+3);
+          p.happy = Math.min(100, p.happy+4);
+          toyLeave(p, now, true);
+          p.thought = {icon:'note', until: pn+1800};
+        }
+      } else if(p.kiteT>0){
+        p.kiteT -= dtMs;
+        p.dir = -1;
+        p.happy = Math.min(100, p.happy + dtMs*0.0008);
+        if(p.kiteT<=0 || WEATHER.kind!=='wind' || !toyHere('cometa')){ p.kiteT = 0; toyLeave(p, now, true); }
+      }
+      continue;
+    }
+    if(!toyFree(p)){ if(p.toyGo && (p.eatT||p.trainT)) p.toyGo = null; continue; }
+    /* de camino a un juguete */
+    if(p.toyGo){
+      const g = p.toyGo;
+      if(now > g.until || !toyHere(g.id)){ p.toyGo = null; continue; }
+      if(g.id==='pelota') continue;   /* la pelota se resuelve arriba */
+      p.tx = Math.max(10, Math.min(146, g.x)); p.nextWalk = Math.max(p.nextWalk||0, now + 1000);
+      if(Math.abs(p.rx - g.x) < 2.5){
+        p.rx = g.x; p.tx = g.x;
+        p.toyGo = null;
+        toyStart(p, g.id, now, pn);
+      }
+      continue;
+    }
+    /* ¿le apetece jugar con algo? */
+    if(UI.mode==='main' && Math.random() < dtMs*0.00007) toyPick(p, now);
+  }
+
+  /* ---- el robot: patrulla y barre las cacas de su zona ---- */
+  if(toyHere('robot')){
+    if(UI.robotX===undefined) UI.robotX = 60;
+    if(!UI.robotAt) UI.robotAt = 0;
+    const x0 = UI.robotX;
+    const sweeping = UI.robotSweep && pn - UI.robotSweep.at < 900;
+    const rz = toyZone('robot');
+    const pi = G.poops.findIndex(pp=>(pp.zone||'prado')===rz);
+    if(sweeping){ /* frotando: quieto */ }
+    else if(pi>=0 && now>UI.robotAt){
+      const target = G.poops[pi].x;
+      const d = target - UI.robotX;
+      if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*Math.min(Math.abs(d), dtMs*0.012); UI.robotDir = Math.sign(d); }
+      else {
+        UI.robotSweep = {x: G.poops[pi].x, at: pn};
+        G.poops.splice(pi,1);
+        UI.robotAt = now + ROBOT_EVERY;
+        SFX.clean();
+        tone({f:880, slide:1320, d:0.08, type:'p125', vol:0.03, at:sfxAt(0.75)});
+        for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
+      }
+    } else {
+      /* patrulla tranquila, con paradas */
+      if(!UI.robotTx || Math.abs(UI.robotX-UI.robotTx)<2){
+        if(!UI.robotWait) UI.robotWait = now + 1200 + Math.random()*2500;
+        if(now > UI.robotWait){ UI.robotTx = 35+Math.random()*95; UI.robotWait = 0; }
+      } else {
+        UI.robotX += Math.sign(UI.robotTx-UI.robotX)*dtMs*0.006;
+        UI.robotDir = Math.sign(UI.robotTx-UI.robotX)||1;
+      }
+    }
+    UI.robotVX = (UI.robotX - x0)/Math.max(1, dtMs);
+  }
+}
+/* llega al juguete y empieza a usarlo */
+function toyStart(p, id, now, pn){
+  switch(id){
+    case 'columpio':
+      if(G.pets.some(q=>q.swingT>0)) return toyLeave(p, now, false);
+      p.swingT = p.swingDur = 6000; p.petT = pn; SFX.yay(); break;
+    case 'banera':
+      if(G.pets.some(q=>q.batheT>0)) return toyLeave(p, now, false);
+      p.batheT = p.batheDur = 4200; p.batheCd = now + 60000;
+      SFX.clean(); nz(sfxAt(0.05), 0.18, 0.05, 1400, 1, 500);
+      burst(59, 150, {n:14, cols:['#9adcf0','#e8faff','#5e9be0'], speed:0.1, g:0.0004, life:560, up:0.06, floor:160});
+      ringFx(59, 152, '#e8faff', 10, 280);
+      break;
+    case 'fuente':
+      if(G.pets.some(q=>q.drinkT>0)) return toyLeave(p, now, false);
+      p.drinkT = 2400; p.drinkCd = now + 120000; p.dir = -1;
+      p.energy = Math.min(100, p.energy+10);
+      p.thought = {icon:'water', until: pn+900};
+      break;
+    case 'tambor':
+      if(G.pets.some(q=>q.drumT>0)) return toyLeave(p, now, false);
+      p.drumT = 2640; p.drumBeatN = 0; p.drumNext = now + 120; p.dir = -1;
+      p.drumBase = [262,294,330,392][Math.floor(Math.random()*4)];
+      break;
+    case 'cometa':
+      if(WEATHER.kind!=='wind' || G.pets.some(q=>q.kiteT>0)) return toyLeave(p, now, false);
+      p.kiteT = 7000; p.dir = -1; SFX.yay(); break;
+    case 'caja':
+      p.dir = 1; p.thought = {icon:'gift', until: pn+2600}; p.joyAt = pn;
+      p.tx = p.rx; p.nextWalk = now + 2600;
+      break;
+    case 'huerto':
+      p.thought = {icon:'fruit', until: pn+2600}; p.joyAt = pn;
+      p.tx = p.rx; p.nextWalk = now + 2600;
+      break;
+  }
 }

@@ -68,15 +68,15 @@ const FOODS = [
 ];
 const FAVES = {pradera:'fruta', brasa:'picante', marea:'pescado', fungo:'seta', petrea:'seta', astro:'sopa', voltio:'chuche'};
 const TOYS = [
- {id:'pelota',  name:'PELOTA',        desc:'LA CHUTAN Y JUEGAN', cost:60},
+ {id:'pelota',  name:'PELOTA',        desc:'SE LA PASAN JUGANDO', cost:60},
  {id:'caja',    name:'CAJA SORPRESA', desc:'PREMIO CADA 45 MIN', cost:100},
- {id:'columpio',name:'COLUMPIO',      desc:'RELAX: ANIMO Y PILAS', cost:150},
+ {id:'columpio',name:'COLUMPIO',      desc:'VUELAN: ANIMO Y PILAS', cost:150},
  {id:'banera',  name:'BANERA',        desc:'CHAPUZONES: +LIMPIO', cost:180},
- {id:'tambor',  name:'TAMBOR',        desc:'CONCIERTOS DE PRADO', cost:220},
+ {id:'tambor',  name:'TAMBOR',        desc:'CONCIERTO: +ANIMO', cost:220},
  {id:'huerto',  name:'HUERTO',        desc:'FRUTA GRATIS CADA 2H', cost:400},
  {id:'cometa',  name:'COMETA',        desc:'PROTEGE DE LA LLUVIA', cost:260},
  {id:'fuente',  name:'FUENTE',        desc:'AGUA FRESCA: +PILAS', cost:350},
- {id:'robot',   name:'ROBOT AMIGO',   desc:'LIMPIA CACAS EL SOLO', cost:500}
+ {id:'robot',   name:'ROBOT AMIGO',   desc:'BARRE LAS CACAS SOLO', cost:500}
 ];
 
 /* --- zonas del mundo: el prado es el hogar; cada juguete vive en su sitio.
@@ -141,13 +141,13 @@ const QUESTS = [
 const HATS = [
  {id:'lazo',    name:'LAZO',       cost:100, desc:'UN TOQUE MONO'},
  {id:'flor',    name:'FLOR',       cost:120, desc:'HUELE A PRADO'},
- {id:'pajarita',name:'PAJARITA',   cost:150, desc:'ELEGANTE Y MONO', dy:9},
+ {id:'pajarita',name:'PAJARITA',   cost:150, desc:'ELEGANTE Y MONO', slot:'neck'},
  {id:'seta',    name:'SETA',       cost:150, desc:'MUY CAMPESTRE'},
- {id:'gafas',   name:'GAFAS',      cost:180, desc:'PURO ESTILO', dy:4},
+ {id:'gafas',   name:'GAFAS',      cost:180, desc:'PURO ESTILO', slot:'eyes'},
  {id:'copa',    name:'COPA',       cost:250, desc:'ELEGANCIA PURA'},
  {id:'vikingo', name:'VIKINGO',    cost:300, desc:'A LA CONQUISTA'},
  {id:'corona',  name:'CORONA',     cost:400, desc:'PARA LEYENDAS'},
- {id:'halo',    name:'HALO',       cost:500, desc:'BENDITO BICHO', dy:-4},
+ {id:'halo',    name:'HALO',       cost:500, desc:'BENDITO BICHO', slot:'halo'},
  {id:'buho',    name:'GORRO BUHO', cost:250, desc:'SOLO EL BUHONERO', buhoOnly:true},
  {id:'laurel',  name:'LAUREL',     cost:0,   desc:'CAMPEON DE LA TORRE', towerOnly:true}
 ];
@@ -222,8 +222,8 @@ const WEEKLY = [
 const DECOR = [
  {id:'flores_pastel', name:'FLORES PASTEL', cost:200, desc:'ROSAS Y CELESTES', kind:'flores', val:'pastel'},
  {id:'flores_fuego',  name:'FLORES FUEGO',  cost:200, desc:'ROJAS Y DORADAS',  kind:'flores', val:'fuego'},
- {id:'valla',   name:'VALLA',        cost:300, desc:'MADERA DEL PARQUE',    kind:'toggle'},
- {id:'camino',  name:'CAMINITO',     cost:250, desc:'PIEDRAS EN LA HIERBA', kind:'toggle'},
+ {id:'valla',   name:'VALLA',        cost:300, desc:'VALLA DE MADERA',    kind:'toggle'},
+ {id:'camino',  name:'CAMINITO',     cost:250, desc:'LOSAS EN LA HIERBA', kind:'toggle'},
  {id:'cielo',   name:'CIELO ASTRAL', cost:500, desc:'MAS ESTRELLAS DE NOCHE', kind:'toggle'}
 ];
 const FLOWER_PALS = {

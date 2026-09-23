@@ -256,27 +256,29 @@ function buildAllSprites(){
   }
   SPR.egg_mystery = [mkSprite({k:K,w:'#cfc9bd',g:'#a29c92'}, EGG_ROWS)];
   SPR.eggCrack = mkSprite({k:K},[
-"............","............","............",".....k......","....k.k.....",".....k.k....","....k.......","............","............","............","............","............","............"]);
-  SPR.poop = mkSprite({k:K,p:'#a4713a'},[
-"...kk...","..kppk..",".kppppk.",".kppppk.","kppppppk","kppppppk",".kkkkkk."]);
-  SPR.meal = mkSprite({k:K,b:'#f6d186',t:'#e8c060',g:'#7ac74f',m:'#a04a32',r:'#e2574c',w:'#fff8d0'},[
-"...kkkkk...","..kbbbbbk..",".kbwbbbwbk.",".kgggggggk.",".krrrrrrrk.",".kmmmmmmmk.",".ktttttttk.","..ktttttk..","...kkkkk..."]);
-  SPR.snack = mkSprite({k:K,c:'#f2a2b8',d:'#d8578a',w:'#fff8d0',y:'#ffd94a',s:'#e2574c',b:'#f6d186'},[
-"..kkkkkk..",".kcysccwk.","kcck..kcck","kwck..kyck",".kbdbbdbk.","..kkkkkk.."]);
-  SPR.shroom = mkSprite({k:K,r:'#d8574c',w:'#f6efe0',s:'#e8d8b8'},[
-"...kkkkkkkk...","..krrwwrrrrk..",".krrrrrrwwrrk.","krwwrrrrrrrrwk","krrrrrwwrrrrrk","kkkkkkkkkkkkkk",".ksssskkssss..","..kssssssssk..","..kssssssssk..","...kkkkkkkk..."]);
-  SPR.fruta = mkSprite({k:K,g:'#57a05e',l:'#7ac74f',r:'#e2574c',d:'#a03030',w:'#ff9a90'},[
-"....kk...","...klgk..","....k....",".krrkrrk.","krwrrrrdk","krwrrrrdk","krrrrrddk",".krrrddk.","..kkkkk.."]);
-  SPR.pescado = mkSprite({k:K,b:'#5e9be0',c:'#9adcf0',d:'#3a6bb0',w:'#ffffff'},[
-"...kkkk...k.",".kkbccck.kdk","kbwkbbbbkddk","kbkkbbbbdddk",".kkbbbdk.kdk","...kkkk...k."]);
-  SPR.picante = mkSprite({k:K,g:'#7ac74f',e:'#57a05e',r:'#e2574c',d:'#a03030',w:'#ff9a90'},[
-"....kgg.","...kgek.","..krrk..",".krwrdk.",".krwrdk.","krrrrdk.","krrrddk.","krrddk..",".kkkk..."]);
-  SPR.pastel = mkSprite({k:K,y:'#ffd94a',w:'#ffffff',p:'#f78fb3',d:'#d8578a',c:'#fbe6c2',s:'#e8c060'},[
-"....krk...","....kwk...",".kkkkkkkk.","kpwpwpwppk","kpppppppdk","kkkkkkkkkk","kcwcccccsk","kccccccssk",".kkkkkkkk."]);
-  SPR.sopa = mkSprite({k:K,y:'#ffd94a',n:'#3a4a8a',u:'#28366a',w:'#f6efe0'},[
-"..w...w...","...w...w..",".kkkkkkkk.","knynynynnk","knnnnnnnuk",".kwwwwwwk.","..kwwwwk..","...kkkk..."]);
-  SPR.setita = mkSprite({k:K,r:'#d8574c',d:'#a03030',w:'#f6efe0',s:'#e8d8b8'},[
-"..kkkk..",".krwrrk.","krrrrwrk","kddddddk",".kssssk.",".kssssk.","..kkkk.."]);
+"............","............","......k.....",".....k......",".....kk.....","....k..k....","...kk...k...","....k.......","............","............","............","............","............"]);
+  SPR.poop = mkSprite({k:K,p:'#a4713a',l:'#c8945a',d:'#6a4428',w:'#e8c090'},[
+"...kk...","..klpk..",".klwpdk.",".kpppdk.","klwdddpk","kppppddk",".kkkkkk."]);
+  SPR.meal = mkSprite({k:K,l:'#ffd58a',b:'#eab060',d:'#c07a38',w:'#fff4d8',g:'#7ac74f',e:'#4f9a3c',y:'#ffd94a',n:'#a0563a',m:'#6a3024'},[
+"...kkkkk...",".kklwlbbkk.","klwlbbwbbdk","kbbbbbbbddk","kgggyyygeek","knnmmmmmmmk","kbbbbbbbbdk",".kdddddddk.","..kkkkkkk.."]);
+  SPR.snack = mkSprite({k:K,p:'#f2a2b8',l:'#ffd0dc',d:'#d8578a',w:'#ffffff',y:'#ffd94a',o:'#e0a020'},[
+"kk..kkkk..kk","kykkwlppkkok","kyykllpdkook","kyykppddkook","kykkpdddkkok","kk..kkkk..kk"]);
+  SPR.shroom = mkSprite({k:K,r:'#d8574c',l:'#f08070',d:'#a03030',w:'#f6efe0',s:'#e8d8b8',t:'#c0a888'},[
+"....kkkkkk....","..kklwwrrrkk..",".klrlwwrrrwdk.","kwwrrrrrrrwwdk","kwwrrrrwwrrddk","kkddddddddddkk","...kksssskk...","....kwssstk...","...kssssstk...","....kkkkkk...."]);
+  SPR.fruta = mkSprite({k:K,r:'#e2574c',l:'#ff8a78',d:'#a83238',w:'#ffffff',n:'#7a4e28',g:'#7ac74f',e:'#4f9a3c'},[
+"....k.kk..","...knkgek.",".kkkkkkk..","klwlrrrrdk","klwrrrrrdk","klrrrrrrdk","krrrrrrddk",".krrrrddk.","..kkkkkk.."]);
+  SPR.pescado = mkSprite({k:K,b:'#5e9be0',l:'#9adcf0',d:'#3a6bb0',c:'#d8f4fa',w:'#ffffff'},[
+".....kk.....","...kkddkk..k",".kkbllllbkkk","kbwkbbbbbkdk","kbbbbbbbbddk","kcccccbbdkdk",".kkcccdkk..k","...kkkk....."]);
+  SPR.picante = mkSprite({k:K,r:'#e2574c',l:'#ff8a78',d:'#a83238',w:'#ffd0c8',g:'#7ac74f',e:'#4f9a3c'},[
+".....kk.","....kgek","..kkkgkk",".krlrrdk",".krwrrdk","krlrrddk","krrrddk.","krrddk..","kddkk...",".kk....."]);
+  SPR.pastel = mkSprite({k:K,p:'#f78fb3',l:'#ffc4d8',d:'#d8578a',c:'#fbe6c2',s:'#e8c060',r:'#e2574c',w:'#ffffff'},[
+"....kkk...","...krwrk..",".kkkkkkkk.","kwllppppdk","kpplpdpddk","kcpcccpcsk","kcccccccsk","kllllllldk","kccccccssk",".kkkkkkkk."]);
+  SPR.sopa = mkSprite({k:K,l:'#f6efe0',y:'#ffd94a',v:'#8a6ae8',n:'#3a4a8a',h:'#5a6ab0',u:'#28366a'},[
+"...l..l...","..l..l....",".kkkkkkkk.","kvyvvvyvvk","khhnnnnnuk","khnnynnnuk",".knnnnnuk.","..kkkkkk.."]);
+  SPR.setita = mkSprite({k:K,v:'#9d6ae0',l:'#c8a0ff',d:'#6a3aa8',w:'#fff4d0',s:'#f0e0c0',t:'#c8b088'},[
+"..kkkk..",".kllwvk.","klvvvvwk","kvwvvvdk","kkddddkk",".kstssk.",".ksstsk.","..kkkk.."]);
+  SPR.medicina = mkSprite({k:K,g:'#7ac74f',e:'#3a7048',w:'#ffffff',c:'#f6efe0',d:'#d0c8b8',h:'#a8e890'},[
+".kkkkkkk.",".khggggk.","kkkkkkkkk","kwcccccdk","kccceccdk","kceeeeedk","kccceccdk","kccccccdk",".kkkkkkk."]);
   SPR.pelota = mkSprite({k:K,r:'#e2574c',d:'#a03030',w:'#ffffff',c:'#f0f0f8'},[
 "..kkkkk..",".kwwrrrk.","kwwwrrrdk","kwwrrrrdk","kwrrrrddk","krrrrdddk",".krrdddk.","..kkkkk.."]);
   SPR.caja = mkSprite({k:K,p:'#9d7bd8',v:'#7a5ab8',y:'#ffd94a',o:'#c9a227'},[
@@ -285,45 +287,47 @@ function buildAllSprites(){
 "..c..c..c.....",".kkkkkkkkkkkk.","kwccbccbccbcwk","kwbbbbbbbbbbwk","kwwbbbbbbbbwwk",".kwwwwwwwwwwk.",".keekkkkkkeek.","..kk......kk.."]);
   SPR.tambor = mkSprite({k:K,r:'#e2574c',d:'#a03030',c:'#fbe6c2',s:'#e8c060',w:'#f6efe0'},[
 ".w........w.",".kw......wk.","..kkkkkkkk..",".kcccccscck.","kkkkkkkkkkkk","krwrkrrkrwrk","krrkrrrrkrrk","krkrrddrrkdk","kkkkkkkkkkkk"]);
-  /* gorros */
-  SPR.hat_lazo = mkSprite({k:K,p:'#f78fb3',d:'#d8578a',w:'#ffd3e2'},[
-"kk..k..kk","kwpkdkpdk","kppkdkddk",".kk.k.kk."]);
-  SPR.hat_flor = mkSprite({k:K,y:'#ffd94a',o:'#c9a227',p:'#f2a2b8',w:'#fff8f0'},[
-"..kkk..",".kwppk.","kpyyopk",".kpppk.","..kkk.."]);
-  SPR.hat_seta = mkSprite({k:K,r:'#d8574c',d:'#a03030',w:'#f6efe0'},[
-"..kkkkk..",".krwrrrk.","krrrwrrrk","kdddddddk",".kkkkkkk."]);
-  SPR.hat_copa = mkSprite({k:K,n:'#2a2438',h:'#453e60',r:'#e2574c',d:'#a03030'},[
-"..kkkkk..","..khnnk..","..khnnk..","..krrdk..","knnnnnnnk",".kkkkkkk."]);
-  SPR.hat_corona = mkSprite({k:K,y:'#ffd94a',o:'#c9a227',r:'#e2574c',b:'#5e9be0'},[
-"k.k.k.k.k","kykykykyk","kyyrybyyk","kyoooooyk","kkkkkkkkk"]);
-  SPR.hat_buho = mkSprite({k:K,u:'#9d7bd8',v:'#7a5ab8',y:'#ffd94a'},[
-"....k....","...kuk...","..kuvuk..",".kuuuvuk.","kuyuyuyuk",".kkkkkkk."]);
-  SPR.hat_gafas = mkSprite({k:K,n:'#20243c',c:'#8fd8e8'},[
-"kkkkkkkkk","kcnkkkcnk",".kk...kk."]);
-  SPR.hat_pajarita = mkSprite({k:K,r:'#e2574c',d:'#a03030',w:'#ff9a90'},[
-"kk...kk","kwrkrdk","krdkddk","kk...kk"]);
-  SPR.hat_halo = mkSprite({k:'#c9a227',y:'#ffd94a',w:'#fff8d0'},[
-".kkkkkkk.","kyywyyywk",".kkkkkkk."]);
-  SPR.hat_laurel = mkSprite({k:'#3d6b2f',g:'#7ac74f',e:'#57a05e',y:'#ffd94a'},[
-".gk.....kg.","gke.kyk.ekg",".gke...ekg.","..kge.egk..","....kkk...."]);
-  SPR.hat_vikingo = mkSprite({k:K,w:'#f6efe0',e:'#d8d0c0',s:'#c8c8d4',n:'#8a6a3a',d:'#6a5230'},[
-"kk.......kk","kwk.....kwk","kwek...kewk","kwwkkkkkwwk",".kknnsnnkk.","..kdddddk..","...kkkkk..."]);
+  /* gorros (anclaje por sprite en render/hats.js) */
+  SPR.hat_lazo = mkSprite({k:K,d:'#c8487a',p:'#f47aa6',l:'#ffb3cb',w:'#ffffff'},[
+"kk......kk","kwkk..kklk","klppkkpppk","klpkldkppk","kpddkkpddk",".kkk..kkk."]);
+  SPR.hat_flor = mkSprite({k:K,d:'#d0588a',p:'#f58fb4',l:'#ffc8da',w:'#ffffff',y:'#ffd94a',o:'#e09a20',x:'#fff6b0'},[
+"...kkk...",".kkwlpkk.","klpxyypdk","kppyyopdk",".kpyoodk.","kppdkpddk",".kkk.kkk."]);
+  SPR.hat_seta = mkSprite({k:K,r:'#e2574c',l:'#ff8a78',d:'#a83238',w:'#fff4e0',c:'#f0dcb4',g:'#c8a878'},[
+"...kkkk...",".kklwwrkk.","klrrwwrrdk","kwwrrrrwdk","kddrrrrddk",".kcgcgcgk.","..kkkkkk.."]);
+  SPR.hat_copa = mkSprite({k:K,n:'#3a3450',h:'#5c5480',u:'#221c30',r:'#e2574c',l:'#ff8a78',d:'#a83238'},[
+"..kkkkkk..","..khhhnk..","..khnnuk..","..khnnuk..","..khnnuk..","..klrrdk..","khhnnnnnuk",".kkkkkkkk."]);
+  SPR.hat_corona = mkSprite({k:K,y:'#ffd94a',w:'#fff6c0',o:'#e0a020',d:'#a86c10',r:'#e2574c',b:'#5ec8d8'},[
+".k..kk..k.","kwkkwykkyk","kwyyyyyyok","kyrybbyrok","kooooooodk","kkkkkkkkkk"]);
+  SPR.hat_buho = mkSprite({k:K,u:'#9d7bd8',l:'#c4a8f0',d:'#6f4fb0',y:'#ffd94a',o:'#e0a020',w:'#fff8e0'},[
+"kk......kk","klk....kdk","klukkkkudk","klwwuuwwdk","kuwkyykwdk","kuuuoouudk",".kkkkkkkk."]);
+  SPR.hat_gafas = mkSprite({k:K,n:'#2a2e4a',u:'#20243c',c:'#9ae4f0',b:'#5e8cb0'},[
+"kkkkkkkkkk","kcbnkkcbnk","knnukknnuk",".kkk..kkk."]);
+  SPR.hat_pajarita = mkSprite({k:'#5a1420',r:'#ec5a4c',l:'#ffa89a',d:'#b43238'},[
+"kk...kk","klk.krk","krrlrdk","kdk.kdk","kk...kk"]);
+  SPR.hat_pajarita_s = mkSprite({k:'#5a1420',r:'#ec5a4c',l:'#ffa89a',d:'#b43238'},[
+"kk.kk","lrlrd","kk.kk"]);
+  SPR.hat_halo = mkSprite({k:'#c9a227',y:'#ffd94a',w:'#fffbe0',o:'#e8b830'},[
+"..kkkkkk..",".kwwyyyyk.","kwk....kyk",".kyyyyyok.","..kkkkkk.."]);
+  SPR.hat_laurel = mkSprite({k:K,g:'#7ac74f',l:'#b0e880',e:'#4f9a3c',y:'#ffd94a'},[
+".k.k....k.k.","klklk..kgkek","kgkgkkkkekek","klgggyyggeek",".kkkkkkkkkk."]);
+  SPR.hat_vikingo = mkSprite({k:K,w:'#f6efe0',e:'#d8cca8',s:'#b8bcc8',l:'#e4e8f0',d:'#80849a',n:'#a0703a',y:'#ffd94a'},[
+".k........k.","kwk......kek","kwk.kkkk.kek","kwkklssdkkek",".kwwlsssdek.","..knynnynk..","..kkkkkkkk.."]);
 }
 
 const IC = {};
-/* botonera 12x12: cada acción con su carácter */
-IC.feed = mkSprite({k:'#3b2f2f',m:'#c98a4b',w:'#f6efe0',d:'#a4713a'},[
-"......kkk...",".....kmmmk..","....kmmmmmk.","...kmmdmmmk.","...kmmmmmk..","..kmdmmmk...","..kmmmmk....",".kwkmmk.....","kwwkkk......","kwwk........",".kk.........","............"]);
-IC.play = mkSprite({k:'#3b2f2f',r:'#e2574c',w:'#ff9a90',y:'#ffd94a'},[
-"...kkkkk....","..kwrrrrk...",".kwrryrrrk..",".krryyyrrk..",".kryyyyyrk..",".krryyyrrk..",".krrryrrrk..","..krrrrrk...","...kkkkk....","............","............","............"]);
-IC.clean= mkSprite({k:'#3b2f2f',h:'#8a6a3a',s:'#e8c060',c:'#5ec8d8'},[
-".........kk.","........khk.","...c...khk..","......khk...",".....khk....","....khk.....","...ksk......","..kssk......",".kssssk.....","kssssk...c..","kkkkk.......","............"]);
-IC.sleep= mkSprite({k:'#3b2f2f',y:'#ffd94a',w:'#fff8d0'},[
-"....kkk.....","...kyyk.....","..kyyk......",".kyyk....w..",".kyyk.......",".kyyk.......",".kyyyk...w..","..kyyyk.....","...kyyyykk..","....kkkk....","............","............"]);
-IC.shop = mkSprite({k:'#3b2f2f',n:'#a4713a',y:'#ffd94a',d:'#7a4e28'},[
-"....kk......","...knnk.....","..kddddk....",".knnnnnnk...","knnnnynnnk..","knnnyyynnk..","knnnnynnnk..","knnnnnnnnk..",".knnnnnnk...","..kkkkkk....","............","............"]);
-IC.stats= mkSprite({k:'#3b2f2f',c:'#f6efe0',r:'#e2574c',d:'#8a8070'},[
-".kkkkkkkkk..",".krkcccccck.",".krkcdddcck.",".krkcccccck.",".krkcddccck.",".krkcccccck.",".krkcdddcck.",".krkcccccck.",".kkkkkkkkk..","............","............","............"]);
+/* botonera 11x11: cada acción con su carácter (contorno cálido, 2-3 tonos) */
+IC.feed = mkSprite({k:'#3b2f2f',m:'#c98a4b',l:'#eab47a',d:'#9a6030',w:'#f6efe0',e:'#cfc4aa'},[
+"....kkkk...","...klllmk..","..kllmmmdk.","..klmmmmdk.","..kmmmmmdk.","...kmmmddk.","..kwkdddk..",".kwwkkkk...","kwwek......","kwek.......",".kk........"]);
+IC.play = mkSprite({k:'#3b2f2f',r:'#e2574c',l:'#ff8a78',d:'#a83238',y:'#ffd94a'},[
+"...kkkkk...",".kklrrrrkk.",".klrryrrdk.","klrryyyrrdk","kryyyyyyydk","krrryyyrrdk","krryrrryrdk","krrrrrrrddk",".krrrrrddk.",".kkrrrddkk.","...kkkkk..."]);
+IC.clean = mkSprite({k:'#3b2f2f',c:'#5ec8d8',l:'#b8f0f8',d:'#3a98b0',w:'#ffffff'},[
+".......kkk.","..kk..kw.lk",".kwlk.k...k",".kl.k..kkk.","..kk.......",".kkkkkkkkk.","kwllllcccdk","klcccccccdk","kcccccccddk",".kdddddddk.","..kkkkkkk.."]);
+IC.sleep = mkSprite({k:'#3b2f2f',y:'#ffd94a',w:'#fff8d0',o:'#e0a020',b:'#7a9ae0'},[
+"...kkk.bbbb",".kkyyk...b.",".kwyk...b..","kwyk...bbbb","kyyk.......","kyyk.......","kyyyk....k.",".kyyykkkkyk",".koyyyyyyk.","..kooyyok..","...kkkkk..."]);
+IC.shop = mkSprite({k:'#3b2f2f',n:'#c98a4b',l:'#eab47a',d:'#9a6030',y:'#ffd94a',o:'#e0a020'},[
+"..kk...kk..","..klk.kdk..","...kkkkk...","..klnnndk..",".klnnynnnk.","klnnyyynndk","knyyyyyyydk","knnnyyynndk","knnnynynddk",".knnnnnddk.","..kkkkkkk.."]);
+IC.stats = mkSprite({k:'#3b2f2f',a:'#ff8a78',r:'#e2574c',b:'#ffe98a',y:'#f0c030',c:'#a8e890',g:'#6ab04f'},[
+"......kkkk.","......kcgk.","......kcgk.","...kkkkcgk.","...kbykcgk.","...kbykcgk.","kkkkbykcgk.","karkbykcgk.","karkbykcgk.","karkbykcgk.","kkkkkkkkkk."]);
 /* categorías de JUGAR */
 IC.gym = mkSprite({k:'#3b2f2f',d:'#6a6a78',s:'#9a9aa4'},[
 "............",".kk......kk.","kddk....kddk","kddkkkkkkddk","kddksssskddk","kddkkkkkkddk","kddk....kddk",".kk......kk.","............","............","............","............"]);
