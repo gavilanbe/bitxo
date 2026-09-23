@@ -44,12 +44,16 @@ function drawModals(now){
   if(UI.menuKey !== key){ UI.menuKey = key; UI.menuAt = now; }
   const pr = Math.min(1, (now - UI.menuAt)/150);
   const e = 1 - Math.pow(1-pr, 3);
-  ctx.fillStyle = 'rgba(8,9,28,' + (0.45*e).toFixed(3) + ')';
+  ctx.fillStyle = 'rgba(8,9,28,' + (0.5*e).toFixed(3) + ')';
   ctx.fillRect(0, 0, LW, LH);
   ctx.save();
-  ctx.translate(0, Math.round((1-e)*8));
+  /* entra desde abajo con rebote; si algo se deniega, el panel dice que no */
+  const pe = ease.outBack(Math.min(1, (now - UI.menuAt)/260));
+  const deny = Math.round(springOff(UI.denyAt, 3, now));
+  ctx.translate(deny, Math.round((1-pe)*18));
   if(menuFn){
     menuFn();
+    UI.panelMode = UI.mode;
     if(MENU_PARENT[UI.mode]) drawCloseBadge();
     else UI.closeAt = null;
   } else UI.closeAt = null;
@@ -125,7 +129,9 @@ function frame(now){
     }
     drawWeather(now);
     drawSeason(now);
-    if(AP().sleeping) px(0,0,160,196,'rgba(10,8,30,0.35)');
+    /* la noche del cuarto baja y sube despacio */
+    UI.dimA = (UI.dimA||0) + ((AP().sleeping?0.38:0) - (UI.dimA||0))*Math.min(1, rdt/260);
+    if(UI.dimA>0.01) px(0,0,160,196,'rgba(10,8,30,'+UI.dimA.toFixed(3)+')');
     drawVignette();
     drawParticles(dt);
     drawFx(rdt); JUICE.fxDrawn = true;
@@ -136,6 +142,8 @@ function frame(now){
     if(UI.mode==='main' && !offlineReport && !UI.expReport && EVO_QUEUE.length) playNextEvo();
   }
   ctx.restore();
+  /* los avisos van por encima de TODO: menús, combate y minijuegos */
+  if(UI.mode!=='boot') drawToast(now);
   drawJuiceOverlay(rdt);
   requestAnimationFrame(frame);
 }
@@ -166,10 +174,11 @@ function normalizeSave(g){
   if(!g.zone || (g.zone!=='prado' && !g.zonesOpen[g.zone])) g.zone = 'prado';
   g.combos3 = g.combos3||0; g.parries = g.parries||0; g.harvests = g.harvests||0;
   g.items = g.items||[]; g.criaNextAt = g.criaNextAt||0; g.slowRing = !!g.slowRing;
+  g.eggWaiting = g.eggWaiting||null;
   g.poops = g.poops||[];
   for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
-    p.swingT=0; p.kickAt=0;
+    p.swingT=0; p.kickAt=0; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
     p.hat = p.hat||null;
     if(p.str===undefined) p.str = p.discipline||0;
     p.def = p.def||0; p.spd = p.spd||0;
@@ -239,6 +248,11 @@ function normalizeSave(g){
   }
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) checkUpdate(); });
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden) saveGame(); });
+  /* al volver (pestaña/PWA): simula el hueco con applyElapsed y guarda */
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden || !G || UI.mode==='boot') return;
+    catchUp(); saveGame();
+  });
   window.addEventListener('pagehide', ()=>{ saveGame(); });
   requestAnimationFrame(frame);
 })();

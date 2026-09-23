@@ -21,7 +21,7 @@ function run(){
     discos: `G.motas = 500; G.discos.verbena = true; UI.mode = 'discos';`,
     evotree: `G.dex = {pradera_babyA:true, pradera_childA:true, pradera_adultA:true}; _p.str=5; _p.def=2; _p.spd=1; UI.evoLine = 0; UI.evoSel = 5; UI.mode = 'evotree';`,
     playmenu: `UI.mode = 'play';`,
-    salta: `G.games.salta = true; startJump(); UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
+    salta: `G.games.salta = true; startJump(); UI.mg.intro = 0; UI.mg.t = 4000; UI.mg.obs.push({x:80, h:10, bad:false},{x:130, h:12, bad:true}); UI.mg.score = 4;`,
     evomorph: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[{r:24,a:0.4},{r:44,a:0.22}], sfxBurst:true, sfxReveal:true}; UI.evoT=2600; UI.mode='evolve';`,
     evoreveal: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:true, sfxReveal:true}; UI.evoT=4800; UI.mode='evolve';`,
     statsbackup: `G.bond=24; UI.mode='stats';`,
@@ -31,8 +31,8 @@ function run(){
     parktrain: `G.motas=137; _p.line='brasa'; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:36, tx:36, kind:'str', t:600, gain:2};`,
     toysprado: `G.toys={pelota:true, caja:true, columpio:true, banera:true, tambor:true, huerto:true}; G.huertoReadyAt=Date.now()-1; G.ballX=105; _p.rx=40; _p.tx=40; UI.mode='main';`,
     gamesmenu: `G.games={salta:true}; G.best={mgCatch:23, mgSimon:6, mgJump:12}; G.motas=260; UI.mode='games';`,
-    topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
-    pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
+    topogame: `G.games.topo=true; _p.energy=90; startTopo(); UI.mg.intro=0; UI.mg.t=5000; UI.mg.holes[1].up='ratuco'; UI.mg.holes[4].up='gold'; UI.mg.holes[6].up='friend'; UI.mg.score=7; UI.mg.combo=4;`,
+    pescagame: `G.games.pesca=true; _p.energy=90; startPesca(); UI.mg.intro=0; UI.mg.ph='reel'; UI.mg.fish=FISH_KINDS[2]; UI.mg.tension=62; UI.mg.holdT=1500; UI.mg.caught=[FISH_KINDS[0],FISH_KINDS[3]]; UI.mg.t=9000;`,
     renamekb: `_p.stage=3; UI.nickBuf='KIR'; UI.mode='rename';`,
     diarypanel: `G.diary=[{d:'1/7',txt:'NACIO MIRU (GEN 1)'},{d:'1/7',txt:'BAUTIZADO COMO KIRA'},{d:'2/7',txt:'KIRA EVOLUCIONO EN KIPO'},{d:'3/7',txt:'KIRA VENCIO A SU PRIMER ELITE'},{d:'3/7',txt:'KIRA SE PUSO MALITO'},{d:'3/7',txt:'KIRA SE CURO CON LA MEDICINA'}]; UI.mode='diary';`,
     pradodeco: `G.decor={owned:{flores_fuego:true,valla:true,camino:true,cielo:true}, flores:'fuego', valla:true, camino:true, cielo:true}; UI.mode='main';`,
@@ -63,13 +63,78 @@ function run(){
     viaje: `G.zonesOpen={parque:true}; const q2=makePet('brasa',1); q2.stage=3; q2.form='adultA'; q2.hatchedAt=Date.now(); q2.nick='BRASI'; G.pets.push(q2); UI.travelDest='parque'; UI.mode='travelPick';`,
     burbuja: `_p.bubbleT=performance.now()+999999; _p.hunger=64; _p.energy=38; _p.hygiene=85; UI.mode='main';`,
     duelo: `G.zonesOpen={parque:true}; G.zone='parque'; _p.zone='parque'; const q3=makePet('brasa',1); q3.stage=3; q3.form='adultA'; q3.zone='parque'; q3.hatchedAt=Date.now(); q3.energy=90; G.pets.push(q3); startDuel(); UI.bt.phase='timing'; UI.bt.mk=0.5; G.items=['pocion','chispa'];`,
+    bt3timing: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.t=0; UI.bt.mk=0.45; UI.bt.super=2; UI.bt.hold=true;`,
+    bt3combo: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'pinchon',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.combo=1; UI.bt.comboIdle=500; UI.bt.mk=0.62; UI.bt.super=3; UI.bt.hold=true;`,
+    bt3superbtn: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'burbujon',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};G.items=['pocion','chispa']; startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.8; UI.bt.super=4; UI.bt.hold=true;`,
+    bt3tele: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'lobruno',nv:10,elite:false,boss:true,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='eTele'; UI.bt.t=820; UI.bt.bigAtk=true; UI.bt.hold=true;`,
+    bt3dash: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='eanim'; UI.bt.t=70; UI.bt.hold=true;`,
+    bt3hit: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.5; UI.bt.ehp=500; UI.bt.emx=500; UI.bt.ehpShow=500; battleTap(); ST(19); JUICE.stopMs=0; ST(3); UI.bt.hold=true;`,
+    bt3parry: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'cuervillo',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='eanim'; UI.bt.t=100; battleTap(); ST(4); JUICE.stopMs=0; ST(4); UI.bt.hold=true;`,
+    bt3dodge: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'chispin',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='eanim'; UI.bt.t=40; battleSwipe(); ST(10); UI.bt.hold=true;`,
+    bt3hurt: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'relampin',nv:14,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};_p.spd=0; startBattle(); UI.bt.phase='eanim'; UI.bt.t=140; ST(3); JUICE.stopMs=0; ST(2); UI.bt.hold=true;`,
+    bt3banner: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;_p.line='brasa'; _p.form='adultA';G.wild={kind:'sombrio',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='superAnim'; UI.bt.t=0; ST(22); UI.bt.hold=true;`,
+    bt3superfx: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;_p.line='brasa'; _p.form='adultA';G.wild={kind:'sombrio',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='superAnim'; UI.bt.t=0; ST(52); UI.bt.hold=true;`,
+    bt3fungo: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;_p.line='fungo'; _p.form='adultA';G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.super=4; battleTap(80,210); ST(50); UI.bt.hold=true;`,
+    bt3ko: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.5; UI.bt.ehp=1; battleTap(); ST(19); UI.bt.hold=true;`,
+    bt3ko2: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.5; UI.bt.ehp=1; battleTap(); ST(19); JUICE.stopMs=0; ST(6); UI.bt.hold=true;`,
+    bt3win: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.st.def=3; endBattle(true); ST(140); UI.bt.hold=true;`,
+    bt3lose: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ladronzuelo',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.stolen=12; UI.bt.hurts=3; UI.bt.php=0; endBattle(false); ST(140); UI.bt.hold=true;`,
+    bt3flee: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; btFlee(); btFlee(); ST(50); UI.bt.hold=true;`,
+    bt3fleearm: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'ratuco',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.1; btFlee(); UI.bt.hold=true;`,
+    bt3intro: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'roquijo',nv:8,elite:true,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); ST(40); UI.bt.hold=true;`,
+    bt3boss: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'reyseto',nv:14,elite:false,boss:true,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.35; UI.bt.super=1; ST(60); UI.bt.hold=true;`,
+    bt3duel: `G.zonesOpen={parque:true}; G.zone='parque'; _p.zone='parque'; const q3=makePet('brasa',1); q3.stage=3; q3.form='adultA'; q3.zone='parque'; q3.hatchedAt=Date.now(); q3.energy=90; G.pets.push(q3); UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;startDuel(); UI.bt.phase='timing'; UI.bt.mk=0.5; UI.bt.hold=true;`,
+    bt3el_chispin: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'chispin',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
+    bt3el_burbujon: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'burbujon',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
+    bt3el_roquijo: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'roquijo',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
+    bt3el_setazo: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'setazo',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
+    bt3el_relampin: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'relampin',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
+    bt3el_sombrio: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'sombrio',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
+    bt3el_polillux: `UI.msg=null;UI.msgUntil=0;TOASTQ.length=0;const ST=(n,d)=>{for(let i=0;i<n;i++)battleStep(d||16);};_p.energy=90;G.wild={kind:'polillux',nv:8,elite:false,boss:false,x:120,tx:120,arriveAt:Date.now(),stealAt:Date.now()+999999,dir:-1};startBattle(); UI.bt.phase='timing'; UI.bt.mk=0.9; UI.bt.super=1; ST(30); UI.bt.hold=true;`,
     tiendajuguete: `G.motas=500; G.toys={pelota:true,caja:true}; UI.mode='shop'; UI.shopTab=1; UI.shopScroll=20;`,
+    parkwall: `G.motas=137; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:80, tx:80, kind:'def', t:100, gain:1, rep:1, reps:['p'], perfects:1, repAnim:210, lastPerfect:true, lastGrade:'p', lastG:0.8, autoAt:99999}; const _dp=drawPark; drawPark=function(t,dt){ if(UI.park&&UI.park.repAnim<=215&&UI.park.repAnim>0) dt=0; _dp(t,dt); };`,
+    parklift: `G.motas=137; _p.line='brasa'; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:35, tx:35, kind:'str', t:100, gain:2, rep:2, reps:['p','b'], perfects:1, repAnim:210, lastPerfect:true, lastGrade:'p', lastG:0.8, autoAt:99999}; const _dp=drawPark; drawPark=function(t,dt){ if(UI.park&&UI.park.repAnim<=215&&UI.park.repAnim>0) dt=0; _dp(t,dt); };`,
+    parkend: `G.motas=137; _p.line='brasa'; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:35, tx:35, kind:'str', t:100, gain:2, rep:2, reps:['p','p','p'], perfects:3, repAnim:1, lastPerfect:true, lastGrade:'p', autoAt:99999}; UI.msg=null;`,
+    parkstamp: `G.motas=137; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:125, tx:128, kind:'spd', t:100, gain:1, rep:2, reps:['p','b','b'], perfects:1, repAnim:1, lastPerfect:false, lastGrade:'b', autoAt:99999}; const _dp=drawPark; drawPark=function(t,dt){ if(UI.park&&UI.park.res&&UI.park.res.t>900) dt=0; _dp(t,dt); };`,
+    hatch1: `_p.stage=1; _p.form='babyA'; _p.trait='CURIOSO'; _p.gen=2; UI.msg=null; UI.mode='hatch'; UI.hatchT=0; const _o=window.drawHatch; window.drawHatch=function(dt){ if(UI.hatchT>=600) dt=0; _o(dt); };`,
+    hatch2: `_p.stage=1; _p.form='babyA'; _p.trait='CURIOSO'; _p.gen=2; UI.msg=null; UI.mode='hatch'; UI.hatchT=0; const _o=window.drawHatch; window.drawHatch=function(dt){ if(UI.hatchT>=1300) dt=0; _o(dt); };`,
+    hatch3: `_p.stage=1; _p.form='babyA'; _p.trait='CURIOSO'; _p.gen=2; UI.msg=null; UI.mode='hatch'; UI.hatchT=0; const _o=window.drawHatch; window.drawHatch=function(dt){ if(UI.hatchT>=1600) dt=0; _o(dt); };`,
+    hatch4: `_p.stage=1; _p.form='babyA'; _p.trait='CURIOSO'; _p.gen=2; UI.msg=null; UI.mode='hatch'; UI.hatchT=0; const _o=window.drawHatch; window.drawHatch=function(dt){ if(UI.hatchT>=1800) dt=0; _o(dt); };`,
+    hatch5: `_p.stage=1; _p.form='babyA'; _p.trait='CURIOSO'; _p.gen=2; UI.msg=null; UI.mode='hatch'; UI.hatchT=0; const _o=window.drawHatch; window.drawHatch=function(dt){ if(UI.hatchT>=2250) dt=0; _o(dt); };`,
+    hatch6: `_p.stage=1; _p.form='babyA'; _p.trait='CURIOSO'; _p.gen=2; UI.msg=null; UI.mode='hatch'; UI.hatchT=0; const _o=window.drawHatch; window.drawHatch=function(dt){ if(UI.hatchT>=3100) dt=0; _o(dt); };`,
+    evo1: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=700) dt=0; _o(dt); };`,
+    evo2: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=2500) dt=0; _o(dt); };`,
+    evo3: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=3600) dt=0; _o(dt); };`,
+    evo4: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=3950) dt=0; _o(dt); };`,
+    evo5: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=4450) dt=0; _o(dt); };`,
+    evo6: `UI.evo={from:SPR.pradera_babyA[0], to:SPR.pradera_childA[0], fromName:'MIRU', toName:'KIPO', dark:false, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=5300) dt=0; _o(dt); };`,
+    evodark: `UI.evo={from:SPR.pradera_adultA[0], to:SPR.grimo[0], fromName:'AZURO', toName:'GRIMO', dark:true, swapAcc:0, lastSwap:-1, fx:[], rings:[], sfxBurst:false, sfxReveal:false}; UI.evoT=0; UI.msg=null; UI.mode='evolve'; const _o=window.drawEvolve; window.drawEvolve=function(dt){ if(UI.evoT>=5300) dt=0; _o(dt); };`,
+    asc1: `G.ascensions=4; UI.ascGain=3; _p.gen=3; UI.msg=null; UI.mode='ascendFX'; UI.ascT=0; const _o=window.drawAscendFX; window.drawAscendFX=function(dt){ if(UI.ascT>=900) dt=0; _o(dt); };`,
+    asc2: `G.ascensions=4; UI.ascGain=3; _p.gen=3; UI.msg=null; UI.mode='ascendFX'; UI.ascT=0; const _o=window.drawAscendFX; window.drawAscendFX=function(dt){ if(UI.ascT>=2200) dt=0; _o(dt); };`,
+    asc3: `G.ascensions=4; UI.ascGain=3; _p.gen=3; UI.msg=null; UI.mode='ascendFX'; UI.ascT=0; const _o=window.drawAscendFX; window.drawAscendFX=function(dt){ if(UI.ascT>=2750) dt=0; _o(dt); };`,
+    asc4: `G.ascensions=4; UI.ascGain=3; _p.gen=3; UI.msg=null; UI.mode='ascendFX'; UI.ascT=0; const _o=window.drawAscendFX; window.drawAscendFX=function(dt){ if(UI.ascT>=3300) dt=0; _o(dt); };`,
+    asc5: `G.ascensions=4; UI.ascGain=3; _p.gen=3; UI.msg=null; UI.mode='ascendFX'; UI.ascT=0; const _o=window.drawAscendFX; window.drawAscendFX=function(dt){ if(UI.ascT>=4400) dt=0; _o(dt); };`,
+    parkauto: `G.motas=300; _p.form='adultA'; _p.str=4; _p.def=6; _p.spd=2; UI.msg=null; UI.mode='train'; UI.park={phase:'idle', px:80, t:0}; gymStart('def');`,
     parkrun: `G.motas=137; _p.form='adultA'; UI.mode='train'; UI.park={phase:'train', px:128, tx:128, kind:'spd', t:900, gain:1, rep:1};`,
-    memo: `G.games.memo=true; startMemo(); UI.mg.cards[0].flip=true; UI.mg.cards[3].done=true; UI.mg.cards[4].done=true; UI.mg.score=1; UI.mg.tries=3;`,
-    globo: `G.games.globo=true; startGlobo(); UI.mg.x=70; UI.mg.y=90; UI.mg.score=7; UI.mg.lives=2;`,
+    catchgame: `_p.energy=90; startCatch(); UI.mg.intro=0; UI.mg.t=6000; UI.mg.score=18; UI.mg.combo=7; UI.mg.maxCombo=7; G.best={mgCatch:15}; UI.mg.items.push({x:60,y:60,vy:0.0001,kind:'mota',sp:1},{x:100,y:90,vy:0.0001,kind:'poop',sp:2},{x:120,y:40,vy:0.0001,kind:'star',sp:3},{x:84,y:120,vy:0.0001,kind:'mota',sp:4}); UI.mg.next=1e9;`,
+    dancegame: `_p.energy=90; startDance(1); UI.mg.intro=0; UI.mg.t=UI.mg.lead+2*UI.mg.step; UI.mg.score=9; UI.mg.combo=4; UI.mg.perfects=2;`,
+    simongame: `_p.energy=90; startSimon(); UI.mg.intro=0; UI.mg.seq=[0,2,1,3]; UI.mg.round=4; UI.mg.score=3; UI.mg.ph='input'; UI.mg.idx=2; UI.mg.combo=3;`,
+    countdown: `_p.energy=90; startJump();`,
+    mgend: `_p.energy=90; G.best={mgTopo:10}; startTopo(); UI.mg.intro=0; UI.mg.score=21; UI.mg.maxCombo=9; UI.mg.t=24990; topoStep(20); UI.mg.endSkip=true;`,
+    mgendanim: `_p.energy=90; G.best={mgTopo:30}; startTopo(); UI.mg.intro=0; UI.mg.score=16; UI.mg.maxCombo=9; UI.mg.t=24990; topoStep(20); UI.mg.endAt=performance.now()-1200;`,
+    saltahit: `_p.energy=90; startJump(); UI.mg.intro=0; UI.mg.t=6000; UI.mg.obs.push({x:41,h:10,bad:false,w:8},{x:120,h:11,bad:true,w:10}); UI.mg.score=5; UI.mg.combo=2; UI.mg.next=1e9;`,
+    memo: `G.games.memo=true; startMemo(); UI.mg.intro=0; UI.mg.cards[0].flip=true; UI.mg.cards[3].done=true; UI.mg.cards[4].done=true; UI.mg.score=1; UI.mg.tries=3;`,
+    globo: `G.games.globo=true; startGlobo(); UI.mg.intro=0; UI.mg.x=70; UI.mg.y=90; UI.mg.score=7; UI.mg.lives=2;`,
     fichabajo: `_p.bubbleT=performance.now()+999999; _p.hunger=64; _p.energy=38; _p.hygiene=72; UI.mode='main';`,
     sendero: `G.toys={pelota:true,columpio:true}; UI.mode='main';`,
     pradozonas: `G.zonesOpen={parque:true}; G.zone='prado'; G.toys={pelota:true,caja:true,columpio:true,banera:true,tambor:true,huerto:true,cometa:true,fuente:true,robot:true}; G.up.jardin=4; G.huertoReadyAt=Date.now()-1; UI.mode='main';`,
+    tiendamejora: `G.motas=500; UI.mode='shop'; UI.shopTab=0;`,
+    achpanel: `G.ach={primer:true}; UI.mode='ach';`,
+    albumpanel: `G.dex={pradera_babyA:true,pradera_childA:true,brasa_babyB:true}; UI.mode='album';`,
+    expedpanel: `UI.mode='exped';`,
+    relicspanel: `G.relics={trebol:true,seta:true}; UI.mode='relics';`,
+    offrep: `offlineReport={away:5*3600000+12*60000, motas:842, autofed:2, poops:3, lvls:1, evolved:true, robot:1, mistakes:0, ranAway:[], capped:false}; UI.repT=performance.now()-5000; UI.mode='main';`,
+    motas: `for(let i=0;i<4;i++) UI.sparkles.push({x:30+i*30, y:140+(i%2)*20, born:Date.now()-1000, t:i, zone:'prado'}); G.wild={kind:'chispin', nv:5, elite:false, boss:false, zone:'prado', x:125, tx:125, arriveAt:Date.now(), stealAt:Date.now()+999999, dir:-1}; UI.mode='main';`,
     parqueconfirm: `G.toys={pelota:true,columpio:true}; G.motas=800; UI.mode='parqueConfirm';`
   };
   if(visuals[mode]){ E(`(function(){ ${setup} ${visuals[mode]} })()`); document.title = 'VISUAL'; return; }
@@ -527,8 +592,11 @@ function run(){
       finishAscend();
       R.legacySaved = G.legacy.length === lg0+1 && G.legacy[lg0].lv === 9 && G.legacy[lg0].stars === 2;
       G.pets[G.sel] = _p; // restaurar para el resto de pruebas
-      UI.mode = 'main'; handleTap(80, 30);
-      R.legacyOpens = UI.mode === 'legacy';
+      { const _dp = dayPhase; dayPhase = ()=>'night';
+        const sp0 = legacyStarPos(0);
+        UI.mode = 'main'; UI.shoot = null; handleTap(sp0.x, sp0.y);
+        R.legacyOpens = UI.mode === 'legacy';
+        dayPhase = _dp; }
       handleTap(80, 100);
       R.legacyCloses = UI.mode === 'main';
       // volumen 3 niveles
@@ -543,7 +611,7 @@ function run(){
       const ni = DISCOS.findIndex(dd=>dd.id==='nana');
       startDance(ni);
       R.nanaStarts = UI.mode === 'mgDance' && UI.mg.disco.id === 'nana';
-      UI.mg.end = performance.now() - 1;
+      UI.mg.t = UI.mg.end; /* BAILE usa reloj de canción propio (m.t), no performance.now() */
       drawDance(performance.now(), 16);
       R.nanaSleeps = _p.sleeping === true && UI.mg.ph === 'end';
       _p.sleeping = false; UI.mode = 'main'; UI.mg = null;
@@ -678,9 +746,12 @@ function run(){
       handleTap(152, 172); // flecha >
       R.zoneGo = G.zone === 'parque';
       // el salvaje recuerda dónde apareció y no se toca desde otra zona
+      // (el salvaje solo sale si hay un luchador despierto en ESA zona)
+      const z0w = _p.zone; _p.zone = 'parque'; _p.sleeping = false; _p.exped = null; _p.energy = 90;
       G.wild = null; G.battlesWon = 30; window.eval('nextWildAt = Date.now()-1');
       liveUpdate(50);
       R.wildZoned = !!G.wild && G.wild.zone === 'parque';
+      _p.zone = z0w;
       G.zone = 'prado';
       if(G.wild){ G.wild.x = 110; handleTap(110, 150); }
       R.wildOtherZone = UI.mode !== 'battle';
@@ -952,7 +1023,7 @@ function run(){
       _p.sleeping = true; _p.exped = null; UI.mode = 'play';
       handleTap(80, 95);
       R.gymSleepBlocked = UI.mode==='play';
-      _p.sleeping = false; UI.mode = 'main';
+      _p.sleeping = false; _p.sick = false; UI.mode = 'main';
       G.motas = 500; _p.energy = 90;
       const gd0 = _p.def;
       UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
@@ -976,6 +1047,124 @@ function run(){
         liveUpdate(50);
         R.evoAfterGym = q.stage===2;
         EVO_QUEUE.length = 0; G.pets.pop(); }
+      // --- AUDITORIA DE LOGICA ---
+      // la cría es alcanzable: con el NIDO lleno cabe un huevo invitado
+      { const n0 = G.pets.length; G.up.nido = 1;
+        _p.stage = 3; _p.form = 'adultA'; _p.zone = 'prado'; _p.rx = 60; _p.tx = 60; _p.sleeping = false; _p.eatT = 0; _p.exped = null;
+        while(G.pets.length < maxPets()){ const pb = makePet('brasa',1); pb.stage=3; pb.form='adultA'; pb.zone='prado';
+          pb.rx=70; pb.tx=70; pb.hatchedAt=Date.now(); pb.sleeping=false; G.pets.push(pb); }
+        G.bond = 30; G.criaNextAt = 0; G.nextBondAt = Date.now()-1; G.eggWaiting = null;
+        UI.mode = 'main'; G.zone = 'prado';
+        const full = G.pets.length;
+        liveUpdate(50);
+        R.criaReachable = G.pets.length === full+1 && G.pets[full].stage === STAGES.EGG;
+        // nido lleno del todo: el huevo de expedición espera (y el informe lo dice)
+        const mr = Math.random; Math.random = ()=>0.01;
+        _p.exped = {dest:1, until:Date.now()-1};
+        resolveExpedition(_p);
+        Math.random = mr;
+        R.expedEggWaits = G.pets.length === full+1 && G.eggWaiting === 'brasa' &&
+                          UI.expReport.eggline === 'brasa' && UI.expReport.eggWait === true;
+        UI.expReport = null;
+        spawnEgg(G.pets.length-1);
+        R.eggWaitingHatchesNext = G.pets[G.pets.length-1].line === 'brasa' && G.eggWaiting === null;
+        while(G.pets.length > n0) G.pets.pop();
+        G.sel = 0; G.bond = 0; G.up.nido = 0; G.eggWaiting = null; }
+      // expedición: el hambre nunca sube al volver
+      { _p.hunger = 5; _p.exped = {dest:0, until:Date.now()-1};
+        const mr = Math.random; Math.random = ()=>0.99;
+        resolveExpedition(_p); Math.random = mr;
+        R.expedHungerNoRaise = _p.hunger <= 5; UI.expReport = null; _p.hunger = 70; }
+      // al volver a la pestaña se simula el hueco
+      { for(const q of G.pets){ q.hunger = 100; q.happy = 100; }
+        _p.energy = 90; _p.sleeping = false; offlineReport = null;
+        window.eval('liveWall = Date.now() - 3*3600*1000');
+        const m0 = G.motas;
+        document.dispatchEvent(new Event('visibilitychange'));
+        R.resumeApplies = !!offlineReport && offlineReport.away >= 3*3600*1000-5000 && G.motas > m0 && _p.hunger < 100;
+        offlineReport = null;
+        window.eval('liveWall = Date.now() - 60*1000');
+        const h0 = _p.hunger;
+        liveUpdate(16);
+        R.gapBeforeAutosave = _p.hunger < h0;
+        EVO_QUEUE.length = 0; UI.expReport = null; G.poops = [];
+        _p.energy = 90; _p.hunger = 70; _p.sleeping = false; }
+      // salvajes: nadie despierto en la zona, nadie aparece
+      { UI.mode = 'main'; G.zone = 'prado'; G.wild = null;
+        for(const q of G.pets){ q.sleeping = true; q.energy = 50; }
+        window.eval('nextWildAt = Date.now()-1');
+        liveUpdate(50);
+        R.wildNeedsAwake = G.wild === null;
+        for(const q of G.pets) q.sleeping = false;
+        _p.energy = 90; _p.zone = 'prado';
+        liveUpdate(50);
+        R.wildWithFighter = !!G.wild;
+        // el robo solo avanza con el prado a la vista
+        if(G.wild){ G.wild.stealMs = 5000; UI.mode = 'shop'; liveUpdate(3000);
+          R.stealPausesInMenu = G.wild.stealMs === 5000;
+          UI.mode = 'main'; liveUpdate(3000);
+          R.stealRunsInMain = G.wild && G.wild.stealMs === 2000; }
+        G.wild = null; window.eval('nextWildAt = Date.now()+9e9'); }
+      // el IMAN cuenta para la misión de chispas (mismo camino que el toque)
+      { ensureDaily();
+        const qi = QUESTS.findIndex(q=>q.id==='chispas');
+        G.daily.ids = [qi, G.daily.ids[1], G.daily.ids[2]].filter((v,i,a)=>a.indexOf(v)===i);
+        G.daily.prog.chispas = 0; delete G.daily.claimed.chispas;
+        G.up.iman = 1; UI.mode = 'main';
+        UI.sparkles.length = 0;
+        UI.sparkles.push({x:50, y:150, born:Date.now()-2500, t:0, zone:G.zone});
+        const xp0 = _p.xp + _p.level*1000;
+        liveUpdate(16);
+        R.magnetQuest = G.daily.prog.chispas === 1 && UI.sparkles.length === 0;
+        R.collectSparkleFn = typeof collectSparkle === 'function';
+        G.up.iman = 0; }
+      // el huevo espera al prado para abrirse
+      { const eg = makePet('pradera', 9); eg.bornAt = Date.now() - 999999; eg.dropT = -99999;
+        G.pets.push(eg);
+        UI.mode = 'shop'; liveUpdate(50);
+        R.hatchWaitsMain = eg.stage === STAGES.EGG && UI.mode === 'shop';
+        UI.mode = 'main'; liveUpdate(50);
+        R.hatchInMain = eg.stage === STAGES.BABY && UI.mode === 'hatch';
+        G.pets.pop(); G.sel = 0; UI.mode = 'main'; }
+      // LUZ: despertado a mano, la noche no lo vuelve a dormir enseguida
+      { _p.sleeping = true; G.sel = 0; doSleepToggle();
+        R.wakeGrace = !_p.sleeping && Date.now() - _p.wokeAt < 1000; }
+      // offline: el hambre a cero cuenta fallo y, si pasa mucho, se va
+      { const q = makePet('pradera', 9); q.stage = 2; q.form = 'childA'; q.hatchedAt = Date.now();
+        q.hunger = 0; q.hungerZeroSince = null; q.mistakes = 0;
+        G.pets.push(q); const qi = G.pets.length-1;
+        _p.exped = {dest:0, until:Date.now()+9e9};
+        const co0 = G.up.comedero; G.up.comedero = 0; offlineReport = null;
+        applyElapsed(20*3600*1000);
+        R.offlineRunaway = G.pets[qi].stage === STAGES.EGG && offlineReport && offlineReport.ranAway.length === 1 &&
+                           G.diary.some(e=>e.txt.includes('SE FUE'));
+        const q2 = makePet('pradera', 9); q2.stage = 2; q2.form = 'childA'; q2.hatchedAt = Date.now(); q2.hunger = 3; q2.mistakes = 0;
+        G.pets[qi] = q2; offlineReport = null;
+        applyElapsed(3*3600*1000);
+        R.offlineHungerMistake = q2.mistakes === 1 && q2.hungerZeroSince > Date.now() - 3*3600*1000;
+        G.pets.pop(); _p.exped = null; G.up.comedero = co0; offlineReport = null;
+        EVO_QUEUE.length = 0; UI.expReport = null; G.poops = []; _p.hunger = 70; _p.energy = 90; }
+      // LEYENDA alcanzable y EVO_REQS en sincronía
+      { const q = makePet('pradera',1); q.stage=2; q.form='childA'; q.hatchedAt=Date.now();
+        q.level=6; q.str=5; q.def=5; q.spd=5; q.gamesWon=5; q.mistakes=0; q.weight=20;
+        const pn = predictNext(q);
+        checkEvolution(q, true);
+        R.legendReachable = q.form === 'adultS' && pn.key === 'pradera_adultS' && EVO_REQS.adultS[1].includes('80');
+        EVO_QUEUE.length = 0; }
+      // detallitos: VOLTIO tiene favorita, el ADULTO cuenta a GRIMO, semanal factible
+      R.voltioFave = !!FAVES.voltio && FOODS.some(f=>f.id===FAVES.voltio);
+      { const dx = G.dex; G.dex = {grimo:true};
+        R.adultAchGrimo = ACH.find(a=>a.id==='adulto').cond(); G.dex = dx; }
+      { const ps = G.pets; G.pets = [makePet('pradera',1)]; G.pets[0].stage = 1; G.weekly = null;
+        ensureWeekly();
+        R.weeklyFeasible = !['combates','elites'].includes(G.weekly.id);
+        G.pets = ps; G.weekly = null; ensureWeekly(); }
+      // robot: barre su zona aunque mires otra
+      { G.toys.robot = true; G.zonesOpen.parque = true; G.zone = 'parque'; UI.mode = 'main';
+        G.poops = [{x:60, zone:'prado'}]; UI.robotAt = 0;
+        liveUpdate(50);
+        R.robotOffscreen = G.poops.length === 0;
+        G.zone = 'prado'; G.poops = []; }
     }catch(e){ R.exception = String(e && e.stack || e); }
     return JSON.stringify(R);
   })()`);

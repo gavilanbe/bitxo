@@ -14,7 +14,7 @@ function makePet(line, gen){
     hunger:100, happy:100, energy:100, hygiene:100,
     weight:10, discipline:0, str:0, def:0, spd:0, mistakes:0,
     hungerZeroSince:null, happyZeroSince:null,
-    sleeping:false, tapsOnEgg:0,
+    sleeping:false, tapsOnEgg:0, wokeAt:0, sickAway:0,
     fedMeals:0, fedSnacks:0, gamesWon:0,
     level:1, xp:0,
     zone:'prado',
@@ -25,9 +25,22 @@ function makePet(line, gen){
 }
 function AP(){ return G.pets[G.sel]; }
 function maxPets(){ return 1 + G.up.nido; }
+/* el nido tiene sitio para UN huevo invitado (cría, expedición) más allá del NIDO */
+function eggRoom(){ return G.pets.length < maxPets()+1; }
+/* huevo regalado: nace si hay sitio; si no, espera en G.eggWaiting y sale
+   con el próximo huevo (NIDO, ascensión) o cuando se libere un hueco */
+function giftEgg(line){
+  if(eggRoom()){ G.nextEggLine = line; return {egg: spawnEgg()}; }
+  if(G.eggWaiting) return null;
+  G.eggWaiting = line;
+  toast('NIDO LLENO: EL HUEVO '+LINES[line].name+' ESPERA', 3200);
+  diaryLog('UN HUEVO '+LINES[line].name+' ESPERA SITIO EN EL NIDO');
+  return {wait:true};
+}
 
 function rollLine(){
   if(G && G.nextEggLine){ const ln = G.nextEggLine; G.nextEggLine = null; return ln; }
+  if(G && G.eggWaiting && LINES[G.eggWaiting]){ const ln = G.eggWaiting; G.eggWaiting = null; return ln; }
   const keep = {stars:G? G.stars:0, ascensions:G? G.ascensions:0};
   const pool = LINE_KEYS.filter(ln=>LINES[ln].unlock(keep));
   let tot=0; for(const ln of pool) tot+=LINES[ln].w;
@@ -35,15 +48,15 @@ function rollLine(){
   for(const ln of pool){ r-=LINES[ln].w; if(r<=0) return ln; }
   return pool[0];
 }
-function spawnEgg(slotIdx){
+/* silent: sin aviso (tras una fuga ya se avisa aparte) */
+function spawnEgg(slotIdx, silent){
   const ln = rollLine();
   G.gen++;
   const p = makePet(ln, G.gen);
-  p.rx = 30 + (slotIdx!==undefined? slotIdx: G.pets.length)*45 + Math.random()*20;
+  p.rx = Math.min(134, 30 + (slotIdx!==undefined? slotIdx: G.pets.length)*45 + Math.random()*20);
   if(slotIdx!==undefined && slotIdx < G.pets.length) G.pets[slotIdx] = p;
   else G.pets.push(p);
-  toast('¡HUEVO '+LINES[ln].name+'!', 2600);
-  SFX.coin();
+  if(!silent){ toast('¡HUEVO '+LINES[ln].name+'!', 2600); SFX.coin(); }
   return p;
 }
 
@@ -55,7 +68,7 @@ function freshGame(){
     stars:0, ascensions:0, dex:{}, muted:false, sound:2,
     battlesWon:0, boostUntil:0,
     ach:{}, bond:0, lastGift:null, giftStreak:0,
-    relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null,
+    relics:{}, expedsDone:0, bossesWon:0, bossDue:false, nextEggLine:null, eggWaiting:null,
     toys:{}, ballX:80, ballVX:0, cajaReadyAt:0, huertoReadyAt:0, foodsTried:{},
     hats:{}, daily:null, buhoNextAt:0, buho:null,
     discos:{prado:true}, disco:'prado', games:{}, beast:{}, best:{},

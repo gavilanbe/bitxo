@@ -17,7 +17,7 @@ function upCost(item, lvl){ return Math.ceil(item.base * Math.pow(item.growth, l
 const ACH = [
  {id:'hatch', name:'PRIMER PASO',    cond:()=>dexCount()>=1, m:20},
  {id:'joven', name:'ADOLESCENTE',    cond:()=>Object.keys(G.dex).some(k=>k.includes('_child')), m:50},
- {id:'adulto',name:'TODO UN ADULTO', cond:()=>Object.keys(G.dex).some(k=>k.includes('_adult')), m:150},
+ {id:'adulto',name:'TODO UN ADULTO', cond:()=>Object.keys(G.dex).some(k=>k.includes('_adult') || k==='grimo'), m:150},
  {id:'col10', name:'COLECCIONISTA',  cond:()=>dexCount()>=10, m:300},
  {id:'col25', name:'ENCICLOPEDIA',   cond:()=>dexCount()>=25, s:1},
  {id:'guer',  name:'GUERRERO',       cond:()=>G.battlesWon>=5, m:200},
@@ -66,7 +66,7 @@ const FOODS = [
  {id:'seta',   name:'SETA RARA', cost:15, spr:'setita', hunger:0,  happy:0,  energy:0,  weight:0, desc:'¿¿¿???', gamble:true},
  {id:'sopa',   name:'SOPA ASTRAL',cost:40,spr:'sopa',   hunger:15, happy:15, energy:15, weight:0, desc:'+TODO +XP', xp:10}
 ];
-const FAVES = {pradera:'fruta', brasa:'picante', marea:'pescado', fungo:'seta', petrea:'seta', astro:'sopa'};
+const FAVES = {pradera:'fruta', brasa:'picante', marea:'pescado', fungo:'seta', petrea:'seta', astro:'sopa', voltio:'chuche'};
 const TOYS = [
  {id:'pelota',  name:'PELOTA',        desc:'LA CHUTAN Y JUEGAN', cost:60},
  {id:'caja',    name:'CAJA SORPRESA', desc:'PREMIO CADA 45 MIN', cost:100},
@@ -74,7 +74,7 @@ const TOYS = [
  {id:'banera',  name:'BANERA',        desc:'CHAPUZONES: +LIMPIO', cost:180},
  {id:'tambor',  name:'TAMBOR',        desc:'CONCIERTOS DE PRADO', cost:220},
  {id:'huerto',  name:'HUERTO',        desc:'FRUTA GRATIS CADA 2H', cost:400},
- {id:'cometa',  name:'COMETA',        desc:'VUELA CON EL VIENTO', cost:260},
+ {id:'cometa',  name:'COMETA',        desc:'PROTEGE DE LA LLUVIA', cost:260},
  {id:'fuente',  name:'FUENTE',        desc:'AGUA FRESCA: +PILAS', cost:350},
  {id:'robot',   name:'ROBOT AMIGO',   desc:'LIMPIA CACAS EL SOLO', cost:500}
 ];
@@ -201,7 +201,7 @@ const EVO_REQS = {
  adultB:['NIVEL 6: {cA} SIN FUERZA 5', 'O CON MAS DEF QUE FUE'],
  adultC:['NIVEL 6: {cB} + VELOCIDAD 5+', 'O 3 JUEGOS GANADOS'],
  adultD:['NIVEL 6: {cB} TRANQUILO', 'SIN VELOCIDAD NI JUEGOS'],
- adultS:['NIVEL 6, TODO 6+ Y 0 FALLOS', 'CUIDADO 85+ Y JUEGOS 5+'],
+ adultS:['NIVEL 6, TODO 5+, MAX 1 FALLO', 'CUIDADO 80+ Y JUEGOS 5+'],
  grimo: ['5 FALLOS O CUIDADO PESIMO', 'EL ABANDONO TIENE PRECIO']
 };
 

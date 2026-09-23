@@ -52,10 +52,11 @@ src/
 │  ├─ offline.js           applyElapsed: simula hasta 14 h de ausencia en 24 pasos
 │  ├─ sim.js               liveUpdate: el corazón — necesidades, paseo, amistad,
 │  │                       juguetes, clima, chispas, salvajes, autoguardado
-│  ├─ actions.js           comer, limpiar, luz, entrenar, tienda, juguetes,
+│  ├─ actions.js           comer, limpiar, luz, tienda, juguetes,
 │  │                       expediciones, ascensión
-│  ├─ minigames.js         lógica de atrapa-motas, baile y simón
-│  └─ battle.js            combate por turnos con barra de timing, jefes, botín
+│  ├─ gym.js               reglas del GYM: cuota, efecto, reps y sus toques (gymTap)
+│  ├─ minigames.js         lógica de los 8 minijuegos y sus toques (mgTap/mgDrag/mgKey)
+│  └─ battle.js            combate con aro de timing, paradas, súper, jefes, botín
 │
 ├─ render/                 ─── dibujo (una función por pantalla/capa) ───
 │  ├─ scene.js             cielo por fase del día, colinas, prado, jardín, clima,
@@ -66,7 +67,12 @@ src/
 │  │                       despensa, jugar, expedición, reliquias, álbum, logros
 │  ├─ fx.js                partículas/flotantes y cinemáticas (evolución,
 │  │                       nacimiento, ascensión)
-│  └─ minigames.js         dibujo del combate y de los 3 minijuegos
+│  ├─ juice.js             el NERVIO: temblor por trauma, hitstop, flashes, iris
+│  │                       entre escenas, partículas con física, popText,
+│  │                       monedas al marcador, muelles de squash & stretch
+│  ├─ minigames.js         dibujo de los minijuegos de la sala
+│  ├─ battle.js            dibujo del combate
+│  └─ gym.js               dibujo del GYM del parque
 │
 ├─ input.js                botonera + handleTap: un único router de toques por modo
 └─ main.js                 bucle frame() (rAF) + arranque: sprites, carga, offline
@@ -88,10 +94,27 @@ Nota de diseño del sueño: dormido, el hambre y el ánimo bajan a ×0.3 y las
 pilas se recargan de 0 a 100 en ~6 h (menos con CAMA y el carácter DORMILON).
 Dormir repara — no castiga.
 
+## Juice (render/juice.js)
+
+Toda respuesta a un toque debe notarse. Herramientas globales, usables desde
+cualquier módulo en tiempo de ejecución:
+
+- `shake(0..1)` temblor por trauma · `flash(col,a,ms)` · `hitstop(ms)` congela
+  el dt de JUEGO (el juice sigue animando).
+- `fx({...})`, `burst()`, `confetti()`, `ringFx()`, `heartsFx()`, `dustFx()`:
+  partículas con velocidad, gravedad, rozamiento y suelo.
+- `popText(x,y,s,col,{big})` números que saltan con contorno;
+  `drawTextO/OC/S` texto con contorno y a escala entera.
+- `flyCoins(x,y,n)` las motas vuelan al marcador del HUD.
+- `springSquash(at,amp)` / `springOff` muelles amortiguados (bitxos, botones).
+- `every(ms,t)` para emitir desde código de dibujo sin depender de los Hz.
+- El iris salta solo al cambiar de familia de escena (mundo/combate/minijuego/gym)
+  y los avisos (`toast`) van en cola y por encima de todo.
+
 ## El bucle
 
 `main.js#frame()` corre con `requestAnimationFrame`:
-`liveUpdate(dt)` (simulación) → dibujo según `UI.mode`. La música y el ambiente
+`juiceStep(dt)` (dt de juego, 0 en hitstop) → `liveUpdate(dt)` → dibujo según `UI.mode` (con temblor) → avisos → `drawJuiceOverlay` (partículas, textos, flash, iris). La música y el ambiente
 van aparte con `setInterval`, planificando notas por delante del reloj de audio
 (no dependen del framerate).
 

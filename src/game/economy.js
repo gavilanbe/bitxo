@@ -18,7 +18,7 @@ function petName(p){ return p.nick || (p.form==='grimo' ? 'GRIMO' : (p.stage===S
 function sleepRegen(p){ return R_SLEEPREGEN * (1 + 0.15*G.up.cama) * (p.trait==='DORMILON'?1.3:1) * (p.sick?0.6:1); }
 function gardenMult(){ return 1 + 0.25*G.up.jardin + (G.relics && G.relics.seta ? 0.1 : 0); }
 function legacyMult(){ return 1 + 0.1*G.stars; }
-function boostMult(){ return Date.now() < G.boostUntil ? 1.5 : 1; }
+function boostMult(t){ return (t||Date.now()) < G.boostUntil ? 1.5 : 1; }
 function petRate(p){
   if(p.stage===STAGES.EGG || p.exped) return 0;
   const mood = 0.5 + (p.happy/100);
@@ -28,9 +28,11 @@ function petRate(p){
   if(p.sleeping) r *= 0.3;
   return r;
 }
+/* multiplicador global de motas (botín, trébol, amistad): vivo y offline igual */
+function motaMult(t){ return boostMult(t) * (G.relics && G.relics.trebol ? 1.05 : 1) * (1 + Math.min(0.1, (G.bond||0)*0.002)); }
 function motaRate(){
   let r=0; for(const p of G.pets) r += petRate(p);
-  return r * boostMult() * (G.relics && G.relics.trebol ? 1.05 : 1) * (1 + Math.min(0.1, (G.bond||0)*0.002));
+  return r * motaMult();
 }
 function tapYield(){ return Math.max(1, Math.round((1 + G.up.cosecha) * legacyMult())) + (G.relics && G.relics.campanilla ? 1 : 0); }
 function gainMotas(n, x, y){
@@ -46,7 +48,12 @@ function gainXPFor(p, n){
     p.xp -= xpNeed(p.level); p.level++;
     p.happy = Math.min(100, p.happy+8);
     SFX.levelup(); toast('¡NIVEL '+p.level+'!');
-    for(let i=0;i<14;i++) UI.particles.push({x:p.rx-14+Math.random()*28,y:150-Math.random()*30,vy:0.02+Math.random()*0.03,life:1200,ch:'.',col:['#ffd94a','#e2574c','#5ec8d8','#7ac74f'][i%4]});
+    /* subir de nivel se CELEBRA: sello gordo, confeti y un anillo de luz */
+    if(sceneFamily(UI.mode)==='world' && (p.zone||'prado')===G.zone){
+      popText(p.rx, 112, 'NIVEL '+p.level, '#ffd94a', {big:true, life:1400, vy:-0.008});
+      confetti(p.rx, 150, 30); ringFx(p.rx, 150, '#ffd94a', 26, 480); ringFx(p.rx, 150, '#ffffff', 16, 320);
+      flash('#fff8d0', 0.25, 200); shake(0.15); p.squashAt = performance.now();
+    }
   }
 }
 function gainXP(n){ gainXPFor(AP(), n); }
@@ -80,6 +87,8 @@ function xpEtaMs(p, targetLv){
   for(let l=p.level+1;l<targetLv;l++) need += xpNeed(l);
   return need / XP_TRICKLE_MS;
 }
+/* LEYENDA (adultS): EN SINCRONIA con predictNext y EVO_REQS.adultS */
+function isLegend(p, cs){ return cs>=80 && p.str>=5 && p.def>=5 && p.spd>=5 && p.gamesWon>=5 && p.mistakes<=1; }
 function checkEvolution(p, silent){
   if(!p.hatchedAt) return;
   /* evolución por NIVEL, sin relojes: el goteo de XP es el ritmo idle
@@ -97,7 +106,7 @@ function checkEvolution(p, silent){
     p.stage = STAGES.ADULT;
     const cs = careScore(p);
     if(p.mistakes>=5 || cs<35) p.form='grimo';
-    else if(cs>=85 && p.str>=6 && p.def>=6 && p.spd>=6 && p.gamesWon>=5 && p.mistakes===0) p.form='adultS';
+    else if(isLegend(p, cs)) p.form='adultS';
     else if(p.form==='childA') p.form = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
     else p.form = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
     markDex(p.form==='grimo' ? 'grimo' : p.line+'_'+p.form);
@@ -120,7 +129,7 @@ function predictNext(p){
     const cs = careScore(p);
     let slot;
     if(p.mistakes>=5 || cs<35) slot = 'grimo';
-    else if(cs>=85 && p.str>=6 && p.def>=6 && p.spd>=6 && p.gamesWon>=5 && p.mistakes===0) slot = 'adultS';
+    else if(isLegend(p, cs)) slot = 'adultS';
     else if(p.form==='childA') slot = (p.str>=5 && p.str>=p.def) ? 'adultA' : 'adultB';
     else slot = (p.spd>=5 || p.gamesWon>=3) ? 'adultC' : 'adultD';
     return {when: xpEtaMs(p, EVO_LEVEL.adult),
@@ -137,7 +146,7 @@ function checkAchievements(){
       if(a.m){ gainMotas(a.m); toast('¡LOGRO: '+a.name+'! +'+a.m+'✦', 3200); }
       else { G.stars += a.s; toast('¡LOGRO: '+a.name+'! +'+a.s+'★', 3200); }
       SFX.levelup();
-      for(let i=0;i<10;i++) UI.particles.push({x:60+Math.random()*40,y:80+Math.random()*20,vy:0.02,life:1200,ch:'.',col:'#ffd94a'});
+      if(sceneFamily(UI.mode)==='world'){ confetti(80, 40, 24); flash('#ffd94a', 0.22, 220); }
       break;
     }
   }

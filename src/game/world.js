@@ -11,7 +11,8 @@ function updateWeather(now){
   let kind = 'clear';
   if(r<0.20) kind='rain'; else if(r<0.35) kind='wind'; else if(r<0.45) kind='fog';
   WEATHER = {kind, until: now + (5+Math.random()*7)*60*1000};
-  if(kind!==prev){
+  /* sin avisos del cielo en mitad de un menú, combate o minijuego */
+  if(kind!==prev && typeof UI!=='undefined' && UI.mode==='main'){
     if(kind==='rain') toast('EMPIEZA A LLOVER...', 2400);
     else if(kind==='wind') toast('SE LEVANTA VIENTO...', 2400);
     else if(kind==='fog') toast('BAJA LA NIEBLA...', 2400);

@@ -3,6 +3,14 @@
    BITXO — render/pets: bitxos, juguetes, salvajes y cacas
    ========================================================= */
 /* ---------------- DIBUJO: MASCOTAS Y SALVAJES ---------------- */
+/* sombra de óvalo con núcleo más oscuro */
+function softShadow(cx, y, w){
+  w = Math.max(4, Math.round(w));
+  const x = Math.round(cx - w/2);
+  px(x+1, y, w-2, 2, 'rgba(10,20,20,0.22)');
+  px(x, y+1, w, 1, 'rgba(10,20,20,0.12)');
+  px(x+2, y, w-4, 1, 'rgba(10,20,20,0.14)');
+}
 function drawOnePet(p, i, t){
   const baseY = 161;
   const now = performance.now();
@@ -28,7 +36,7 @@ function drawOnePet(p, i, t){
     ctx.translate(59, 154+Math.round(Math.sin(t/170)*1.5));
     ctx.drawImage(spr3, -spr3.width/2, -spr3.height+4);
     ctx.restore();
-    if(Math.random()<0.08) UI.particles.push({x:53+Math.random()*12, y:147, vy:-0.022, life:520, ch:'.', col:'#9adcf0'});
+    if(Math.floor(t/90)!==Math.floor((t-16)/90)) UI.particles.push({x:53+Math.random()*12, y:147, vy:-0.022, life:520, ch:'.', col:'#9adcf0'});
     if(sel && Math.floor(t/400)%2===0){ px(58,132,2,2,'#ffd94a'); px(57,130,4,2,'#ffd94a'); }
     return;
   }
@@ -48,15 +56,23 @@ function drawOnePet(p, i, t){
     if(dropping){
       const pr = Math.min(1, (now-p.dropT)/1100);
       ey = -30 + 190*(pr*pr);
-      if(Math.random()<0.4) UI.particles.push({x:p.rx-6+Math.random()*12, y:ey-8, vy:0.01, life:450, ch:'.', col:'#ffd94a'});
+      if(Math.floor(now/40)!==Math.floor((now-16)/40)) fx({x:p.rx-6+Math.random()*12, y:ey-8, vy:-0.01, life:450, col:'#ffd94a', kind:'star'});
     }
-    const wob = (!dropping && now-p.hop < 300) ? Math.sin(t/30)*2 : (dropping?0:Math.sin(t/300)*1);
-    if(!dropping) px(p.rx-8,161,16,2,'rgba(0,0,0,0.25)');
+    /* cuanto más cerca de nacer, más se agita */
+    const near = Math.max(p.tapsOnEgg/15, (Date.now()-p.bornAt)/T_HATCH);
+    const jitter = near>0.75 && Math.floor(t/900)%3===0 ? Math.sin(t/25)*1.5 : 0;
+    const wob = (!dropping && now-p.hop < 300) ? Math.sin(t/30)*2 : (dropping?0:Math.sin(t/300)*1 + jitter);
+    if(!dropping) softShadow(p.rx, 161, 14);
+    if(!dropping && !p.landed){ p.landed = true; p.squashAt = now; dustFx(p.rx, 161, 8); shake(0.2); }
+    const esq = springSquash(p.squashAt, 0.28, now);
     ctx.save();
     ctx.translate(Math.round(p.rx+wob), Math.round(ey));
+    ctx.scale(esq[0], esq[1]);
     ctx.drawImage(SPR['egg_'+p.line][0], -6, -13);
     if(p.tapsOnEgg>6 || Date.now()-p.bornAt > T_HATCH*0.6) ctx.drawImage(SPR.eggCrack, -6, -13);
     ctx.restore();
+    /* brillo interior al estar a punto */
+    if(near>0.6 && !dropping && every(160, now)) fx({x:p.rx-4+Math.random()*8, y:ey-6-Math.random()*6, vy:-0.02, life:500, col:'#fff8d0', kind:'star'});
     if(sel && !dropping && Math.floor(t/400)%2===0){
       px(p.rx-1, ey-22, 2, 2, '#ffd94a');
       px(p.rx-2, ey-24, 4, 2, '#ffd94a');
@@ -98,9 +114,16 @@ function drawOnePet(p, i, t){
     if(jt < 520){
       const pr = jt/520, arc = Math.sin(pr*Math.PI);
       lift += arc*7; sy *= 1+arc*0.12; sx *= 1-arc*0.08;
+      p.joyLand = true;
+    } else if(p.joyLand){
+      /* aterriza: aplastón y polvo */
+      p.joyLand = false; p.squashAt = now; dustFx(p.rx, 161, 4);
     }
   }
   if(p.sleeping){ sy*=0.94; sx*=1.03; lift=0; }
+  /* muelle de squash & stretch: caricias, aterrizajes, selección */
+  const spq = springSquash(p.squashAt, 0.24, now);
+  sx *= spq[0]; sy *= spq[1];
 
   const tremble = (p.scaredT && Date.now()<p.scaredT) ? Math.round(Math.sin(t/30)) : 0;
   const x = Math.round(p.rx) + tremble;
@@ -108,7 +131,7 @@ function drawOnePet(p, i, t){
   const phSh = dayPhase();
   const shStretch = (phSh==='dawn' || phSh==='dusk') ? 1.6 : 1;
   const shw = Math.max(6, Math.round((w-4)*sx * (1 - lift*0.04) * shStretch));
-  px(x-shw/2, 161, shw, 2, 'rgba(0,0,0,0.25)');
+  softShadow(x, 161, shw);
   ctx.save();
   ctx.translate(x, baseY - lift);
   ctx.scale(p.dir*sx, sy);
@@ -169,6 +192,9 @@ function drawOnePet(p, i, t){
   if(p.eatT>0){
     const spr2 = SPR[p.feedKind] || SPR.meal;
     const bite = Math.floor((1600-p.eatT)/500);
+    /* cada mordisco: migas con gravedad y un ñam */
+    if(p.lastBite!==bite){ p.lastBite = bite; p.squashAt = now;
+      burst(x+15, 152, {n:4, cols:['#e8c890','#c89858','#f6efe0'], speed:0.05, g:0.0003, life:420, up:0.03, floor:161}); }
     ctx.save();
     ctx.beginPath(); ctx.rect(x+10, 140, 12, 22); ctx.clip();
     ctx.drawImage(spr2, x+11, 152+bite*2);
@@ -252,10 +278,25 @@ function drawToys(t){
   if(G.toys.caja && toyZone('caja')===G.zone){
     const ready = Date.now() >= (G.cajaReadyAt||0);
     const hop = ready? Math.abs(Math.sin(t/200))*2 : 0;
-    px(100,159,12,2,'rgba(0,0,0,0.25)');
-    ctx.drawImage(SPR.caja, 101, Math.round(152-hop));
+    const csq = springSquash(UI.cajaOpenAt, 0.35);
+    softShadow(106, 160, 12);
+    ctx.save(); ctx.translate(107, 160-Math.round(hop)); ctx.scale(csq[0], csq[1]);
+    ctx.drawImage(SPR.caja, -6, -8);
+    ctx.restore();
     if(ready && Math.floor(t/300)%2===0) drawText('!', 105, 138, '#ffd94a');
   }
+}
+/* comida lanzada desde la despensa: parábola con giro */
+function drawThrownFood(){
+  const f = UI.throwFood; if(!f) return;
+  const k = (performance.now()-f.at)/320;
+  if(k>=1){ UI.throwFood = null; burst(f.x1, f.y1, {n:5, cols:['#fff8d0','#ffd94a'], speed:0.05, kind:'star', life:300}); return; }
+  const x = f.x0 + (f.x1-f.x0)*k, y = f.y0 + (f.y1-f.y0)*k - Math.sin(k*Math.PI)*46;
+  const spr = SPR[f.spr] || SPR.meal;
+  ctx.save(); ctx.translate(Math.round(x), Math.round(y));
+  ctx.rotate(Math.round(k*4)*Math.PI/2);
+  ctx.drawImage(spr, -Math.floor(spr.width/2), -Math.floor(spr.height/2));
+  ctx.restore();
 }
 function drawPets(t){
   const order = G.pets.map((p,i)=>i)
@@ -263,6 +304,7 @@ function drawPets(t){
     .sort((a,b)=>G.pets[a].rx-G.pets[b].rx);
   for(const i of order) drawOnePet(G.pets[i], i, t);
   drawCarried(t);
+  drawThrownFood();
 }
 /* el bitxo en brazos: flota contigo hasta que toques el suelo */
 function drawCarried(t){
@@ -293,10 +335,12 @@ function drawWild(t){
   if(!G.wild || (G.wild.zone||'prado')!==G.zone) return;
   const w = G.wild;
   const spr = ESPR[w.kind];
-  const shake = Math.sin(t/60)*0.8;
-  px(w.x-spr.width/2+2, 161, spr.width-4, 2, 'rgba(0,0,0,0.25)');
+  /* primera vez en pantalla: "!" enorme, polvo y un respingo */
+  if(!w.shownAt){ w.shownAt = performance.now(); popText(w.x, 120, '!', '#e2574c', {big:true, life:700, vy:-0.01}); shake(0.15); }
+  const wob = Math.sin(t/60)*0.8;
+  softShadow(w.x, 161, spr.width-4);
   ctx.save();
-  ctx.translate(Math.round(w.x+shake), 161);
+  ctx.translate(Math.round(w.x+wob), 161);
   if(w.dir<0){} else { ctx.scale(-1,1); }
   ctx.drawImage(spr, -spr.width/2, -spr.height);
   ctx.restore();
@@ -319,10 +363,18 @@ function drawPoops(t){
   for(const p of G.poops){
     if((p.zone||'prado')!==G.zone) continue;
     ctx.drawImage(SPR.poop, Math.round(p.x)-4, 156);
-    if(Math.floor(t/400)%2===0){
-      px(p.x-1, 150,1,1,'#8a9b6a');
-      px(p.x+3, 148,1,1,'#8a9b6a');
+    /* olor ondulante y una mosca que da vueltas */
+    const ph = (p.x*7)%6;
+    for(let k=0;k<2;k++){
+      const oy = ((t/28 + k*18 + ph*5)%26);
+      ctx.globalAlpha = 0.55*(1-oy/26);
+      px(p.x-1+k*3+Math.round(Math.sin(t/180+k*2+oy/5)*1.5), 153-oy, 1, 2, '#9aab7a');
+      ctx.globalAlpha = 1;
     }
+    const fa = t/170 + ph;
+    const fxp = Math.round(p.x + Math.cos(fa)*6), fyp = Math.round(150 + Math.sin(fa*1.7)*3);
+    px(fxp, fyp, 1, 1, '#1a1428');
+    if(Math.floor(t/50)%2) { px(fxp-1, fyp-1, 1, 1, 'rgba(255,255,255,0.7)'); px(fxp+1, fyp-1, 1, 1, 'rgba(255,255,255,0.7)'); }
   }
   if(UI.sweepT && performance.now()-UI.sweepT < 500){
     const k = (performance.now()-UI.sweepT)/500;
@@ -334,12 +386,24 @@ function drawPoops(t){
 /* ---------------- CARTEL DE MISIONES Y BUHONERO ---------------- */
 function drawSign(t){
   if(G.zone!=='prado') return;
-  px(149,148,2,13,'#5a4632');
-  px(143,138,14,11,'#8a6a3a');
-  px(143,138,14,1,K); px(143,148,14,1,K);
-  px(143,138,1,11,K); px(156,138,1,11,K);
-  if(questClaimable() && Math.floor(t/400)%2===0) drawTextC('!', 150, 141, '#ffd94a');
-  else drawTextC('M', 150, 141, '#f6efe0');
+  const ready = questClaimable();
+  /* con premio pendiente, el cartel se agita y brilla */
+  const wig = ready ? Math.round(Math.sin(t/90)*(Math.floor(t/1400)%2===0?1:0)) : 0;
+  softShadow(150, 160, 8);
+  px(149,148,2,13,'#5a4632'); px(149,148,1,13,'#6a5642');
+  const sx = 143+wig;
+  px(sx,137,15,12,'#8a6a3a');
+  px(sx+1,138,13,1,'#a4834e');
+  px(sx,137,15,1,K); px(sx,148,15,1,K);
+  px(sx,137,1,12,K); px(sx+14,137,1,12,K);
+  /* papelito clavado */
+  px(sx+3,139,9,8,'#f6efe0'); px(sx+3,146,9,1,'#d6cdb4'); px(sx+7,139,1,1,'#e2574c');
+  if(ready){
+    const b = Math.round(Math.abs(Math.sin(t/200))*-2);
+    drawTextOC('!', sx+8, 129+b, '#ffd94a');
+    if(every(300, t)) fx({x:sx+2+Math.random()*12, y:138, vy:-0.02, life:500, col:'#ffd94a', kind:'star'});
+  }
+  px(sx+5,141,5,1,'rgba(26,20,40,0.45)'); px(sx+5,143,4,1,'rgba(26,20,40,0.45)');
 }
 function drawBuho(t){
   if(!G.buho || G.zone!=='prado') return;

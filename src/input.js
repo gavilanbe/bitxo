@@ -7,7 +7,10 @@ const BTNS = [
   {ic:'feed', label:'COMER', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected(); UI.mode='feed'; }},
   {ic:'play', label:'JUGAR', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected(); UI.mode='play'; }},
   {ic:'clean',label:'LIMPIAR', fn:()=>{ doClean(); }},
-  {ic:'sleep',label:'LUZ', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected(); doSleepToggle(); }},
+  {ic:'sleep',label:'LUZ', fn:()=>{ if(eggGuard()||awayGuard())return; seeSelected();
+    const was = AP().sleeping; doSleepToggle();
+    if(was && !AP().sleeping){ SFX.yay(); AP().squashAt = performance.now(); burst(AP().rx, 146, {n:8, cols:['#fff8d0','#ffd94a'], speed:0.06, g:0.0001, kind:'star'}); }
+  }},
   {ic:'shop', label:'TIENDA', fn:()=>{ UI.mode='shop'; if(!G.hints.shop){G.hints.shop=true;} }},
   {ic:'stats',label:'DATOS', fn:()=>{ UI.mode='stats'; }}
 ];
@@ -30,6 +33,7 @@ cv.addEventListener('pointerdown', ev=>{
   ev.preventDefault();
   audio();
   const p = canvasPos(ev);
+  tapRipple(p.x, p.y);
   if(UI.mode==='shop' || UI.mode==='ach'){
     /* paneles que se deslizan: el toque se decide al soltar */
     shopTouch = {x:p.x, y:p.y, mode:UI.mode, s: UI.mode==='shop' ? (UI.shopScroll||0) : (UI.achScroll||0), dragged:false};
@@ -48,6 +52,9 @@ cv.addEventListener('pointermove', ev=>{
       battleSwipe();
     }
     return;
+  }
+  if(UI.mode.startsWith('mg') && typeof mgDrag==='function' && (ev.buttons||ev.pointerType==='touch')){
+    const q2 = canvasPos(ev); mgDrag(q2.x, q2.y); return;
   }
   if(!shopTouch || UI.mode!==shopTouch.mode) return;
   const q = canvasPos(ev);
@@ -111,9 +118,14 @@ function zoneArrowTap(x, y){
 function handleTap(x,y){
   const now = performance.now();
   if(UI.mode==='boot') return;
-  if(offlineReport){ offlineReport=null; SFX.tap(); return; }
-  if(UI.expReport){ UI.expReport=null; SFX.tap(); return; }
-  if(UI.mode==='hatch'){ if(UI.hatchT>1500) UI.mode='main'; return; }
+  /* informes: solo se leen (y se cierran) en el mundo; el primer toque
+     rápido solo termina de contar las cifras */
+  if((offlineReport || UI.expReport) && sceneFamily(UI.mode)==='world'){
+    if(now-(UI.repT||0) < 700){ UI.repT = now-2000; return; }
+    if(offlineReport) offlineReport=null; else UI.expReport=null;
+    SFX.tap(); return;
+  }
+  if(UI.mode==='hatch'){ hatchTap(); return; }
   if(UI.mode==='evolve'){
     if(UI.evoT > 4900){ UI.mode='main'; UI.evo=null; }
     else if(UI.evoT < 3900) UI.evoT = 3900; /* saltar al estallido */
@@ -146,6 +158,17 @@ function handleTap(x,y){
     }
     UI.mode='main'; SFX.tap(); return;
   }
+  /* la botonera sigue viva bajo los menús: un toque cambia de menú directamente */
+  if(MENU_PARENT[UI.mode] && UI.panelMode===UI.mode && y>=BTN_Y-2 && y<BTN_Y+BTN_S+8 && (!UI.panelRect || UI.panelMode!==UI.mode || UI.panelRect.y+UI.panelRect.h <= BTN_Y-1)){
+    const i = Math.floor((x-4)/26);
+    if(i>=0 && i<6){
+      UI.mode = 'main';
+      UI.flashBtn=i; UI.flashUntil=now+150; UI.btnAt[i]=now;
+      SFX.tap(); vibrate(15);
+      BTNS[i].fn();
+      return;
+    }
+  }
   /* insignia X: cierra cualquier panel hacia su pantalla madre */
   if(MENU_PARENT[UI.mode] && UI.closeAt &&
      Math.abs(x-UI.closeAt.x)<=8 && Math.abs(y-UI.closeAt.y)<=8){
@@ -153,22 +176,18 @@ function handleTap(x,y){
     SFX.tap(); vibrate(10);
     return;
   }
+  /* confirmaciones: SOLO la tarjeta del SÍ confirma; cualquier otro toque cancela */
+  const onYes = (x>=24 && x<=76 && y>=152 && y<=172);
   if(UI.mode==='ascendConfirm'){
-    if(y>150 && y<175){
-      if(x<80){ doAscend(); } else { UI.mode='stats'; SFX.tap(); }
-    } else { UI.mode='stats'; SFX.tap(); }
+    if(onYes){ doAscend(); } else { UI.mode='stats'; SFX.tap(); }
     return;
   }
   if(UI.mode==='parqueConfirm'){
-    if(y>150 && y<174){
-      if(x<80){ openParque(); } else { UI.mode='main'; SFX.tap(); }
-    } else { UI.mode='main'; SFX.tap(); }
+    if(onYes){ openParque(); } else { UI.mode='main'; SFX.tap(); }
     return;
   }
   if(UI.mode==='huertaConfirm'){
-    if(y>150 && y<174){
-      if(x<80){ openHuerta(); } else { UI.mode='main'; SFX.tap(); }
-    } else { UI.mode='main'; SFX.tap(); }
+    if(onYes){ openHuerta(); } else { UI.mode='main'; SFX.tap(); }
     return;
   }
   if(UI.mode==='travelPick'){
@@ -201,8 +220,8 @@ function handleTap(x,y){
     UI.mode='stats'; SFX.tap(); return;
   }
   if(UI.mode==='stats'){
-    if(y>168 && y<184){
-      UI.mode = x<33 ? 'album' : (x<63 ? 'ach' : (x<93 ? 'relics' : (x<123 ? 'beast' : 'diary')));
+    if(y>168 && y<184 && x>=10 && x<150){
+      UI.mode = ['album','ach','relics','beast','diary'][Math.min(4, Math.floor((x-10)/28))];
       SFX.tap(); return;
     }
     if(y>=26 && y<=40 && x>40 && x<120 && AP().stage>STAGES.EGG){
@@ -225,7 +244,7 @@ function handleTap(x,y){
   if(UI.mode==='shop'){
     if(y>=50 && y<=61 && x>=8 && x<=154){ UI.shopTab = x<45?0:(x<82?1:(x<119?2:3)); UI.shopScroll = 0; SFX.tap(); return; }
     if(y<38 || y>216){ UI.mode='main'; SFX.tap(); return; }
-    if(y<64 || y>208) return; /* franja de pestañas y pie: sin lista */
+    if(y<64 || y>208 || x<10 || x>150) return; /* pestañas, pie y márgenes: sin lista */
     const tab = UI.shopTab||0;
     const ly = y + (UI.shopScroll||0);
     if(tab===0){
@@ -284,19 +303,15 @@ function handleTap(x,y){
   if(UI.mode==='rename'){
     const buf = UI.nickBuf||'';
     if(y>=86 && y<162 && x>=13 && x<=146){
-      /* teclas */
-      if(y<143){
-        const col = Math.floor((x-13)/19), row = Math.floor((y-86)/19);
-        const i = row*7 + col;
-        if(col>=0 && col<7 && i<26 && buf.length<8){
-          UI.nickBuf = buf + RENAME_KEYS[i];
-          SFX.tap(); vibrate(8);
-        }
-        return;
-      }
-      if(y>=143 && y<=159 && x>=89 && x<=115){
-        UI.nickBuf = buf.slice(0,-1); SFX.tap(); return;
-      }
+      /* teclas 7x4: la última fila lleva V-Z y el borrado en las columnas 5-6 */
+      const col = Math.floor((x-13)/19), row = Math.floor((y-86)/19);
+      const i = row*7 + col;
+      if(row===3 && col>=5){ UI.nickBuf = buf.slice(0,-1); UI.keyAt = {i:-1, t:performance.now()}; SFX.tap(); return; }
+      if(col>=0 && col<7 && i<26 && buf.length<8){
+        UI.nickBuf = buf + RENAME_KEYS[i];
+        UI.keyAt = {i, t:performance.now()};
+        SFX.tap(); vibrate(8);
+      } else if(buf.length>=8){ SFX.nope(); UI.denyAt = performance.now(); }
       return;
     }
     if(y>=168 && y<=186 && x>=24 && x<=136){
@@ -329,26 +344,8 @@ function handleTap(x,y){
     }
     UI.mode='play'; SFX.tap(); return;
   }
-  if(UI.mode==='train'){
-    if(y<16 && x<48){
-      UI.mode = UI.trainFrom==='parque' ? 'main' : 'play';
-      UI.trainFrom = null; UI.park = null; SFX.tap(); return;
-    }
-    const pk = UI.park || (UI.park = {phase:'idle', px:80, t:0});
-    if(pk.phase==='train'){ gymRepTap(); return; }
-    if(pk.phase==='idle' && y>=104 && y<=180){
-      let kind=null, tx=0;
-      if(x>=18 && x<52){ kind='str'; tx=36; }
-      else if(x>=64 && x<100){ kind='def'; tx=76; }
-      else if(x>=106 && x<146){ kind='spd'; tx=118; }
-      if(kind){
-        const r = trainEffect(kind);
-        if(r){ pk.phase='walk'; pk.kind=kind; pk.tx=tx; pk.t=0; pk.gain=r.gain; SFX.tap(); }
-        return;
-      }
-    }
-    return;
-  }
+  if(UI.mode==='train'){ gymTap(x, y); return; }
+  if(UI.mode.startsWith('mg')){ mgTap(x, y); return; }
   if(UI.mode==='discos'){
     if(x>=14 && x<=146 && y>=71 && y<196){
       const i = Math.floor((y-71)/25);
@@ -361,9 +358,9 @@ function handleTap(x,y){
     UI.mode='games'; SFX.tap(); return;
   }
   if(UI.mode==='evotree'){
-    if(y<40){
-      if(x<30){ UI.evoLine = ((UI.evoLine||0)+LINE_KEYS.length-1)%LINE_KEYS.length; UI.evoSel=0; SFX.tap(); return; }
-      if(x>130){ UI.evoLine = ((UI.evoLine||0)+1)%LINE_KEYS.length; UI.evoSel=0; SFX.tap(); return; }
+    if(y<40 && (x<22 || x>146)){
+      if(x<22){ UI.evoLine = ((UI.evoLine||0)+LINE_KEYS.length-1)%LINE_KEYS.length; UI.evoSel=0; SFX.tap(); return; }
+      if(x>146){ UI.evoLine = ((UI.evoLine||0)+1)%LINE_KEYS.length; UI.evoSel=0; SFX.tap(); return; }
     }
     let best=-1, bd=15;
     for(let i=0;i<EVO_NODES.length;i++){
@@ -373,68 +370,12 @@ function handleTap(x,y){
     if(best>=0){ UI.evoSel=best; SFX.tap(); return; }
     UI.mode='album'; SFX.tap(); return;
   }
-  if(UI.mode==='mgJump'){ jumpTap(); return; }
-  if(UI.mode==='mgTopo'){ topoTap(x, y); return; }
-  if(UI.mode==='mgPesca'){ pescaTap(); return; }
-  if(UI.mode==='mgMemo'){ memoTap(x, y); return; }
-  if(UI.mode==='mgGlobo'){ globoTap(x, y); return; }
   if(UI.mode==='exped'){
     if(x>14 && x<146 && y>66 && y<206){
       const i = Math.floor((y-66)/28);
       if(i>=0 && i<EXPEDS.length){ sendExpedition(i); return; }
     }
     UI.mode='play'; SFX.tap(); return;
-  }
-  if(UI.mode==='mgCatch'){
-    const m = UI.mg;
-    if(m.ph==='play'){ m.tx = Math.max(16, Math.min(144, x)); }
-    else if(m.ph==='end'){ UI.mode='main'; SFX.tap(); }
-    return;
-  }
-  if(UI.mode==='mgDance'){
-    const m = UI.mg;
-    if(m.ph==='play'){
-      const now = performance.now();
-      let best=null, bd=1e9;
-      for(const b of m.beats){ if(!b.hit){ const d=Math.abs(now-b.t); if(d<bd){bd=d; best=b;} } }
-      if(best && bd<150){
-        best.hit = bd<65? 3:1;
-        m.score += best.hit; m.combo++;
-        m.judge = bd<65? '¡PERFECTO!' : 'BIEN'; m.judgeT = now;
-        tone({f:bd<65?1568:1175, d:0.1, vol:0.05, echo:bd<65?1:0, echoT:0.09});
-        vibrate(bd<65?25:12);
-      } else {
-        m.combo=0; m.judge='FALLO'; m.judgeT=now; SFX.nope();
-      }
-    } else if(m.ph==='end'){ UI.mode='main'; SFX.tap(); }
-    return;
-  }
-  if(UI.mode==='mgSimon'){
-    const m = UI.mg;
-    if(m.ph==='end'){ UI.mode='main'; SFX.tap(); return; }
-    if(m.ph!=='input') return;
-    for(let i=0;i<4;i++){
-      const F = FLOWERS[i];
-      if(Math.abs(x-F.x)<=20 && Math.abs(y-F.y)<=20){
-        m.lit = i; m.litT = performance.now();
-        beep(F.f, 0.22, 0, 'triangle', 0.08); vibrate(12);
-        if(i === m.seq[m.idx]){
-          m.idx++;
-          if(m.idx === m.seq.length){
-            m.round++;
-            if(m.round>8){ simonFinish(); return; }
-            m.seq.push(Math.floor(Math.random()*4));
-            m.ph='show'; m.showI=0; m.showT=performance.now()+800;
-            SFX.coin();
-          }
-        } else {
-          SFX.nope(); vibrate(60);
-          simonFinish();
-        }
-        return;
-      }
-    }
-    return;
   }
 
   /* ---- modo principal ---- */
@@ -451,7 +392,7 @@ function handleTap(x,y){
     const i = Math.floor((x-4)/26);
     if(i>=0 && i<6){
       if(UI.carry) UI.carry = null; /* se baja solo donde estaba */
-      UI.flashBtn=i; UI.flashUntil=now+150;
+      UI.flashBtn=i; UI.flashUntil=now+150; UI.btnAt[i]=now;
       SFX.tap(); vibrate(15);
       BTNS[i].fn();
       return;
@@ -469,21 +410,44 @@ function handleTap(x,y){
     UI.carry = null; /* toque al HUD: se baja donde estaba */
   }
   /* la constelación: tu dinastía */
-  if(y>18 && y<62 && G.ascensions>0 && !UI.shoot){
-    UI.mode='legacy'; SFX.tap(); return;
+  if(dayPhase()==='night' && G.ascensions>0 && !UI.shoot && y>18 && y<90){
+    for(let i=0;i<Math.min(24,G.ascensions);i++){
+      const sp = legacyStarPos(i);
+      if(Math.abs(x-sp.x)<10 && Math.abs(y-sp.y)<10){ UI.mode='legacy'; SFX.tap(); return; }
+    }
   }
   /* estrella fugaz */
   if(UI.shoot && Math.abs(x-UI.shoot.x)<15 && Math.abs(y-UI.shoot.y)<15){
     const g = Math.round(25*legacyMult()) * (G.relics.lagrima?2:1) * (G.starShower?2:1);
     gainMotas(g, UI.shoot.x, UI.shoot.y);
+    flyCoins(UI.shoot.x, UI.shoot.y, 10);
+    burst(UI.shoot.x, UI.shoot.y, {n:22, cols:['#ffffff','#ffd94a','#fff8d0'], speed:0.12, g:0.00008, kind:'star', life:700});
+    ringFx(UI.shoot.x, UI.shoot.y, '#fff8d0', 22, 420);
+    flash('#fff8d0', 0.35, 220); shake(0.25);
     toast('¡DESEO CONCEDIDO! +'+g+'✦', 2800);
     SFX.wish(); vibrate([20,20,40]);
     UI.shoot = null;
     return;
   }
+  /* chispas */
+  for(let i=UI.sparkles.length-1;i>=0;i--){
+    const s = UI.sparkles[i];
+    if((s.zone||'prado')!==G.zone) continue;
+    if(Math.abs(x-s.x)<11 && Math.abs(y-s.y)<11){
+      collectSparkle(i, false);
+      return;
+    }
+  }
+  /* toque preciso sobre un bitxo: gana a juguetes, carteles y senderos */
+  if(y>132 && y<168){
+    const pi = nearestPetAt(x, 9);
+    if(pi>=0){ tapPet(pi, now); return; }
+  }
   /* juguetes */
   if(G.toys && G.toys.pelota && toyZone('pelota')===G.zone && Math.abs(x-G.ballX)<10 && y>140 && y<170){
     G.ballVX = (x < G.ballX ? 1 : -1) * (0.09+Math.random()*0.05);
+    G.ballHopAt = performance.now();
+    dustFx(G.ballX, 161, 6); ringFx(G.ballX, 157, '#ffffff', 8, 220);
     SFX.ballKick(); vibrate(12);
     return;
   }
@@ -530,18 +494,6 @@ function handleTap(x,y){
     UI.mode = 'train'; UI.park = {phase:'idle', px:80, t:0};
     SFX.tap(); vibrate(10); return;
   }
-  /* chispas */
-  for(let i=UI.sparkles.length-1;i>=0;i--){
-    const s = UI.sparkles[i];
-    if((s.zone||'prado')!==G.zone) continue;
-    if(Math.abs(x-s.x)<11 && Math.abs(y-s.y)<11){
-      gainMotas(tapYield() * (AP().line==='voltio' && AP().stage>STAGES.EGG ? 2 : 1), s.x, s.y);
-      gainXP(AP().trait==='CURIOSO'?4:2); SFX.coin(); vibrate(10);
-      questProg('chispas', 1);
-      UI.sparkles.splice(i,1);
-      return;
-    }
-  }
   /* el buhonero */
   if(G.buho && G.zone==='prado' && y>118 && y<175 && Math.abs(x-G.buho.x)<13){
     UI.mode='buho'; SFX.tap(); vibrate(10); return;
@@ -551,32 +503,52 @@ function handleTap(x,y){
     startBattle();
     return;
   }
-  /* mascotas: seleccionar / acariciar / tocar huevo */
+  /* toque ancho: el bitxo más cercano */
   if(y>105 && y<190){
-    let best=-1, bd=27;
-    for(let i=0;i<G.pets.length;i++){
-      if((G.pets[i].zone||'prado')!==G.zone) continue;
-      const d = Math.abs(x-G.pets[i].rx);
-      if(d<bd){ bd=d; best=i; }
-    }
-    if(best>=0){
-      const p = G.pets[best];
-      if(best!==G.sel){
-        G.sel = best; petVoice(p);
-        if(p.stage>STAGES.EGG) p.bubbleT = now;
-        toast(currentNameOf(p), 1200);
-      } else if(p.exped){
-        const m = Math.ceil((p.exped.until-Date.now())/60000);
-        toast('VUELVE EN '+(m>=60? Math.ceil(m/60)+'H' : m+'M'));
-      } else if(p.stage===STAGES.EGG){
-        p.tapsOnEgg++; p.hop=now; SFX.tap(); vibrate(10);
-      } else if(!p.sleeping){
-        p.happy = Math.min(100, p.happy+2);
-        spawnHearts(1); petVoice(p); p.petT = now;
-        p.bubbleT = now; /* la burbuja te cuenta cómo está */
-        questProg('mimos', 1);
-      }
-    }
+    const bi = nearestPetAt(x, 27);
+    if(bi>=0) tapPet(bi, now);
+  }
+}
+
+
+/* bitxo más cercano en la zona visible (o -1) */
+function nearestPetAt(x, maxD){
+  let best=-1, bd=maxD;
+  for(let i=0;i<G.pets.length;i++){
+    if((G.pets[i].zone||'prado')!==G.zone) continue;
+    const d = Math.abs(x-G.pets[i].rx);
+    if(d<bd){ bd=d; best=i; }
+  }
+  return best;
+}
+/* tocar a un bitxo: seleccionar / acariciar / calentar el huevo */
+function tapPet(best, now){
+  const p = G.pets[best];
+  if(best!==G.sel){
+    G.sel = best; petVoice(p); p.squashAt = now;
+    ringFx(p.rx, 150, '#ffd94a', 12, 280);
+    if(p.stage>STAGES.EGG) p.bubbleT = now;
+    toast(currentNameOf(p), 1200);
+  } else if(p.exped){
+    const m = Math.ceil((p.exped.until-Date.now())/60000);
+    toast('VUELVE EN '+(m>=60? Math.ceil(m/60)+'H' : m+'M'));
+  } else if(p.stage===STAGES.EGG){
+    p.tapsOnEgg++; p.hop=now; p.squashAt=now; SFX.tap(); vibrate(10);
+    /* calor: cada toque suelta chispitas y el cascarón cruje más */
+    burst(p.rx, 150, {n:4+Math.floor(p.tapsOnEgg/3), cols:['#fff8d0','#ffd94a', LINES[p.line].eggSpot], speed:0.06, g:0.00025, life:420});
+    tone({f:300+p.tapsOnEgg*40, d:0.05, type:'p25', vol:0.03});
+    if(p.tapsOnEgg%5===0){ shake(0.18); ringFx(p.rx, 152, '#fff8d0', 14, 300); }
+  } else if(!p.sleeping){
+    p.happy = Math.min(100, p.happy+2);
+    spawnHearts(1); petVoice(p); p.petT = now; p.squashAt = now;
+    heartsFx(p.rx, 140, 2);
+    p.bubbleT = now; /* la burbuja te cuenta cómo está */
+    questProg('mimos', 1);
+  } else {
+    /* dormido: se revuelve un poco y sigue a lo suyo */
+    p.squashAt = now; p.bubbleT = now;
+    fx({x:p.rx+6, y:138, vy:-0.02, vx:0.01, life:900, kind:'txt', s:'Z', col:'#eef4ff'});
+    tone({f:220, slide:180, d:0.12, type:'triangle', vol:0.03});
   }
 }
 
@@ -584,13 +556,36 @@ function handleTap(x,y){
 document.addEventListener('keydown', ev=>{
   if(!G || UI.mode==='boot') return;
   const k = ev.key;
+  /* un informe encima: cualquier tecla lo cierra, y nada más */
+  if(offlineReport || UI.expReport){
+    if(k==='Escape' || k==='Enter' || k===' '){ offlineReport = null; UI.expReport = null; SFX.tap(); }
+    return;
+  }
+  /* bautizo con teclado de verdad */
+  if(UI.mode==='rename'){
+    const buf = UI.nickBuf||'';
+    if(/^[a-zA-ZñÑ]$/.test(k) && buf.length<8){ UI.nickBuf = buf + normText(k); SFX.tap(); }
+    else if(k==='Backspace'){ UI.nickBuf = buf.slice(0,-1); SFX.tap(); }
+    else if(k==='Enter'){ handleTap(80, 176); }
+    else if(k==='Escape'){ UI.mode='stats'; SFX.tap(); }
+    ev.preventDefault();
+    return;
+  }
   if(k>='1' && k<='6' && UI.mode==='main'){
     audio();
     const i = +k-1;
-    UI.flashBtn = i; UI.flashUntil = performance.now()+150;
+    UI.flashBtn = i; UI.flashUntil = performance.now()+150; UI.btnAt[i] = performance.now();
     SFX.tap(); BTNS[i].fn();
   } else if(k==='m' || k==='M'){
-    handleTap(150, 8);
+    G.sound = G.sound===undefined ? 1 : (G.sound+2)%3;
+    G.muted = G.sound===0; applyVolume();
+    toast(['SILENCIO','VOLUMEN BAJO','VOLUMEN ALTO'][G.sound]); saveGame();
+  } else if(UI.mode.startsWith('mg') && typeof mgKey==='function' && mgKey(k)){
+    ev.preventDefault();
+  } else if(UI.mode==='battle' && typeof battleKey==='function' && battleKey(k)){
+    ev.preventDefault();
+  } else if(UI.mode==='train' && typeof gymKey==='function' && gymKey(k)){
+    ev.preventDefault();
   } else if((k==='ArrowRight' || k==='ArrowLeft') && UI.mode==='main'){
     const idx = ZONE_ORDER.indexOf(G.zone) + (k==='ArrowRight' ? 1 : -1);
     const z = ZONE_ORDER[idx];

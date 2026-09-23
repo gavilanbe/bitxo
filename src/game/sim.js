@@ -6,10 +6,45 @@
 let lastT = performance.now();
 let saveTimer=0, sparkleTimer=0, motaAcc=0, feederTimer=0, achTimer=0;
 const poopTimers = {};
+/* reloj de pared del último tick: si rAF se para (pestaña oculta, móvil
+   dormido) el hueco se simula con applyElapsed ANTES de autoguardar */
+let liveWall = 0;
+const ROBOT_EVERY = 90*1000;
+function catchUp(){
+  if(!G) return;
+  const now = Date.now();
+  const ref = liveWall || G.lastSeen || now;
+  liveWall = now;
+  lastT = performance.now();
+  if(now - ref > 5000) applyElapsed(now - ref);
+}
+/* ¿se puede abrir un huevo ya? solo en el prado, sin informes ni cinemáticas */
+function hatchOk(){ return UI.mode==='main' && !offlineReport && !UI.expReport && !EVO_QUEUE.length; }
+/* recoger una chispa: el MISMO premio al tocarla que con el IMAN */
+function collectSparkle(i, auto){
+  const s = UI.sparkles[i];
+  if(!s) return 0;
+  const got = tapYield() * (AP().line==='voltio' && AP().stage>STAGES.EGG ? 2 : 1);
+  gainMotas(got, s.x, s.y);
+  if(!auto){
+    /* la mota estalla y sus chispas vuelan al marcador */
+    flyCoins(s.x, s.y, Math.min(8, 2+got));
+    burst(s.x, s.y, {n:10, cols:['#ffffff','#ffd94a','#fff8d0'], speed:0.09, g:0.0002, life:420, kind:'spark'});
+    ringFx(s.x, s.y, '#fff8d0', 10, 260);
+    hitstop(24); vibrate(10);
+  }
+  gainXP(AP().trait==='CURIOSO'?4:2); SFX.coin();
+  questProg('chispas', 1);
+  UI.sparkles.splice(i,1);
+  return got;
+}
 
 function liveUpdate(dtMs){
-  if(!G || ['boot','ascendFX'].includes(UI.mode)) return;
+  if(!G || UI.mode==='boot') return;
   const now = Date.now();
+  if(liveWall && now - liveWall > 5000) catchUp();
+  liveWall = now;
+  if(UI.mode==='ascendFX') return;
   updateWeather(now);
 
   for(let i=G.pets.length-1;i>=0;i--){
@@ -20,7 +55,7 @@ function liveUpdate(dtMs){
     }
     if(p.stage===STAGES.EGG){
       if(performance.now()-p.dropT < 1100) continue;
-      if(now - p.bornAt > T_HATCH || p.tapsOnEgg>=15) hatchPet(i);
+      if((now - p.bornAt > T_HATCH || p.tapsOnEgg>=15) && hatchOk()) hatchPet(i);
       continue;
     }
     /* dormido se consume mucho menos: el sueño repara, no castiga */
@@ -37,7 +72,7 @@ function liveUpdate(dtMs){
         poopTimers[i] = 0;
         if(G.poops.length<5){ G.poops.push({x:20+Math.random()*110, zone:p.zone||'prado'}); SFX.nope(); }
       }
-      if(dayPhase()==='night' && p.energy<25 && UI.mode==='main'){
+      if(dayPhase()==='night' && p.energy<25 && UI.mode==='main' && now-(p.wokeAt||0) > 180000){
         p.sleeping = true; if(i===G.sel){ SFX.sleep(); toast('SE HA DORMIDO...'); }
       }
     }
@@ -47,8 +82,10 @@ function liveUpdate(dtMs){
     if(p.happy<=0 && !p.happyZeroSince){ p.happyZeroSince = now; p.mistakes++; }
     if(p.happy>0) p.happyZeroSince=null;
     if(p.hungerZeroSince && now-p.hungerZeroSince > RUNAWAY_AFTER){
-      toast(currentNameOf(p)+' SE FUE EN BUSCA DE COMIDA...', 3600);
-      SFX.bye(); spawnEgg(i);
+      const nm = currentNameOf(p);
+      toast(nm+' SE FUE EN BUSCA DE COMIDA...', 3600);
+      diaryLog(nm+' SE FUE EN BUSCA DE COMIDA');
+      SFX.bye(); spawnEgg(i, true); /* sin '¡HUEVO!' encima del adiós */
       if(G.sel>=G.pets.length) G.sel=0;
       continue;
     }
@@ -70,15 +107,16 @@ function liveUpdate(dtMs){
       let riesgo = 0;
       if(p.hygiene<25) riesgo++;
       if(WEATHER.kind==='rain' && !(G.toys && G.toys.cometa)) riesgo++;
-      if(riesgo && Math.random() < dtMs*0.0000015*riesgo){
-        p.sick = true; p.sickAt = now; p.sickPenal = false;
+      if(riesgo && Math.random() < dtMs*0.0000003*riesgo){
+        p.sick = true; p.sickAt = now; p.sickPenal = false; p.sickAway = 0;
         diaryLog(petName(p)+' SE PUSO MALITO');
         toast('¡'+petName(p)+' SE HA PUESTO MALITO!', 3200);
         SFX.nope(); vibrate(30);
       }
     }
     if(p.sick){
-      if(!p.sickPenal && now-p.sickAt > 4*3600*1000){ p.sickPenal = true; p.mistakes++; }
+      /* el fallo por enfermedad cuenta solo el tiempo que estabas aquí */
+      if(!p.sickPenal && now-p.sickAt-(p.sickAway||0) > 4*3600*1000){ p.sickPenal = true; p.mistakes++; }
       if(now-p.sickAt > 10*3600*1000){ p.sick = false; } /* se cura solo, tarde */
     }
     /* --- el carácter se ve en el prado --- */
@@ -168,22 +206,32 @@ function liveUpdate(dtMs){
           SFX.yay();
           if(G.bond===1) toast('¡SE HAN HECHO AMIGOS!', 2600);
           /* cría: dos adultos que viven juntos y se quieren mucho */
+          /* (el nido admite un huevo invitado; si está lleno, el huevo espera) */
           if(PA.stage===STAGES.ADULT && PB.stage===STAGES.ADULT && (G.bond||0)>=25 &&
-             G.pets.length < maxPets() && now > (G.criaNextAt||0)){
+             !G.eggWaiting && now > (G.criaNextAt||0)){
             G.criaNextAt = now + 24*3600*1000;
-            G.nextEggLine = Math.random()<0.5 ? PA.line : PB.line;
-            const egg = spawnEgg();
-            if(Math.random()<0.6) egg.trait = Math.random()<0.5 ? PA.trait : PB.trait;
-            egg.zone = 'prado';
-            for(let j2=0;j2<10;j2++) UI.particles.push({x:mx-12+Math.random()*24, y:128+Math.random()*16, vy:-0.03, life:1600, ch:'♥', col:'#f2a2b8'});
-            toast('¡'+petName(PA)+' Y '+petName(PB)+' HAN HECHO UN NIDO!', 3800);
-            diaryLog('LLEGO UN HUEVO DE '+petName(PA)+' Y '+petName(PB));
-            SFX.hatch(); vibrate([30,30,60]);
+            const r = giftEgg(Math.random()<0.5 ? PA.line : PB.line);
+            if(r && r.egg){
+              const egg = r.egg;
+              if(Math.random()<0.6) egg.trait = Math.random()<0.5 ? PA.trait : PB.trait;
+              egg.zone = 'prado';
+              for(let j2=0;j2<10;j2++) UI.particles.push({x:mx-12+Math.random()*24, y:128+Math.random()*16, vy:-0.03, life:1600, ch:'♥', col:'#f2a2b8'});
+              toast('¡'+petName(PA)+' Y '+petName(PB)+' HAN HECHO UN NIDO!', 3800);
+              diaryLog('LLEGO UN HUEVO DE '+petName(PA)+' Y '+petName(PB));
+              SFX.hatch(); vibrate([30,30,60]);
+            }
           }
         }
       }
       if(!found) G.nextBondAt = now + 6000;
     }
+  }
+
+  /* el huevo que esperaba sitio sale en cuanto hay hueco */
+  if(G.eggWaiting && eggRoom() && UI.mode==='main'){
+    const ln = G.eggWaiting;
+    const e = spawnEgg();
+    if(e) diaryLog('EL HUEVO '+LINES[ln].name+' YA TIENE SITIO');
   }
 
   /* juguetes vivos */
@@ -258,15 +306,16 @@ function liveUpdate(dtMs){
     if(G.toys.robot && UI.mode==='main' && toyZone('robot')===G.zone){
       if(UI.robotX===undefined) UI.robotX = 60;
       if(!UI.robotAt) UI.robotAt = 0;
-      /* el robot vive en el prado: solo barre la mugre de su zona */
-      const pi = G.poops.findIndex(pp=>(pp.zone||'prado')==='prado');
+      /* el robot solo barre la mugre de su zona */
+      const rz = toyZone('robot');
+      const pi = G.poops.findIndex(pp=>(pp.zone||'prado')===rz);
       if(pi>=0 && now>UI.robotAt){
         const target = G.poops[pi].x;
         const d = target - UI.robotX;
         if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*dtMs*0.012; }
         else {
           G.poops.splice(pi,1);
-          UI.robotAt = now + 6*60*1000;
+          UI.robotAt = now + ROBOT_EVERY;
           for(let j=0;j<5;j++) UI.particles.push({x:UI.robotX-4+Math.random()*8, y:152, vy:-0.02, life:600, ch:'.', col:'#bdf0f5'});
           SFX.clean();
           for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
@@ -277,6 +326,18 @@ function liveUpdate(dtMs){
         UI.robotX += Math.sign(UI.robotTx-UI.robotX)*dtMs*0.004;
       }
     }
+  }
+  /* sin mirarlo, el robot sigue barriendo su zona (1 caca cada ~90 s) */
+  if(G.toys && G.toys.robot && !(UI.mode==='main' && toyZone('robot')===G.zone) && now>(UI.robotAt||0)){
+    const rz = toyZone('robot');
+    const pi = G.poops.findIndex(pp=>(pp.zone||'prado')===rz);
+    if(pi>=0){
+      G.poops.splice(pi,1);
+      UI.robotAt = now + ROBOT_EVERY;
+      for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
+    }
+  }
+  if(G.toys && UI.mode==='main'){
     if(G.toys.columpio && toyZone('columpio')===G.zone){
       const someone = G.pets.some(q=>(q.swingT||0)>0);
       for(const p of G.pets){
@@ -331,10 +392,7 @@ function liveUpdate(dtMs){
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
     if(now - s.born > 14000){ UI.sparkles.splice(i,1); continue; }
-    if(G.up.iman>0 && now - s.born > 1800){
-      gainMotas(tapYield(), s.x, s.y); SFX.coin();
-      UI.sparkles.splice(i,1);
-    }
+    if(G.up.iman>0 && now - s.born > 1800) collectSparkle(i, true);
   }
 
   /* comedero */
@@ -344,7 +402,7 @@ function liveUpdate(dtMs){
       feederTimer = 0;
       const th = [0,25,40,55][G.up.comedero];
       for(const p of G.pets){
-        if(p.stage>STAGES.EGG && !p.sleeping && p.hunger < th && G.motas >= COST_MEAL){
+        if(p.stage>STAGES.EGG && !p.sleeping && !p.exped && p.hunger < th && G.motas >= COST_MEAL){
           G.motas -= COST_MEAL; p.hunger = Math.min(100, p.hunger+35);
           p.weight = Math.min(99, p.weight+1);
           p.eatT = 1600; p.feedKind='meal'; SFX.eat();
@@ -357,8 +415,9 @@ function liveUpdate(dtMs){
 
   /* bichos salvajes */
   if(UI.mode==='main'){
-    const fighter = G.pets.some(p=>p.stage>=STAGES.CHILD);
-    if(!G.wild && fighter){
+    /* solo aparece si alguien de ESTA zona puede plantarle cara */
+    const fighters = G.pets.filter(p=>p.stage>=STAGES.CHILD && !p.sleeping && !p.exped && (p.zone||'prado')===G.zone && p.energy>=12);
+    if(!G.wild && fighters.length){
       if(!nextWildAt) nextWildAt = now + 40000 + Math.random()*120000;
       if(now > nextWildAt){
         const pool = WILD_POOL.filter(e=>G.battlesWon>=e[1]).map(e=>e[0]);
@@ -368,11 +427,12 @@ function liveUpdate(dtMs){
         let boss = false;
         if(G.bossDue){ kind = (G.bossesWon%2===0) ? 'lobruno' : 'reyseto'; boss=true; }
         /* nivel del rival: contra tu MEJOR luchador, con varianza */
-        const pp = Math.max(...G.pets.filter(q=>q.stage>=STAGES.CHILD).map(playerPower));
+        const pp = Math.max(...fighters.map(playerPower));
         let nv = Math.max(1, pp + (boss ? 3 : Math.floor(Math.random()*7)-2));
         const elite = !boss && G.battlesWon>=8 && Math.random()<0.10;
         if(elite) nv += 2;
-        G.wild = {kind, boss, elite, nv, zone:G.zone, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealAt: now+75000+(G.relics && G.relics.hueso?30000:0)};
+        const stealMs = 75000+(G.relics && G.relics.hueso?30000:0);
+        G.wild = {kind, boss, elite, nv, zone:G.zone, x: Math.random()<0.5? -14:174, tx: 40+Math.random()*80, arriveAt:now, stealMs, stealAt: now+stealMs};
         G.wild.dir = G.wild.x<80? 1:-1;
         toast(boss? '¡EL JEFE '+ENEMIES[kind].name+'!' : (elite? '¡'+ENEMIES[kind].name+' ELITE NV'+nv+'!' : '¡UN '+ENEMIES[kind].name+' NV'+nv+'!'), 2600);
         SFX.nope(); vibrate([40,40,40]);
@@ -384,7 +444,12 @@ function liveUpdate(dtMs){
       const d = w.tx - w.x;
       if(Math.abs(d)>1){ w.x += Math.sign(d)*dtMs*0.02; w.dir = Math.sign(d)||w.dir; }
       else if(Math.random()<dtMs*0.0004){ w.tx = 30+Math.random()*100; }
-      if(now > w.stealAt){
+      /* la cuenta atrás del robo solo corre mientras lo estás viendo;
+         stealAt se deriva de ella (partidas viejas / arnés la fijan) */
+      if(w.stealMs===undefined) w.stealMs = Math.max(0, (w.stealAt||now+75000) - now);
+      if((w.zone||'prado')===G.zone) w.stealMs -= dtMs;
+      w.stealAt = now + w.stealMs;
+      if(w.stealMs <= 0){
         const steal = Math.max(5, Math.floor(G.motas*0.05));
         G.motas = Math.max(0, G.motas - steal);
         toast('¡EL '+ENEMIES[w.kind].name+' ROBO '+steal+'✦!', 3000);
@@ -448,13 +513,13 @@ function liveUpdate(dtMs){
       else if(!h2.comer && p0.hunger<70){ h2.comer=true; toast('TIENE HAMBRE: BOTON COMER', 3200); }
       else if(!h2.limpiar && G.poops.length>0){ h2.limpiar=true; toast('¡UNA CACA! BOTON LIMPIAR', 3200); }
       else if(!h2.luz && p0.energy<45){ h2.luz=true; toast('ESTA CANSADO: BOTON LUZ', 3200); }
-      else if(!h2.gym && p0.stage>=STAGES.CHILD){ h2.gym=true; toast('YA PUEDE ENTRENAR: JUGAR > GYM', 3600); }
+      else if(!h2.gym && (p0.stage>=STAGES.CHILD || p0.level>=2)){ h2.gym=true; toast('YA PUEDE ENTRENAR: JUGAR > GYM', 3600); }
       else if(!h2.lucha && G.wild){ h2.lucha=true; toast('¡TOCA AL SALVAJE PARA LUCHAR!', 3600); }
     }
   }
 
   achTimer += dtMs;
-  if(achTimer > 3000){ achTimer=0; checkAchievements(); ensureDaily(); }
+  if(achTimer > 3000){ achTimer=0; checkAchievements(); ensureDaily(); if(UI.mode==='main') checkDailyGift(); }
 
   saveTimer += dtMs;
   if(saveTimer > 12000){ saveTimer=0; saveGame(); }
@@ -470,6 +535,6 @@ function hatchPet(i){
   G.sel = i;
   UI.mode='hatch'; UI.hatchT=0;
   diaryLog('NACIO '+LINES[p.line].names[p.form]+' (GEN '+p.gen+')');
-  SFX.hatch(); vibrate([40,40,40,40,80]);
+   vibrate([40,40,40,40,80]);
   saveGame();
 }

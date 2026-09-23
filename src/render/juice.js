@@ -64,6 +64,8 @@ function wipeCheck(){
   if(JUICE.fam && f!==JUICE.fam && JUICE.fam!=='boot' && f!=='cine'){
     JUICE.wipe = {t:0, dur:420, cx:80, cy:136};
   }
+  /* una cinemática empieza limpia: nada del prado flotando encima */
+  if(f==='cine' && JUICE.fam!=='cine'){ JUICE.pops.length = 0; JUICE.fx.length = 0; }
   JUICE.fam = f;
 }
 /* iris que se abre en diamante de píxeles (NES) */
@@ -327,3 +329,7 @@ function drawJuiceOverlay(dt){
   }
   drawWipe(dt);
 }
+
+/* true una vez cada 'ms' (en el frame que cruza la frontera): para
+   emitir partículas desde código de dibujo sin depender de los Hz */
+function every(ms, t){ return Math.floor(t/ms) !== Math.floor((t-16.7)/ms); }

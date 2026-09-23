@@ -200,22 +200,56 @@ grimo:{pal:{k:K,u:'#9d7bd8',d:'#6b4fa3',w:'#f4f0ff'},rows:[
 blink:[[5,"kuukuuuuuukuuk"]]}
 };
 let SPR = {};
+/* volumen automático: sobre el color dominante del cuerpo, luz arriba-izquierda
+   (filo claro y brillo) y sombra abajo-derecha junto al contorno */
+function shadeRows(pal, rows){
+  const cnt = {};
+  for(const r of rows) for(const ch of r) if(ch!=='.' && ch!=='k' && pal[ch]) cnt[ch] = (cnt[ch]||0)+1;
+  let dom = null, best = 0;
+  for(const ch in cnt) if(cnt[ch]>best){ best = cnt[ch]; dom = ch; }
+  if(!dom || best<8) return {pal, rows};
+  const H = rows.length, W = rows[0].length;
+  const at = (x,y)=> (y<0||y>=H||x<0||x>=W) ? '.' : rows[y][x];
+  const edge = c => c==='.' || c==='k';
+  /* caja del cuerpo para colocar el brillo */
+  let minX=W, minY=H, maxX=0, maxY=0;
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++) if(rows[y][x]===dom){ minX=Math.min(minX,x); minY=Math.min(minY,y); maxX=Math.max(maxX,x); maxY=Math.max(maxY,y); }
+  const out = rows.map(r=>r.split(''));
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    if(rows[y][x]!==dom) continue;
+    const up = at(x,y-1), lf = at(x-1,y), dn = at(x,y+1), rt = at(x+1,y);
+    if(edge(dn) && (edge(rt) || y>=maxY-1)) out[y][x] = '2';
+    else if(edge(dn)) out[y][x] = '2';
+    else if(edge(rt) && y > (minY+maxY)/2) out[y][x] = '2';
+    else if(edge(up) && !edge(dn)) out[y][x] = '1';
+    else if(edge(lf) && y < (minY+maxY)/2) out[y][x] = '1';
+  }
+  /* brillo especular: un toque de 2px arriba-izquierda */
+  const gx = minX + Math.max(1, Math.round((maxX-minX)*0.2)), gy = minY + Math.max(1, Math.round((maxY-minY)*0.18));
+  if(rows[gy] && rows[gy][gx]===dom && rows[gy][gx+1]===dom){ out[gy][gx] = '3'; out[gy][gx+1] = '3'; }
+  const base = pal[dom];
+  const pal2 = Object.assign({}, pal, {'1':lightHex(base,0.28), '2':darkHex(base,0.2), '3':lightHex(base,0.7)});
+  return {pal:pal2, rows: out.map(r=>r.join(''))};
+}
 function buildAllSprites(){
   SPR = {};
   for(const key in RAW){
     const d = RAW[key];
-    const f0 = mkSprite(d.pal, d.rows);
+    const sh = shadeRows(d.pal, d.rows);
+    const f0 = mkSprite(sh.pal, sh.rows);
     let f1 = f0;
     if(d.blink){
       const rows2 = d.rows.slice();
       for(const pair of d.blink) rows2[pair[0]] = pair[1];
-      f1 = mkSprite(d.pal, rows2);
+      const sh2 = shadeRows(d.pal, rows2);
+      f1 = mkSprite(sh2.pal, sh2.rows);
     }
     SPR[key] = [f0, f1];
   }
   for(const ln of LINE_KEYS){
     const L = LINES[ln];
-    SPR['egg_'+ln] = [mkSprite({k:K,w:L.eggShell,g:L.eggSpot}, EGG_ROWS)];
+    const sh = shadeRows({k:K,w:L.eggShell,g:L.eggSpot}, EGG_ROWS);
+    SPR['egg_'+ln] = [mkSprite(sh.pal, sh.rows)];
   }
   SPR.egg_mystery = [mkSprite({k:K,w:'#cfc9bd',g:'#a29c92'}, EGG_ROWS)];
   SPR.eggCrack = mkSprite({k:K},[

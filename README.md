@@ -47,27 +47,30 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
   anticipación en el prado, y la cinemática — silueta blanca alternando formas
   cada vez más rápido, estallido, revelación y fanfarria. Las evoluciones que
   ocurren mientras no estás **se reproducen al volver**: ninguna pasa sin verse.
-- 💿 **Discoteca**: el BAILE tiene 4 discos con canciones distintas — escúchalos
+- 💿 **Discoteca**: el BAILE tiene 5 discos con canciones distintas — escúchalos
   antes de comprarlos y baila el que te pida el cuerpo.
 - 🎭 **6 caracteres** (glotón, valiente, dormilón, juguetón, tímido, curioso) que
   cambian de verdad las reglas.
 - 🌦️ **Mundo vivo**: día/noche con tu reloj real, lluvia, viento, niebla,
   estrellas fugaces a las que pedir deseos, y una constelación que crece con cada
   ascensión de tu dinastía.
-- 🎮 **Sala de juegos con 6 minijuegos** y récords guardados: atrapa-motas,
+- 🎮 **Sala de juegos con 8 minijuegos** y récords guardados: atrapa-motas,
   baile, simón, SALTA (✦250), TOPO (✦200 — zúmbales a los ratucos, no a los
-  amigos) y PESCA (✦300 — espera la picada y domina la tensión del sedal).
+  amigos), PESCA (✦300 — espera la picada y domina la tensión del sedal),
+  MEMORIA (✦350) y GLOBO (✦280).
   Los juegos también entrenan: simón +DEF, comba +VEL, topo +FUE.
-- 🧭 **JUGAR organizado en tres puertas**: GYM (entreno), JUEGOS (la sala) y
-  EXPLORACIÓN (expediciones).
+- 🧭 **JUGAR organizado en cuatro puertas**: GYM (entreno), JUEGOS (la sala),
+  EXPLORACIÓN (expediciones) y LA TORRE (5 combates seguidos).
 - 🏋️ **Parque de entreno visual**: tu bitxo camina hasta las PESAS, el MURO o
   la CARRERA y entrena delante de ti — cada sesión cuesta pilas y una **cuota
   en motas que sube con la stat** (el gimnasio no es gratis).
-- 🧸 **9 juguetes vivos**: pelota, caja sorpresa, columpio, BAÑERA (se bañan
-  solos), TAMBOR (conciertos de prado), HUERTO (fruta gratis cada 2 h),
-  COMETA (vuela con el viento y consuela el mal tiempo), FUENTE (beben y
-  recuperan pilas) y ROBOT AMIGO (limpia cacas él solo).
-- 👒 **10 gorros con posición**: en la coronilla, sobre los ojos (GAFAS), al
+- 🧸 **9 juguetes vivos repartidos en 3 zonas** (EL PRADO, EL PARQUE y LA
+  HUERTA): pelota, caja sorpresa, columpio, BAÑERA (se bañan solos), TAMBOR
+  (conciertos de prado), HUERTO (fruta gratis cada 2 h), COMETA (consuela
+  con viento y protege de enfermar con la lluvia), FUENTE (beben y recuperan
+  pilas) y ROBOT AMIGO (limpia una caca de su zona cada ~90 s, también
+  mientras no estás).
+- 👒 **11 gorros con posición**: en la coronilla, sobre los ojos (GAFAS), al
   cuello (PAJARITA) o flotando (HALO).
 - ⚔️ **Combate de verdad**: golpea con timing, **bloquea** el ataque enemigo en
   el momento justo y carga el medidor de **SUPER** para soltar el ataque único
@@ -85,18 +88,21 @@ sintetizan al vuelo. Ni una imagen, ni un mp3 — solo JavaScript y un `<canvas>
   dice claro: VENTAJA +30% o TE RESISTE −25%.
 - 📖 **Bestiario**: ficha de cada enemigo visto — elemento, truco y victorias.
 - 🗺️ **5 expediciones** de hasta 8 horas que traen motas, XP, **10 reliquias**
-  con bonus pasivos y huevos de otras líneas.
+  con bonus pasivos y huevos de otras líneas (el nido guarda sitio para un
+  huevo invitado; si está lleno, el huevo espera turno).
 - 🗺 **[Roadmap público](ROADMAP.md)**: todo lo que está por venir, priorizado.
 - 🏪 **Economía idle completa**: 8 mejoras, 8 comidas (cada línea tiene su
-  favorita), 3 juguetes que viven en el prado, 15 logros y regalo diario con racha.
+  favorita), 21 logros y regalo diario con racha.
 - 📜 **Misiones del día**: el cartel del prado trae 3 encargos que rotan cada
   día — cóbralos en motas y XP.
 - 🎩 **El Buhonero**: un mercader errante que aparece cada pocas horas con
   rarezas: pociones, reliquias sueltas y un gorro que solo vende él.
 - 👒 **Gorros**: cosmética de verdad — tu bitxo lleva puesto el lazo, la seta o
   la corona en el prado y hasta en combate.
-- 😴 **Progreso offline** de hasta 14 h — pero ojo: si lo dejas con hambre
-  demasiado tiempo, se irá en busca de comida...
+- 😴 **Progreso offline** de hasta 14 h simuladas (también al volver a la
+  pestaña o a la app) — pero ojo: el hambre a cero cuenta como fallo, y si
+  pasa 14 h sin comer se irá en busca de comida y dejará un huevo. El
+  COMEDERO ayuda (a los que están despiertos).
 - 🎵 **Banda sonora procedural**: canciones distintas para el día, la noche, la
   lluvia y el combate, con bajo, armonía, batería y swing.
 

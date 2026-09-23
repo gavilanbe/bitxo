@@ -230,6 +230,9 @@ function legacyStarPos(i){
 }
 
 function drawScene(t){
+  /* reloj propio: la escena anima igual a 60 o 120 Hz (y no corre doble en el deslizamiento de zona) */
+  const sdt = Math.min(50, Math.max(0, t-(UI.sceneT||t))); UI.sceneT = t;
+  const fk = sdt/16.67;
   const ph = dayPhase(), S = skyNow();
   const BG = bakeBackdrop(S, ph);
   ctx.drawImage(BG.sky, 0, 0);
@@ -297,7 +300,7 @@ function drawScene(t){
   const CS = cloudSprites(ph);
   for(let i=0;i<clouds.length;i++){
     const c = clouds[i];
-    c.x += 0.008*c.s*(WEATHER.kind==='wind'?3:1); if(c.x>175) c.x=-50;
+    c.x += 0.008*c.s*(WEATHER.kind==='wind'?3:1)*fk; if(c.x>175) c.x=-50;
     const spr = CS[i%CS.length];
     ctx.globalAlpha = ph==='night' ? 0.8 : 0.95;
     ctx.drawImage(spr, Math.round(c.x), Math.round(c.y));
@@ -359,7 +362,7 @@ function drawScene(t){
     const nB = 3 + Math.min(3, G.up.jardin);
     for(let i=0;i<nB;i++){
       const b = butterflies[i];
-      b.x += Math.sin(t/700+b.a)*0.22; b.y += Math.cos(t/860+b.a*2)*0.12;
+      b.x += Math.sin(t/700+b.a)*0.22*fk; b.y += Math.cos(t/860+b.a*2)*0.12*fk;
       if(b.x<4) b.x=4; if(b.x>156) b.x=156;
       if(b.y<122) b.y=122; if(b.y>186) b.y=186;
       const open = Math.floor(t/160+b.a)%2===0;
@@ -370,11 +373,24 @@ function drawScene(t){
   }
   if(G.zone==='prado' && G.up.jardin>=2){ ctx.drawImage(SPR.shroom, 134, 128); }
   if(G.zone==='prado' && G.up.jardin>=3){
-    /* estanque */
-    px(16,178,34,12,'#3a6bb0'); px(18,176,30,2,'#3a6bb0'); px(18,190,30,2,'#3a6bb0');
-    px(20,180,26,8,'#5e9be0');
+    /* estanque: óvalo con orilla, reflejo del cielo, nenúfar y ondas */
+    const cx = 33, cy = 184, rx = 18, ry = 7;
+    for(let yy=-ry-1; yy<=ry+1; yy++){
+      const half = Math.round(rx*Math.sqrt(Math.max(0, 1-(yy*yy)/((ry+1)*(ry+1)))));
+      px(cx-half-1, cy+yy, half*2+2, 1, '#8a7a5a');
+    }
+    for(let yy=-ry; yy<=ry; yy++){
+      const half = Math.round((rx-1)*Math.sqrt(Math.max(0, 1-(yy*yy)/(ry*ry))));
+      px(cx-half, cy+yy, half*2, 1, yy<-2 ? '#3a6bb0' : (yy<3 ? '#4a80c8' : '#5e9be0'));
+    }
+    px(cx-10, cy-3, 8, 1, 'rgba(189,232,248,0.55)');
     const sh = Math.floor(t/700)%2;
-    px(24+sh*6,182,6,1,'#bde8f8'); px(34,186,5,1,'#bde8f8');
+    px(cx-8+sh*6,cy+1,6,1,'#bde8f8'); px(cx+4,cy+4,5,1,'#bde8f8');
+    /* nenúfar con flor */
+    px(cx+6, cy-2, 5, 2, '#57a05e'); px(cx+7, cy-3, 3, 1, '#57a05e'); px(cx+8, cy-3, 1, 1, '#f2a2b8');
+    /* onda que se expande cada pocos segundos */
+    const rp = (t%3200)/3200;
+    if(rp<0.6){ const rr = Math.round(2+rp*14); ctx.globalAlpha = 0.5*(1-rp/0.6); px(cx-6-rr, cy+1, 2, 1, '#e8f6ff'); px(cx-6+rr, cy+1, 2, 1, '#e8f6ff'); px(cx-6, cy+1-Math.round(rr*0.4), 1, 1, '#e8f6ff'); ctx.globalAlpha = 1; }
   }
   if(G.zone==='prado' && G.up.jardin>=4){
     /* farolillos */
@@ -389,35 +405,53 @@ function drawScene(t){
     }
     if(ph==='night' || ph==='dusk'){
       for(const f of fireflies){
-        f.x += Math.sin(t/800+f.a)*0.15; f.y += Math.cos(t/900+f.a)*0.1;
+        f.x += Math.sin(t/800+f.a)*0.15*fk; f.y += Math.cos(t/900+f.a)*0.1*fk;
         if(Math.sin(t/300+f.a*3)>0.3) px(f.x, f.y, 1,1,'#ffe066');
       }
     }
   }
-  drawZoneEdges(t);
+  if(sceneFamily(UI.mode)==='world') drawZoneEdges(t);
 }
 
+/* copa de árbol: blobs con luz arriba-izquierda, sombra abajo-derecha */
+const _treeCache = {key:null, c:null};
+function treeCanopy(S){
+  const key = S.grass2+S.grass;
+  if(_treeCache.key===key) return _treeCache.c;
+  const W=54, H=42, c = document.createElement('canvas'); c.width=W; c.height=H;
+  const g = c.getContext('2d');
+  const blobs = [[27,16,15],[14,24,11],[40,24,11],[27,28,12],[20,11,8],[35,11,8]];
+  const base = S.grass2, lt = lightHex(S.grass,0.18), dk = darkHex(S.grass2,0.3), rimC = darkHex(S.grass2,0.55);
+  const inside = (x,y)=>blobs.some(b=>(x-b[0])**2+(y-b[1])**2 <= b[2]*b[2]);
+  for(let y=0;y<H;y++) for(let x=0;x<W;x++){
+    if(!inside(x,y)) continue;
+    const edge = !inside(x-1,y)||!inside(x+1,y)||!inside(x,y-1)||!inside(x,y+1);
+    let col = base;
+    const lx = x-22, ly = y-12;
+    if(lx*lx+ly*ly < 110 || (!inside(x-2,y-2))) col = lt;
+    if(!inside(x+3,y+3) || y>34) col = dk;
+    if((x*7+y*13)%11===0 && col===base) col = lt;
+    if((x*5+y*3)%13===0 && col===base) col = dk;
+    if(edge) col = rimC;
+    g.fillStyle = col; g.fillRect(x,y,1,1);
+  }
+  /* un par de manzanas */
+  for(const a of [[17,20],[36,15],[29,30]]){ g.fillStyle='#e2574c'; g.fillRect(a[0],a[1],2,2); g.fillStyle='#ffb0a0'; g.fillRect(a[0],a[1],1,1); }
+  _treeCache.key = key; _treeCache.c = c;
+  return c;
+}
 /* ---------------- EL PARQUE: escenografía propia ---------------- */
 function drawParqueProps(t, S){
   /* arco de entrada: la puerta de vuelta al prado */
   px(0,128,3,32,'#8a6a3a'); px(9,128,3,32,'#8a6a3a');
   px(0,124,12,4,'#a4834e');
   px(0,124,12,1,K); px(0,127,12,1,K);
-  /* el gran árbol: copa con borde oscuro para leerse sobre las colinas */
+  /* el gran árbol: copa redonda sombreada (horneada) que se mece */
   const sway = Math.round(Math.sin(t/1400));
-  px(74,120,8,40,'#6a4e2e');
-  px(75,122,2,36,'#8a6a3a');
-  px(70,158,16,3,'#5a3e24');
-  const rim = 'rgba(18,26,22,0.55)';
-  px(55+sway,105,48,18,rim);
-  px(61+sway,96,36,12,rim);
-  px(67+sway,90,24,9,rim);
-  px(56+sway,106,46,16,S.grass2);
-  px(62+sway,97,34,10,S.grass2);
-  px(68+sway,91,22,7,S.grass2);
-  px(61+sway,103,14,5,S.grass);
-  px(82+sway,96,12,5,S.grass);
-  px(72+sway,112,10,4,S.grass);
+  px(74,118,8,42,'#6a4e2e');
+  px(75,120,2,38,'#8a6a3a'); px(80,122,1,34,'#5a3e24');
+  px(70,158,16,3,'#5a3e24'); px(68,159,4,2,'#6a4e2e'); px(84,159,4,2,'#6a4e2e');
+  ctx.drawImage(treeCanopy(S), 51+sway, 84);
   /* banco de madera */
   px(104,127,22,3,'#a4834e');
   px(104,127,22,1,'#c8a04b');
@@ -482,19 +516,30 @@ function zoneAlertDir(dir){
 /* senderos cerrados, o flechas para ir y volver */
 function drawZoneEdges(t){
   const blink = Math.floor(t/450)%2===0;
+  /* chevrón que empuja hacia el borde: se lee como "por aquí se sigue" */
+  const chevron = (x, dir, col)=>{
+    for(let i=0;i<4;i++){ px(x+dir*i, 172+i, 1, 1, col); px(x+dir*i, 178-i, 1, 1, col); }
+    px(x+dir*3, 175, 1, 1, col);
+  };
   const arrowR = ()=>{
     px(146,178,14,4,'rgba(190,182,160,0.75)');
     px(150,184,10,3,'rgba(190,182,160,0.55)');
-    drawText('>', 152, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
+    const nudge = Math.round(Math.abs(Math.sin(t/260))*2);
+    chevron(150+nudge, 1, 'rgba(26,20,40,0.35)');
+    chevron(149+nudge, 1, blink ? '#ffd94a' : '#f6efe0');
+    chevron(153+nudge, 1, 'rgba(246,239,224,0.5)');
     const al = zoneAlertDir(1);
-    if(al && blink) drawTextC('!', 154, 158, al);
+    if(al) drawTextOC('!', 154, 160+Math.round(Math.sin(t/150)), al);
   };
   const arrowL = ()=>{
     px(0,178,14,4,'rgba(190,182,160,0.75)');
     px(0,184,10,3,'rgba(190,182,160,0.55)');
-    drawText('<', 4, 170, blink ? '#ffd94a' : 'rgba(246,239,224,0.9)');
+    const nudge = Math.round(Math.abs(Math.sin(t/260))*2);
+    chevron(9-nudge, -1, 'rgba(26,20,40,0.35)');
+    chevron(10-nudge, -1, blink ? '#ffd94a' : '#f6efe0');
+    chevron(6-nudge, -1, 'rgba(246,239,224,0.5)');
     const al = zoneAlertDir(-1);
-    if(al && blink) drawTextC('!', 6, 158, al);
+    if(al) drawTextOC('!', 6, 160+Math.round(Math.sin(t/150)), al);
   };
   const teaser = (sx)=>{
     px(sx+5,177,2,9,'#5a4632');
@@ -517,16 +562,30 @@ function drawZoneEdges(t){
 }
 
 function drawSparkles(t){
+  const nowD = Date.now();
   for(const s of UI.sparkles){
     if((s.zone||'prado')!==G.zone) continue;
+    const age = nowD - s.born;
+    /* aparece brotando con rebote; parpadea cuando va a apagarse */
+    const pop = ease.outBack(clamp01(age/320));
+    if(age > 11000 && Math.floor(t/90)%2===0) continue;
     const bob = Math.sin(t/300 + s.t)*2;
-    const y = s.y + bob;
-    const blink = Math.floor(t/200 + s.t)%3;
-    const col = blink===0 ? '#fff8d0' : '#ffd94a';
-    px(s.x, y-3, 1, 7, col);
-    px(s.x-3, y, 7, 1, col);
-    px(s.x-1, y-1, 3, 3, col);
-    px(s.x, y, 1, 1, '#ffffff');
+    const y = Math.round(s.y + bob + (1-pop)*6), x = Math.round(s.x);
+    const r = Math.max(1, Math.round(3*pop));
+    /* halo tramado */
+    ctx.globalAlpha = 0.28 + 0.12*Math.sin(t/200+s.t);
+    px(x-4, y-2, 9, 5, '#fff3a0'); px(x-2, y-4, 5, 9, '#fff3a0');
+    ctx.globalAlpha = 1;
+    const tw = Math.floor(t/140 + s.t)%4;
+    const col = tw===0 ? '#ffffff' : '#ffd94a';
+    px(x, y-r-1, 1, r*2+3, col);
+    px(x-r-1, y, r*2+3, 1, col);
+    px(x-1, y-1, 3, 3, '#ffd94a');
+    px(x, y, 1, 1, '#ffffff');
+    if(tw===2){ px(x-2, y-2, 1, 1, '#fff8d0'); px(x+2, y+2, 1, 1, '#fff8d0'); }
+    else if(tw===0){ px(x+2, y-2, 1, 1, '#fff8d0'); px(x-2, y+2, 1, 1, '#fff8d0'); }
+    /* destello al nacer */
+    if(!s.rung){ s.rung = true; ringFx(x, y, '#fff8d0', 8, 260); tone({f:1760, d:0.04, type:'p125', vol:0.012}); }
   }
 }
 

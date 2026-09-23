@@ -11,7 +11,30 @@ const UI = {
   particles:[], floats:[], sparkles:[],
   sweepT:0, feedKind:null, shopFlash:{}, ascGain:0
 };
-function toast(s, ms=2000){ UI.msg=s; UI.msgUntil=performance.now()+ms; UI.msgAt=performance.now(); }
+/* avisos en COLA: ninguno pisa al anterior; los repetidos se funden */
+const TOASTQ = [];
+function toast(s, ms=2000){
+  const now = performance.now();
+  s = String(s);
+  /* un "no" siempre se nota: el panel abierto tiembla */
+  if(/FALTAN|NO TIENE|SIN MOTAS|SIN ENERGIA|AL MAXIMO|LLENA|AUN NO|NO PUEDE|MUY PEQUE/.test(s)){ UI.denyAt = now; }
+  if(UI.msg===s && now<UI.msgUntil){ UI.msgUntil = Math.max(UI.msgUntil, now+Math.min(ms,1400)); return; }
+  if(TOASTQ.some(q=>q.s===s)) return;
+  if(UI.msg && now<UI.msgUntil){
+    TOASTQ.push({s, ms});
+    if(TOASTQ.length>3) TOASTQ.shift();
+    /* el actual cede el paso pronto (pero se deja leer) */
+    UI.msgUntil = Math.min(UI.msgUntil, Math.max(now+550, UI.msgAt+900));
+    return;
+  }
+  showToast(s, ms);
+}
+function showToast(s, ms){ UI.msg=s; UI.msgUntil=performance.now()+ms; UI.msgAt=performance.now(); }
+function toastTick(){
+  if(TOASTQ.length && (!UI.msg || performance.now()>=UI.msgUntil+180)){
+    const q = TOASTQ.shift(); showToast(q.s, q.ms);
+  }
+}
 function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
 
 /* cola de evoluciones: NINGUNA pasa sin verse — las de fuera de

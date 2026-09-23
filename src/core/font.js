@@ -25,17 +25,30 @@ const FONT = {
  '·':"000000010000000",'_':"000000000000111",
  '♥':"101111111010000",'★':"010111010101000",'✦':"010111010000000"
 };
+/* normaliza una vez por cadena (mayúsculas, sin tildes) y cachea */
+const _normCache = new Map();
+function normText(s){
+  s = String(s);
+  let r = _normCache.get(s);
+  if(r===undefined){
+    r = s.toUpperCase().replace(/¡/g,'!').replace(/¿/g,'?')
+      .replace(/[ÁÀÄ]/g,'A').replace(/[ÉÈË]/g,'E').replace(/[ÍÌÏ]/g,'I').replace(/[ÓÒÖ]/g,'O').replace(/[ÚÙÜ]/g,'U').replace(/Ñ/g,'N');
+    if(_normCache.size>2000) _normCache.clear();
+    _normCache.set(s, r);
+  }
+  return r;
+}
+/* glifos precalculados como listas de píxeles encendidos */
+const GLYPH = {};
+for(const k in FONT){ const g = FONT[k], L = []; for(let p=0;p<15;p++) if(g[p]==='1') L.push(p%3, Math.floor(p/3)); GLYPH[k] = L; }
 function drawText(s, x, y, col){
-  s = String(s).toUpperCase().replace(/¡/g,'!').replace(/¿/g,'?')
-      .replace(/Á/g,'A').replace(/É/g,'E').replace(/Í/g,'I').replace(/Ó/g,'O').replace(/Ú/g,'U').replace(/Ñ/g,'N');
+  s = normText(s);
+  ctx.fillStyle = col;
+  x = Math.round(x); y = Math.round(y);
   for(let i=0;i<s.length;i++){
-    const g = FONT[s[i]] || FONT['?'];
-    for(let p=0;p<15;p++){
-      if(g[p]==='1'){
-        ctx.fillStyle = col;
-        ctx.fillRect(x + i*4 + (p%3), y + Math.floor(p/3), 1, 1);
-      }
-    }
+    const L = GLYPH[s[i]] || GLYPH['?'];
+    const ox = x + i*4;
+    for(let j=0;j<L.length;j+=2) ctx.fillRect(ox + L[j], y + L[j+1], 1, 1);
   }
 }
 function textW(s){ return String(s).length*4 - 1; }
@@ -50,8 +63,7 @@ function fmt(n){
 
 /* dibuja texto con la fuente 3x5 en OTRO canvas, a la escala pedida */
 function drawTextAt(g2, s2, x, y, col, sc){
-  s2 = String(s2).toUpperCase().replace(/¡/g,'!').replace(/¿/g,'?')
-      .replace(/Á/g,'A').replace(/É/g,'E').replace(/Í/g,'I').replace(/Ó/g,'O').replace(/Ú/g,'U').replace(/Ñ/g,'N');
+  s2 = normText(s2);
   g2.fillStyle = col;
   for(let i=0;i<s2.length;i++){
     const gl = FONT[s2[i]] || FONT['?'];

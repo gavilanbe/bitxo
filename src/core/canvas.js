@@ -28,4 +28,4 @@ window.addEventListener('orientationchange', resize);
 if(window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 resize();
 
-function px(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(Math.round(x),Math.round(y),w,h); }
+function px(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h)); }

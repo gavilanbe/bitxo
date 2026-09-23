@@ -4,6 +4,24 @@ Ideas priorizadas para el futuro. Las ✅ ya están; lo demás, por orden dentro
 de cada bloque (arriba = más ganas). Cada entrada intenta apoyarse en sistemas
 que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 
+## ✨ Gran rediseño de juice (sep 2026)
+
+- ✅ **Motor de juice** (`render/juice.js`): temblor por trauma, hitstop, flashes,
+  iris entre escenas, partículas con física, números que saltan, motas que
+  vuelan al marcador y muelles de squash & stretch en bitxos y botones.
+- ✅ **Prado nuevo**: cielo tramado, sol y luna que recorren el cielo con la
+  hora real, nubes con volumen, tres capas de colinas con arboleda, rayos de
+  luz, hierba que se mece, viñeta, estanque vivo y bitxos con volumen.
+- ✅ **HUD v7**: barras que persiguen su valor (destello al subir, fantasma al
+  bajar), ficha siempre visible, avisos en cola y encima de todo.
+- ✅ **Combate v4**: escenario diagonal a 2x, arenas por elemento, K.O. a
+  cámara lenta, HUIR, revanchas sin farmeo y la derrota ya cuesta algo.
+- ✅ **Sala de juegos v2**: cuenta atrás, salir con X, récords con sello,
+  estrellas, fin que no se salta sin querer y mando de teclado.
+- ✅ **GYM v4** y **cinemáticas** de eclosión, evolución y ascenso nuevas.
+- ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
+  alcanzables, progreso al volver a la app, teclado de bautizo completo...
+
 ## 🎮 Mecánicas grandes
 
 - ✅ **⚔️ Combate v3: aro, combos y paradas** — el aro de puntería respira

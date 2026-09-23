@@ -2,13 +2,6 @@
 /* =========================================================
    BITXO — render/hud: HUD, paneles y pantallas (stats, tienda, álbum...)
    ========================================================= */
-function statBar(x,y,w,val,col,label){
-  drawText(label, x, y, '#1a1428');
-  px(x, y+7, w, 4, 'rgba(26,20,40,0.18)');
-  px(x, y+7, Math.round(w*Math.max(0,Math.min(100,val))/100), 4, col);
-  px(x, y+7, w, 1, 'rgba(26,20,40,0.12)');
-}
-
 /* ------ paneles: esquinas recortadas, brillo y sombra ------ */
 function panel(x,y,w,h){
   px(x+2,y+h,w-2,2,'rgba(26,20,40,0.28)');
@@ -55,33 +48,108 @@ function drawCloseBadge(){
 }
 
 
-/* ---------------- HUD / PANTALLAS v6 ---------------- */
+/* ---------------- HUD / PANTALLAS v7 ---------------- */
+/* barras con valor mostrado que persigue al real: sube con destello,
+   baja dejando un fantasma rojo que se consume detrás */
+const BARV = {};
+function animBar(key, val, dt){
+  let b = BARV[key];
+  if(!b){ b = BARV[key] = {v:val, ghost:val, gainAt:0, lossAt:0}; return b; }
+  if(val > b.v + 0.8){ b.gainAt = performance.now(); }
+  if(val < b.v - 0.8){ b.lossAt = performance.now(); if(b.ghost < b.v) b.ghost = b.v; }
+  const k = 1 - Math.exp(-dt/110);
+  b.v += (val - b.v)*k;
+  if(performance.now() - b.lossAt > 380) b.ghost += (b.v - b.ghost)*(1-Math.exp(-dt/160));
+  if(b.ghost < b.v) b.ghost = b.v;
+  return b;
+}
+function fancyBar(x, y, w, h, key, val, col, dt, t){
+  const b = animBar(key, Math.max(0, Math.min(100, val)), dt||16);
+  const now = performance.now();
+  const fw = Math.round(w*b.v/100), gw = Math.round(w*b.ghost/100);
+  /* canal */
+  px(x, y, w, h, 'rgba(26,20,40,0.22)');
+  px(x, y+h, w, 1, 'rgba(255,255,255,0.35)');
+  if(gw>fw) px(x+fw, y, gw-fw, h, '#e2574c');
+  const low = val<25;
+  const pulse = low && Math.floor(t/260)%2===0;
+  px(x, y, fw, h, pulse ? '#ff8a7a' : col);
+  if(fw>1){
+    px(x, y, fw, 1, 'rgba(255,255,255,0.45)');
+    px(x, y+h-1, fw, 1, 'rgba(0,0,0,0.18)');
+  }
+  /* muescas cada cuarto */
+  for(let q=1;q<4;q++) px(x+Math.round(w*q/4), y+1, 1, h-1, 'rgba(26,20,40,0.18)');
+  /* destello al subir */
+  const ga = now - b.gainAt;
+  if(ga < 300){
+    ctx.globalAlpha = 1-ga/300; px(x, y, fw, h, '#ffffff'); ctx.globalAlpha = 1;
+  }
+  /* brillo que recorre las barras llenas */
+  if(b.v>98){
+    const sx = Math.floor((t/14)%(w+40))-20;
+    if(sx>=0 && sx<w) px(x+sx, y, 2, h, 'rgba(255,255,255,0.55)');
+  }
+  return b;
+}
+function statBar(x,y,w,val,col,label,t,dt){
+  const low = val<25 && Math.floor((t||0)/260)%2===0;
+  drawText(label, x, y, low ? '#c0392b' : '#1a1428');
+  fancyBar(x, y+7, w, 4, label, val, col, dt, t||0);
+}
+UI.btnAt = [0,0,0,0,0,0];
 function drawHUD(t){
-  px(0,0,160,19,'rgba(14,16,48,0.62)');
+  const dt = Math.min(100, t - (UI.hudT||t)); UI.hudT = t;
+  /* barra superior: cristal oscuro con filo de luz */
+  px(0,0,160,19,'rgba(14,16,48,0.82)');
+  px(0,0,160,1,'rgba(255,255,255,0.10)');
   const p = AP();
-  /* retrato enmarcado del bitxo activo */
-  px(1,1,17,17,'#141838');
-  px(1,1,17,1,'rgba(255,255,255,0.28)');
-  px(1,17,17,1,'rgba(0,0,0,0.5)');
-  px(1,1,1,17,'rgba(255,255,255,0.12)'); px(17,1,1,17,'rgba(0,0,0,0.3)');
+  /* retrato enmarcado del bitxo activo (borde dorado si está feliz) */
+  const rim = p.stage>STAGES.EGG && p.happy>70 ? '#c8a04b' : '#3b3552';
+  px(1,1,17,17,rim);
+  px(2,2,15,15,'#141838');
+  px(2,2,15,1,'rgba(255,255,255,0.18)');
   ctx.save();
   ctx.beginPath(); ctx.rect(2,2,15,15); ctx.clip();
   const ps = currentSprite();
-  ctx.drawImage(ps, 2+Math.floor((15-ps.width)/2), 17-ps.height);
+  const pbob = Math.round(Math.sin(t/500)*0.6);
+  ctx.drawImage(ps, 2+Math.floor((15-ps.width)/2), 17-ps.height+pbob+1);
   ctx.restore();
   const name = p.nick || (p.stage===STAGES.EGG ? 'HUEVO '+LINES[p.line].name : currentFormDef().name);
   drawText(name, 21, 3, '#ffffff');
-  drawText('LV'+p.level+' G'+p.gen, 21, 11, 'rgba(255,255,255,0.65)');
-  if(G.stars>0) drawText('★'+G.stars, 52, 11, '#ffd94a');
-  if(G.pets.length>1) drawText((G.sel+1)+'/'+G.pets.length, 66, 11, 'rgba(255,255,255,0.65)');
-  /* motas con destello al ganar */
+  /* chip de nivel */
+  const lvS = 'LV'+p.level;
+  px(20,10,textW(lvS)+3,7,'#3b3552'); drawText(lvS, 22, 11, '#bde8a8');
+  let hx = 22+textW(lvS)+4;
+  drawText('G'+p.gen, hx, 11, 'rgba(255,255,255,0.55)'); hx += textW('G'+p.gen)+4;
+  if(G.stars>0){ drawText('★'+G.stars, hx, 11, '#ffd94a'); hx += textW('★'+G.stars)+4; }
+  if(G.pets.length>1 && hx+textW((G.sel+1)+'/'+G.pets.length) < 104-textW('+'+motaRate().toFixed(1)+'/S!')-3) drawText((G.sel+1)+'/'+G.pets.length, hx, 11, 'rgba(255,255,255,0.55)');
+  /* motas: el contador salta cuando llegan monedas */
   if(UI.lastMotas===undefined) UI.lastMotas = G.motas;
   if(G.motas > UI.lastMotas+0.5){ UI.coinT = performance.now(); }
+  if(G.motas < UI.lastMotas-0.5){
+    UI.coinLossT = performance.now();
+    /* gastar también se ve: la cifra perdida cae del marcador */
+    const lost = Math.round(UI.lastMotas - G.motas);
+    if(lost>=1) popText(96, 14, '-'+fmt(lost), '#ff8a7a', {vy:0.02, life:800});
+  }
   UI.lastMotas = G.motas;
-  const shiny = performance.now()-(UI.coinT||0) < 220;
-  drawTextC('✦'+fmt(G.motas), 92, 3, shiny ? '#fff8d0' : '#ffd94a');
+  const bumpT = performance.now() - Math.max(UI.coinT||0, JUICE.coinBumpAt||0);
+  const bump = bumpT < 200 ? Math.round(-2*Math.sin(bumpT/200*Math.PI)) : 0;
+  const loss = performance.now()-(UI.coinLossT||0) < 260;
+  const mS = fmt(G.motas);
+  const mx = 104 - textW(mS);
+  /* icono de mota que gira */
+  const spin = Math.floor(t/140)%4;
+  const cx0 = mx-7, cy0 = 5+bump;
+  px(cx0+1, cy0-1, 1, 7, '#ffd94a'); px(cx0-2, cy0+2, 7, 1, '#ffd94a');
+  if(spin%2===0){ px(cx0, cy0+1, 3, 3, '#ffd94a'); } else { px(cx0+1, cy0, 1, 5, '#fff8d0'); }
+  px(cx0+1, cy0+2, 1, 1, '#ffffff');
+  drawText(mS, mx, 3+bump, loss ? '#ff8a7a' : (bumpT<200 ? '#ffffff' : '#ffd94a'));
+  COIN_TARGET.x = cx0+1; COIN_TARGET.y = cy0+2;
   const boosted = Date.now() < G.boostUntil;
-  drawTextC('+'+motaRate().toFixed(1)+'/S'+(boosted?'!':''), 92, 11, boosted?'#7ac74f':'rgba(255,255,255,0.65)');
+  const rS = '+'+motaRate().toFixed(1)+'/S'+(boosted?'!':'');
+  drawText(rS, 104-textW(rS), 11, boosted?'#7ac74f':'rgba(255,255,255,0.55)');
   /* altavoz con nivel */
   px(146,5,2,4,'#d8d4e8'); px(148,4,2,6,'#d8d4e8'); px(150,3,1,8,'#d8d4e8');
   const snd = G.sound===undefined ? 2 : G.sound;
@@ -93,41 +161,67 @@ function drawHUD(t){
   if(needsAttention() && Math.floor(t/500)%2===0){
     drawText('!', 138, 3, '#ffd94a');
   }
-  px(0,19,160,2,'rgba(26,20,40,0.5)');
-  px(0,19,Math.round(160*p.xp/xpNeed(p.level)),2,'#7ac74f');
+  /* barra de XP con brillo */
+  px(0,19,160,2,'rgba(26,20,40,0.7)');
+  const xw = Math.round(160*Math.min(1, p.xp/xpNeed(p.level)));
+  px(0,19,xw,2,'#7ac74f'); px(0,19,xw,1,'#bdf0a0');
+  if(xw>2){ const sh = Math.floor(t/20)%200; if(sh<xw) px(sh,19,3,1,'#ffffff'); }
   if(UPDATE_READY && Math.floor(t/500)%4!==3){
     px(28,23,104,12,'#ffd94a');
     px(28,23,104,1,K); px(28,34,104,1,K); px(28,23,1,12,K); px(131,23,1,12,K);
     drawTextC('VERSION NUEVA: TOCA', 80, 26, K);
   }
 
+  /* ---- consola inferior ---- */
   px(0,200,160,72,'#e8e0c8');
   px(0,200,160,1,K);
-  px(0,202,160,1,'rgba(26,20,40,0.2)');
+  px(0,201,160,1,'#f8f2e0');
+  px(0,202,160,1,'rgba(26,20,40,0.12)');
+  /* trama sutil de papel */
+  ctx.globalAlpha = 0.05; ctx.fillStyle = K;
+  for(let yy=204; yy<272; yy+=3) for(let xx=(yy%2)*2; xx<160; xx+=4) ctx.fillRect(xx,yy,1,1);
+  ctx.globalAlpha = 1;
 
-  statBar(6,206,42,p.hunger,'#e2574c','HAMBRE');
-  statBar(58,206,42,p.happy,'#f0a04b','ANIMO');
-  statBar(110,206,44,p.energy,'#5ec8d8','PILAS');
+  statBar(6,206,42,p.hunger,'#e2574c','HAMBRE',t,dt);
+  statBar(58,206,42,p.happy,'#f0a04b','ANIMO',t,dt);
+  statBar(110,206,44,p.energy,'#5ec8d8','PILAS',t,dt);
   if(p.sleeping && Math.floor(t/600)%2===0) drawText('+', 133, 206, '#5ec8d8');
 
-  px(6,224,148,1,'rgba(26,20,40,0.2)');
+  px(6,223,148,1,'rgba(26,20,40,0.16)');
 
-  /* ficha rápida al tocar a tu bitxo: abajo, donde siempre miras */
-  if(p.bubbleT && performance.now()-p.bubbleT<2600 && p.stage>STAGES.EGG){
-    const face = p.happy>66 ? 2 : (p.happy>33 ? 1 : 0);
-    const fx2 = 8, fy2 = 227;
+  /* ficha siempre visible: carita, limpieza, peso, edad, nivel y amistad.
+     Al tocar a tu bitxo, la ficha da un saltito */
+  /* con un menú abierto la ficha se calla: los pies de panel respiran */
+  const menuOpen = !!MENU_DRAW[UI.mode];
+  if(menuOpen){}
+  else if(p.stage>STAGES.EGG && !p.exped){
+    const fb = p.bubbleT ? springOff(p.bubbleT, 2.5) : 0;
+    const face = p.sick ? 0 : (p.happy>66 ? 2 : (p.happy>33 ? 1 : 0));
+    const fx2 = 8, fy2 = 227 + Math.round(fb);
     px(fx2,fy2,9,9,['#e2574c','#f0a04b','#7ac74f'][face]);
     px(fx2,fy2,9,1,K); px(fx2,fy2+8,9,1,K); px(fx2,fy2,1,9,K); px(fx2+8,fy2,1,9,K);
-    px(fx2+2,fy2+3,1,2,K); px(fx2+6,fy2+3,1,2,K);
+    px(fx2+1,fy2+1,7,1,'rgba(255,255,255,0.4)');
+    const bl = Math.floor(t/2600)%9===0 && (t%2600)<130;
+    px(fx2+2,fy2+3,1,bl?1:2,K); px(fx2+6,fy2+3,1,bl?1:2,K);
     if(face===2){ px(fx2+2,fy2+6,1,1,K); px(fx2+3,fy2+7,3,1,K); px(fx2+6,fy2+6,1,1,K); }
     else if(face===1){ px(fx2+3,fy2+7,3,1,K); }
     else { px(fx2+3,fy2+6,3,1,K); px(fx2+2,fy2+7,1,1,K); px(fx2+6,fy2+7,1,1,K); }
-    statBar(24,226,40,p.hygiene,'#7ac74f','LIMPIO');
-    drawText('PESO '+p.weight+'KG', 76, 226, K);
+    statBar(24,226,40,p.hygiene,'#7ac74f','LIMPIO',t,dt);
+    drawText('PESO '+p.weight+'KG', 72, 226, p.weight>40 ? '#a03030' : K);
     const dias = p.hatchedAt ? Math.floor((Date.now()-p.hatchedAt)/(24*3600*1000))+1 : 0;
-    drawText('EDAD '+dias+'D', 76, 233, 'rgba(26,20,40,0.55)');
-    drawText('NV'+p.level, 126, 226, '#8a6a10');
-    drawText('♥'+(G.bond||0), 126, 233, '#e2574c');
+    drawText('EDAD '+dias+'D', 72, 233, 'rgba(26,20,40,0.55)');
+    drawText('NV'+p.level, 124, 226, '#8a6a10');
+    drawText('♥'+(G.bond||0), 124, 233, '#e2574c');
+    if(p.sick && Math.floor(t/400)%2===0) drawText('MALITO', 72, 233, '#3a7048');
+  } else if(p.stage===STAGES.EGG){
+    const left = Math.max(0, T_HATCH-(Date.now()-p.bornAt));
+    const k = Math.min(1, Math.max(p.tapsOnEgg/15, 1-left/T_HATCH));
+    drawText('ECLOSION', 8, 227, K);
+    fancyBar(44, 228, 108, 4, 'egg', k*100, '#ffd94a', dt, t);
+    drawTextC('TOCA EL HUEVO PARA DARLE CALOR', 80, 235, 'rgba(26,20,40,0.5)');
+  } else {
+    const m = Math.max(0, Math.ceil((p.exped.until-Date.now())/60000));
+    drawTextC('DE EXPEDICION · VUELVE EN '+(m>=60? Math.ceil(m/60)+'H' : m+'M'), 80, 229, 'rgba(26,20,40,0.6)');
   }
 
   const ACC = ['#e2574c','#f0a04b','#5ec8d8','#8a6ae8','#ffd94a','#7ac74f'];
@@ -136,43 +230,87 @@ function drawHUD(t){
   for(let i=0;i<6;i++){
     const bx = 5 + i*26;
     const hot = UI.flashBtn===i && performance.now()<UI.flashUntil;
+    if(hot && UI.btnAt[i] < UI.flashUntil-150) UI.btnAt[i] = UI.flashUntil-150;
     const act = activeBtn===i;
     /* la acción que hace falta te llama: borde dorado y aviso */
     const urgent = (i===0 && p.hunger<25) || (i===1 && p.happy<25) ||
-                   (i===2 && G.poops.length>0) || (i===3 && p.energy<15 && !p.sleeping);
+                   (i===2 && G.poops.some(pp=>(pp.zone||'prado')===G.zone)) || (i===3 && p.energy<15 && !p.sleeping);
     const pulse = urgent && !act && Math.floor(t/320)%2===0;
-    const by = BTN_Y + (hot?1:0);
-    if(!hot) px(bx+1, BTN_Y+BTN_S, BTN_S-1, 1, 'rgba(26,20,40,0.35)');
+    const sq = springSquash(UI.btnAt[i], 0.22);
+    const press = hot ? 2 : 0;
+    const by = BTN_Y + press + (urgent && !act ? Math.round(Math.abs(Math.sin(t/200))*-1.5) : 0);
+    /* sombra sólida (botón físico) */
+    px(bx+1, BTN_Y+BTN_S, BTN_S-2, 2, 'rgba(26,20,40,0.35)');
     const bg = hot ? '#ffd94a' : (act ? '#fff3d0' : '#f6efe0');
-    px(bx+1, by, BTN_S-2, BTN_S, bg);
-    px(bx, by+1, BTN_S, BTN_S-2, bg);
+    const w2 = Math.round(BTN_S*sq[0]), h2 = Math.round(BTN_S*sq[1]);
+    const ox = bx + Math.round((BTN_S-w2)/2), oy = by + (BTN_S-h2);
+    px(ox+1, oy, w2-2, h2, bg);
+    px(ox, oy+1, w2, h2-2, bg);
     const bc = act ? '#8a6a10' : (pulse ? '#ffd94a' : K);
-    px(bx+1, by, BTN_S-2, 1, bc); px(bx+1, by+BTN_S-1, BTN_S-2, 1, bc);
-    px(bx, by+1, 1, BTN_S-2, bc); px(bx+BTN_S-1, by+1, 1, BTN_S-2, bc);
-    px(bx+1, by+1, BTN_S-2, 1, '#fffaf0');
-    px(bx+2, by+BTN_S-3, BTN_S-4, 2, ACC[i]);
-    ctx.drawImage(IC[BTNS[i].ic], bx+5, by+4);
-    if(pulse) drawTextC('!', bx+11, BTN_Y-9, '#ffd94a');
+    px(ox+1, oy, w2-2, 1, bc); px(ox+1, oy+h2-1, w2-2, 1, bc);
+    px(ox, oy+1, 1, h2-2, bc); px(ox+w2-1, oy+1, 1, h2-2, bc);
+    px(ox+1, oy+1, w2-2, 1, '#fffaf0');
+    px(ox+2, oy+h2-3, w2-4, 2, ACC[i]);
+    ctx.drawImage(IC[BTNS[i].ic], ox+Math.round((w2-9)/2)-1+1, oy+4-(hot?0:0));
+    if(pulse) drawTextOC('!', bx+11, BTN_Y-10, '#ffd94a');
   }
   if(UI.flashBtn>=0 && performance.now()<UI.flashUntil+900){
-    drawTextC(BTNS[UI.flashBtn].label, 80, 265, K);
+    const age = performance.now() - (UI.flashUntil-150);
+    const jy = age<180 ? Math.round(-2*Math.sin(age/180*Math.PI)) : 0;
+    drawTextC(BTNS[UI.flashBtn].label, 80, 265+jy, K);
   }
-  if(UI.msg && performance.now()<UI.msgUntil){
-    const age = performance.now()-(UI.msgAt||0);
-    const pop = Math.min(1, age/130);
-    const ty = 96 - Math.round((1-pop)*7);
-    const wdt = textW(UI.msg)+12;
-    const tx = 80-wdt/2;
-    px(tx+1, ty+12, wdt-1, 1, 'rgba(0,0,0,0.4)');
-    /* borde crema: legible sobre el cielo nocturno */
-    px(tx, ty-1, wdt, 1, 'rgba(246,239,224,0.85)');
-    px(tx, ty+11, wdt, 1, 'rgba(246,239,224,0.85)');
-    px(tx-1, ty, 1, 11, 'rgba(246,239,224,0.85)');
-    px(tx+wdt, ty, 1, 11, 'rgba(246,239,224,0.85)');
-    px(tx+1, ty, wdt-2, 11, '#20243c'); px(tx, ty+1, wdt, 9, '#20243c');
-    px(tx+1, ty+1, 2, 9, '#ffd94a');
-    drawTextC(UI.msg, 80+2, ty+3, '#ffffff');
+}
+/* aviso: cinta que cae desde el HUD con rebote y se recoge al irse */
+function toastTone(s){
+  if(/ROBO|SE FUE|MALITO|FALTAN|SIN ENERGIA|DERROTA|NO PUEDE|HUYE|OH NO|CUIDADO|HAMBRE/.test(s)) return '#e2574c';
+  if(/^¡|LOGRO|NIVEL|REGALO|DESEO|BOTIN|NUEVO/.test(s)) return '#ffd94a';
+  return '#5ec8d8';
+}
+function wrapToast(s){
+  if(textW(s)<=144) return [s];
+  const words = s.split(' '); const L = ['',''];
+  for(const w of words){
+    const tgt = textW((L[0]+' '+w).trim())<=144 && !L[1] ? 0 : 1;
+    L[tgt] = (L[tgt]+' '+w).trim();
   }
+  return L;
+}
+function drawToast(t){
+  /* en una cinemática los avisos esperan (congelados) a que termine */
+  const pdt = Math.min(100, t-(UI.toastT||t)); UI.toastT = t;
+  if(sceneFamily(UI.mode)==='cine'){ if(UI.msg){ UI.msgAt += pdt; UI.msgUntil += pdt; } return; }
+  toastTick();
+  if(!UI.msg) return;
+  const now = performance.now();
+  const age = now-(UI.msgAt||0), left = UI.msgUntil-now;
+  if(left < -180) return;
+  const inK = ease.outBack(clamp01(age/260));
+  const outK = left<0 ? clamp01(-left/180) : 0;
+  const lines = wrapToast(UI.msg);
+  const h = 9 + lines.length*7;
+  const wdt = Math.max(...lines.map(textW))+14;
+  const tx = Math.round(80-wdt/2);
+  /* con un menú abierto el aviso sube desde abajo (no tapa el título) */
+  const low = UI.toastY!==undefined ? null : (MENU_DRAW[UI.mode] || offlineReport || UI.expReport || sceneFamily(UI.mode)!=='world');
+  const baseY = UI.toastY!==undefined ? UI.toastY : (low ? 252 - h : (sceneFamily(UI.mode)==='world' ? 24 : 248 - h));
+  const ty = low ? Math.round(baseY + (1-inK)*16 + outK*14) : Math.round(baseY - (1-inK)*16 - outK*14);
+  ctx.globalAlpha = 1-outK;
+  const acc = toastTone(UI.msg);
+  px(tx+1, ty+h, wdt-1, 1, 'rgba(0,0,0,0.4)');
+  px(tx, ty-1, wdt, 1, 'rgba(246,239,224,0.9)');
+  px(tx, ty+h-1, wdt, 1, 'rgba(246,239,224,0.9)');
+  px(tx-1, ty, 1, h-1, 'rgba(246,239,224,0.9)');
+  px(tx+wdt, ty, 1, h-1, 'rgba(246,239,224,0.9)');
+  px(tx, ty, wdt, h-1, '#20243c');
+  px(tx, ty, wdt, 1, 'rgba(255,255,255,0.12)');
+  px(tx+1, ty+1, 2, h-3, acc);
+  /* destello de entrada */
+  if(age<160){ ctx.globalAlpha = (1-age/160)*0.6*(1-outK); px(tx, ty, wdt, h-1, '#ffffff'); ctx.globalAlpha = 1-outK; }
+  lines.forEach((l,i)=>drawTextC(l, 80+2, ty+3+i*7, '#ffffff'));
+  /* barrita de tiempo */
+  const tot = UI.msgUntil-UI.msgAt;
+  if(tot>0 && left>0) px(tx+4, ty+h-3, Math.round((wdt-8)*left/tot), 1, 'rgba(255,255,255,0.18)');
+  ctx.globalAlpha = 1;
 }
 
 function drawStats(){
@@ -180,12 +318,12 @@ function drawStats(){
   const p = AP();
   const f = currentFormDef();
   titleChip(80, 32, p.nick || (p.stage===STAGES.EGG?'HUEVO':f.name));
-  if(!p.nick && p.stage>STAGES.EGG) drawTextC('(TOCA EL NOMBRE PARA BAUTIZAR)', 80, 219, 'rgba(26,20,40,0.4)');
+
   drawTextC('LINEA '+LINES[p.line].name+' - '+LINES[p.line].bonus, 80, 40, 'rgba(26,20,40,0.6)');
   const stageName = ['HUEVO','BEBE','JOVEN','ADULTO'][p.stage];
   const days = p.hatchedAt ? Math.floor((Date.now()-p.hatchedAt)/(24*3600*1000))+1 : 0;
   let y = 50;
-  const line = (a,b)=>{ drawText(a, 16, y, K); drawText(String(b), 88, y, K); y+=8; };
+  const line = (a,b)=>{ drawText(a, 16, y, K); drawText(String(b), 88, y, K); y+=7; };
   line('ETAPA', stageName);
   line('CARACTER', p.trait||'-');
   line('EDAD', days+' DIAS');
@@ -201,19 +339,14 @@ function drawStats(){
   y+=2;
   const bar=(label,val,col)=>{
     drawText(label,16,y,K);
-    px(56,y,80,5,'rgba(26,20,40,0.15)');
-    px(56,y,Math.round(80*val/100),5,col);
-    y+=8;
+    fancyBar(56, y, 80, 4, 'st'+label, val, col, 16, performance.now());
+    y+=7;
   };
   bar('HAMBRE',p.hunger,'#e2574c');
   bar('ANIMO',p.happy,'#f0a04b');
   bar('PILAS',p.energy,'#5ec8d8');
   bar('LIMPIO',p.hygiene,'#7ac74f');
-  card(4,170,28,13);  drawTextC('ALBUM', 18, 174, K);
-  card(34,170,28,13); drawTextC('LOGRO', 48, 174, K);
-  card(64,170,28,13); drawTextC('RELIQ', 78, 174, K);
-  card(94,170,28,13); drawTextC('BESTIA', 108, 174, K);
-  card(124,170,30,13); drawTextC('DIARIO', 139, 174, K);
+  ['ALBUM','LOGRO','RELIQ','BESTIA','DIARIO'].forEach((lb,i)=>{ card(10+i*28,170,27,13); drawTextC(lb, 10+i*28+14, 174, K); });
   if(canAscend()){
     card(28,186,104,16);
     drawTextC('★ ASCENDER ★', 80, 191, '#8a6a10');
@@ -238,7 +371,7 @@ function drawStats(){
   card(45,206,34,14); drawTextC('CARGA', 62, 210, K);
   card(82,206,34,14); drawTextC('FOTO', 99, 210, K);
   card(119,206,34,14); drawTextC('ARO', 136, 210, G.slowRing ? '#8a6a10' : K);
-  drawTextC('TOCA PARA VOLVER', 80, 228, 'rgba(26,20,40,0.5)');
+  drawTextC(!p.nick && p.stage>STAGES.EGG ? 'TOCA SU NOMBRE PARA BAUTIZARLO' : 'TOCA FUERA PARA VOLVER', 80, 228, 'rgba(26,20,40,0.5)');
 }
 
 function drawShop(){
@@ -265,7 +398,7 @@ function drawShop(){
     for(let i=0;i<SHOP.length;i++){
       const item = SHOP[i];
       const lvl = G.up[item.id];
-      const maxed = lvl>=item.max || (item.id==='nido' && G.pets.length>=3);
+      const maxed = lvl>=item.max;
       const cost = maxed? 0 : upCost(item, lvl);
       const afford = G.motas>=cost && !maxed;
       const y = 64 + i*19;
@@ -432,7 +565,7 @@ function drawFeedMenu(){
     drawText(F.name, cx+17, cy+4, K);
     drawText('✦'+F.cost, cx+17, cy+13, afford?'#8a6a10':'#a03030');
     drawText(F.desc, cx+17, cy+22, 'rgba(26,20,40,0.55)');
-    if(FAVES[AP().line]===F.id) drawText('♥', cx+58, cy+3, '#f2a2b8');
+    if(FAVES[AP().line]===F.id){ drawText('♥', cx+60, cy+30, '#e2574c'); drawText('FAV', cx+45, cy+30, '#e2574c'); }
   }
   /* medicina: solo brilla si alguien está malito */
   const enfermo = AP().sick;
@@ -539,9 +672,9 @@ function drawLegacy(){
       drawText('LV'+e.lv+' · GEN '+e.gen, 32, y+10, 'rgba(26,20,40,0.55)');
       drawText('+'+(e.stars||1)+'★', 122, y+6, '#8a6a10');
     }
-    if(L.length>9) drawTextC('...Y '+(L.length-9)+' MAS EN EL CIELO', 80, 232, 'rgba(26,20,40,0.45)');
+    if(L.length>9) drawTextC('...Y '+(L.length-9)+' MAS EN EL CIELO', 80, 227, 'rgba(26,20,40,0.45)');
   }
-  drawTextC('SU LUZ GUIA A LOS QUE VIENEN', 80, 235, 'rgba(26,20,40,0.5)');
+  drawTextC('SU LUZ GUIA A LOS QUE VIENEN', 80, 236, 'rgba(26,20,40,0.5)');
 }
 
 /* ---------------- SALA DE JUEGOS ---------------- */
@@ -602,16 +735,19 @@ function drawRelics(){
 }
 function drawExpReport(){
   const r = UI.expReport;
-  panel(12,74,136,116);
-  drawTextC('¡'+r.name+' HA VUELTO!', 80, 82, K);
-  drawTextC('DEL '+r.dest, 80, 92, 'rgba(26,20,40,0.6)');
-  let y = 106;
-  drawTextC('✦ +'+fmt(r.motas), 80, y, '#8a6a10'); y+=12;
-  drawTextC('+'+r.xp+' XP', 80, y, '#3a7048'); y+=12;
-  if(r.relicName){ drawTextC('RELIQUIA: '+r.relicName, 80, y, '#8a6a10'); y+=12; }
-  if(r.extra){ drawTextC('+'+r.extra+'✦ EXTRA', 80, y, '#8a6a10'); y+=12; }
-  if(r.eggline){ drawTextC('¡HUEVO '+LINES[r.eggline].name+'!', 80, y, '#a03030'); y+=12; }
-  drawTextC('TOCA PARA SEGUIR', 80, 178, 'rgba(26,20,40,0.5)');
+  repOpened(r);
+  const rows = [['+'+r.xp+' XP', '#3a7048']];
+  if(r.relicName) rows.push(['RELIQUIA: '+r.relicName, '#8a6a10']);
+  if(r.extra) rows.push(['+'+r.extra+'✦ EXTRA', '#8a6a10']);
+  if(r.eggline) rows.push([r.eggWait ? 'HUEVO '+LINES[r.eggline].name+' EN ESPERA' : '¡HUEVO '+LINES[r.eggline].name+'!', '#a03030']);
+  const h = 78 + rows.length*12;
+  const y0 = Math.round(132 - h/2);
+  panel(12,y0,136,h);
+  titleChip(80, y0+6, '¡'+r.name+' HA VUELTO!');
+  drawTextC('DEL '+r.dest, 80, y0+18, 'rgba(26,20,40,0.6)');
+  drawTextOC('+'+fmt(countUp(r.motas, UI.repT, 1000))+'✦', 80, y0+30, '#ffd94a', 2, '#8a6a10');
+  reportRows(rows, y0+50);
+  if(performance.now()-UI.repT > 700 && Math.floor(performance.now()/420)%2===0) drawTextC('TOCA PARA SEGUIR', 80, y0+h-11, 'rgba(26,20,40,0.5)');
 }
 
 function drawAlbum(){
@@ -657,8 +793,8 @@ function drawBeast(){
     const info = G.beast[k];
     const seen = info && info.seen>0;
     const y = 35 + i*14;
-    px(9,y,142,12, seen ? '#f6efe0' : '#d8d0ba');
-    px(9,y,142,1,K); px(9,y+11,142,1,K); px(9,y,1,12,K); px(150,y,1,12,K);
+    px(9,y,142,13, seen ? '#f6efe0' : '#d8d0ba');
+    px(9,y,142,1,K); px(9,y+12,142,1,K); px(9,y,1,13,K); px(150,y,1,13,K);
     const spr = ESPR[k];
     if(seen){
       const sc = Math.min(1, 10/Math.max(spr.width,spr.height));
@@ -671,29 +807,53 @@ function drawBeast(){
       drawTextC('?', 16, y+4, 'rgba(26,20,40,0.4)');
     }
     px(24, y+4, 4, 4, seen ? (ELEM_COLS[E.elem]||'#c8c0b0') : 'rgba(26,20,40,0.2)');
-    drawText(seen ? E.name : '?????', 31, y+1, seen ? K : 'rgba(26,20,40,0.45)');
+    drawText(seen ? E.name : '?????', 31, y+2, seen ? K : 'rgba(26,20,40,0.45)');
     if(seen){
       drawText(E.desc.length>26 ? E.desc.slice(0,26) : E.desc, 31, y+7, 'rgba(26,20,40,0.5)');
-      drawText('X'+info.wins, 136, y+1, '#3a7048');
+      drawText('X'+info.wins, 136, y+2, '#3a7048');
     }
   }
-  drawTextC('BRASA>PRADERA>MAREA>BRASA', 80, 221, 'rgba(26,20,40,0.55)');
-  drawTextC('ASTRO>PETREA>FUNGO>ASTRO', 80, 230, 'rgba(26,20,40,0.55)');
-  drawTextC('VOLTIO>MAREA · PETREA>VOLTIO', 80, 239, 'rgba(26,20,40,0.55)');
+  drawTextC('TOCA UNO VISTO: ¡REVANCHA!', 80, 219, '#8a6a10');
+  drawTextC('BRASA>PRADERA>MAREA>BRASA', 80, 226, 'rgba(26,20,40,0.55)');
+  drawTextC('ASTRO>PETREA>FUNGO>ASTRO', 80, 233, 'rgba(26,20,40,0.55)');
+  drawTextC('VOLTIO>MAREA · PETREA>VOLTIO', 80, 240, 'rgba(26,20,40,0.55)');
+}
+/* cifra que cuenta hacia arriba desde que se abre el informe */
+function countUp(v, t0, ms){ const k = ease.outCubic(clamp01((performance.now()-t0)/(ms||900))); return Math.round(v*k); }
+function reportRows(rows, y0){
+  rows.forEach((r,i)=>{
+    const age = performance.now() - (UI.repT||0) - 180 - i*110;
+    if(age<0) return;
+    const dx = Math.round((1-ease.outBack(clamp01(age/260)))*-14);
+    drawTextC(r[0], 80+dx, y0+i*12, r[1]);
+    if(age<40 && !r.done){ r.done = true; }
+  });
+}
+function repOpened(key){
+  if(UI.repKey!==key){ UI.repKey = key; UI.repT = performance.now(); SFX.coin(); }
 }
 function drawOfflineReport(){
   const r = offlineReport;
-  panel(12,70,136,120);
-  drawTextC('MIENTRAS NO ESTABAS', 80, 78, K);
+  repOpened(r);
+  const rows = [];
+  if(r.autofed>0) rows.push(['COMIO SOLO X'+r.autofed, '#3a7048']);
+  if(r.lvls>0) rows.push(['CRECIO: +'+r.lvls+' NIVELES', '#8a6a10']);
+  if(r.poops>0) rows.push(['CACAS NUEVAS: '+r.poops, '#a03030']);
+  if(r.robot>0) rows.push(['EL ROBOT LIMPIO '+r.robot, '#3a7048']);
+  if(r.mistakes>0) rows.push(['PASO HAMBRE: +'+r.mistakes+' FALLO', '#a03030']);
+  if(r.ranAway && r.ranAway.length) rows.push([r.ranAway[0]+' SE FUE...', '#a03030']);
+  if(r.evolved) rows.push(['¡EVOLUCION A LA VISTA!', '#8a6a10']);
+  const h = 80 + rows.length*12;
+  const y0 = Math.round(132 - h/2);
+  panel(12,y0,136,h);
+  titleChip(80, y0+6, 'MIENTRAS NO ESTABAS');
   const hrs = Math.floor(r.away/3600000), mins = Math.floor((r.away%3600000)/60000);
-  let y = 94;
-  drawTextC((hrs>0? hrs+'H ':'')+mins+'M FUERA'+(r.capped?' (MAX 14H)':''), 80, y, 'rgba(26,20,40,0.6)'); y+=14;
-  drawTextC('✦ +'+fmt(r.motas)+' MOTAS', 80, y, '#8a6a10'); y+=12;
-  if(r.autofed>0){ drawTextC('COMIO SOLO X'+r.autofed, 80, y, '#3a7048'); y+=12; }
-  if(r.lvls>0){ drawTextC('CRECIO: +'+r.lvls+' NIVELES', 80, y, '#8a6a10'); y+=12; }
-  if(r.poops>0){ drawTextC('CACAS NUEVAS: '+r.poops, 80, y, '#a03030'); y+=12; }
-  if(r.evolved){ drawTextC('EVOLUCION A LA VISTA...', 80, y, '#8a6a10'); y+=12; }
-  drawTextC('TOCA PARA SEGUIR', 80, 176, 'rgba(26,20,40,0.5)');
+  drawTextC((hrs>0? hrs+'H ':'')+mins+'M FUERA'+(r.capped?' (MAX 14H)':''), 80, y0+18, 'rgba(26,20,40,0.6)');
+  /* la cifra gorda: motas ganadas contando */
+  const mv = countUp(r.motas, UI.repT, 1100);
+  drawTextOC('+'+fmt(mv)+'✦', 80, y0+30, '#ffd94a', 2, '#8a6a10');
+  reportRows(rows, y0+50);
+  if(performance.now()-UI.repT > 700 && Math.floor(performance.now()/420)%2===0) drawTextC('TOCA PARA SEGUIR', 80, y0+h-11, 'rgba(26,20,40,0.5)');
 }
 
 
@@ -919,16 +1079,21 @@ function drawRename(){
   px(30,62,100,1,K); px(30,77,100,1,K); px(30,62,1,16,K); px(129,62,1,16,K);
   const buf = UI.nickBuf||'';
   drawTextC(buf + (Math.floor(performance.now()/400)%2===0 ? '_' : ''), 80, 67, K);
-  /* teclado 7x4 */
+  /* teclado 7x4: la tecla pulsada se hunde */
+  const ka = UI.keyAt && performance.now()-UI.keyAt.t < 140 ? UI.keyAt.i : -2;
   for(let i=0;i<26;i++){
-    const cx = 13 + (i%7)*19, cy = 86 + Math.floor(i/7)*19;
-    px(cx,cy,17,16,'#f6efe0');
+    const cx = 13 + (i%7)*19, cy0 = 86 + Math.floor(i/7)*19;
+    const dn = ka===i ? 1 : 0, cy = cy0+dn;
+    if(!dn) px(cx+1,cy0+16,16,1,'rgba(26,20,40,0.3)');
+    px(cx,cy,17,16, dn ? '#ffd94a' : '#f6efe0');
     px(cx,cy,17,1,K); px(cx,cy+15,17,1,K); px(cx,cy,1,16,K); px(cx+16,cy,1,16,K);
+    if(!dn) px(cx+1,cy+1,15,1,'#fffaf0');
     drawTextC(RENAME_KEYS[i], cx+9, cy+5, K);
   }
-  /* borrar y listo */
-  px(89,143,26,16,'#f0d8c8'); px(89,143,26,1,K); px(89,158,26,1,K); px(89,143,1,16,K); px(114,143,1,16,K);
-  drawTextC('<', 102, 148, '#a03030');
+  /* borrar: fila 4, columnas 6-7 (junto a la Z) */
+  const bdn = ka===-1 ? 1 : 0;
+  px(108,143+bdn,36,16,bdn ? '#ffd94a' : '#f0d8c8'); px(108,143+bdn,36,1,K); px(108,158+bdn,36,1,K); px(108,143+bdn,1,16,K); px(143,143+bdn,1,16,K);
+  drawTextC('< BORRA', 126, 148+bdn, '#a03030');
   card(24,168,112,18);
   drawTextC(buf.length ? '¡LISTO!' : 'SIN NOMBRE (ESPECIE)', 80, 174, buf.length ? '#3a7048' : 'rgba(26,20,40,0.5)');
   drawTextC('MAX 8 LETRAS', 80, 196, 'rgba(26,20,40,0.45)');

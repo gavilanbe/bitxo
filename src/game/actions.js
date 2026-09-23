@@ -14,6 +14,10 @@ function spawnHearts(n){
   const p = AP();
   for(let i=0;i<n;i++) UI.particles.push({x:p.rx-8+Math.random()*16, y:150+Math.random()*10, vy:-0.02-Math.random()*0.02, life:1400, ch:'♥', col:'#e2574c'});
 }
+/* comprar algo: confeti desde el panel y un golpe de flash dorado */
+function shopCelebrate(){
+  confetti(80, 120, 22); flash('#ffd94a', 0.18, 180); shake(0.08);
+}
 function doFeed(fi){
   const p = AP();
   const F = FOODS[fi];
@@ -40,6 +44,8 @@ function doFeed(fi){
     ha+=10; xp+=6;
     toast('¡SU COMIDA FAVORITA!', 2200);
     spawnHearts(3);
+    heartsFx(p.rx, 140, 5); ringFx(p.rx, 148, '#f2a2b8', 16, 380);
+    p.favAt = performance.now();
   }
   p.hunger = Math.max(0, Math.min(100, p.hunger + hh*glot));
   p.happy  = Math.max(0, Math.min(100, p.happy + ha));
@@ -52,6 +58,10 @@ function doFeed(fi){
   gainXP(xp);
   questProg('comidas', 1);
   p.eatT = 1600; p.feedKind = F.spr;
+  p.squashAt = performance.now();
+  /* la comida vuela desde la despensa hasta su boca */
+  UI.throwFood = {spr:F.spr, at:performance.now(), x0:18, y0:236, x1:p.rx+(p.dir||1)*6, y1:148};
+  popText(p.rx, 128, '+'+Math.round(hh*glot), '#e2574c');
   SFX.eatFood(F.id); if(ha>0) spawnHearts(1);
   UI.mode='main'; saveGame();
 }
@@ -61,13 +71,20 @@ function doClean(){
   G.poops = [];
   for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+40);
   UI.sweepT = performance.now();
+  /* burbujas y brillos donde había mugre */
+  for(const pp of G.poops) if((pp.zone||'prado')===G.zone){
+    burst(pp.x, 156, {n:6, cols:['#bdf0f5','#ffffff','#9adcf0'], speed:0.05, g:-0.00005, life:700, kind:'px', size:2});
+    fx({x:pp.x, y:152, kind:'star', col:'#ffffff', life:500});
+  }
   gainXP(6*n); gainMotas(2*n, 80, 150);
+  flyCoins(80, 150, Math.min(8, 2*n));
   questProg('limpia', n);
   SFX.clean(); toast('¡LIMPIO! +'+(2*n)+'✦'); saveGame();
 }
 function doSleepToggle(){
   const p = AP();
-  if(p.sleeping){ p.sleeping=false; toast('¡ARRIBA!'); }
+  /* despertado a mano: 3 min de gracia antes de que la noche lo vuelva a dormir */
+  if(p.sleeping){ p.sleeping=false; p.wokeAt=Date.now(); toast('¡ARRIBA!'); }
   else { p.sleeping=true; SFX.sleep(); toast('A DORMIR...'); }
   saveGame();
 }
@@ -80,6 +97,7 @@ function buyToy(i){
   if(T.id==='caja') G.cajaReadyAt = Date.now();
   if(T.id==='huerto') G.huertoReadyAt = Date.now() + huertoCycleMs();
   UI.shopFlash[T.id] = performance.now();
+  shopCelebrate();
   toast(toyZone(T.id)==='parque' ? '¡NUEVO JUGUETE EN EL PARQUE!' : '¡NUEVO JUGUETE EN EL PRADO!');
   SFX.buy(); vibrate(25); saveGame();
 }
@@ -266,7 +284,10 @@ function openCaja(){
     gainXP(20);
     toast('¡CAJA: +20 XP!', 2600);
   }
-  for(let i=0;i<10;i++) UI.particles.push({x:98+Math.random()*16,y:140,vy:-0.03-Math.random()*0.02,life:1000,ch:'.',col:['#ffd94a','#e2574c','#6db1ff'][i%3]});
+  confetti(106, 150, 26); shake(0.3); flash('#fff8d0', 0.3, 160);
+  ringFx(106, 152, '#ffd94a', 18, 360);
+  if(r<0.55) flyCoins(106, 146, 8);
+  UI.cajaOpenAt = performance.now();
   G.cajaReadyAt = Date.now() + 45*60*1000;
   SFX.boing(); vibrate([20,20,40]);
   saveGame();
@@ -291,7 +312,10 @@ function sendExpedition(i){
 function resolveExpedition(p){
   const E = EXPEDS[p.exped.dest];
   const mult = (1+0.3*G.ascensions)*legacyMult();
-  const motas = Math.round(E.motas*mult*(0.85+Math.random()*0.3));
+  /* que salga a cuenta: al menos lo que habría producido en casa ×1.2 */
+  const durS = E.mins*60*(p.line==='fungo'?0.8:1);
+  const casa = petRate(Object.assign({}, p, {exped:null, sleeping:false})) * motaMult() * durS * 1.2;
+  const motas = Math.round(Math.max(E.motas*mult, casa)*(0.85+Math.random()*0.3));
   gainMotas(motas);
   gainXPFor(p, E.xp);
   let relicName = null, extra = 0;
@@ -300,16 +324,16 @@ function resolveExpedition(p){
     if(rl){ G.relics[rl.id]=true; relicName = rl.name; }
     else { extra = 200; gainMotas(200); }
   }
-  let eggline = null;
+  let eggline = null, eggWait = false;
+  p.exped = null; /* antes del huevo: ya no cuenta como fuera */
   if(E.egg && Math.random() < E.eggP){
-    G.nextEggLine = E.egg; eggline = E.egg;
-    if(G.pets.length < maxPets()) spawnEgg();
+    const r = giftEgg(E.egg);
+    if(r){ eggline = E.egg; eggWait = !!r.wait; if(r.egg) diaryLog(currentNameOf(p)+' TRAJO UN HUEVO '+LINES[E.egg].name); }
   }
-  p.exped = null;
   p.happy = Math.min(100, p.happy+10);
-  p.hunger = Math.max(10, p.hunger-20);
+  p.hunger = Math.min(p.hunger, Math.max(10, p.hunger-20));
   G.expedsDone = (G.expedsDone||0)+1;
-  UI.expReport = {name:currentNameOf(p), dest:E.name, motas, xp:E.xp, relicName, extra, eggline};
+  UI.expReport = {name:currentNameOf(p), dest:E.name, motas, xp:E.xp, relicName, extra, eggline, eggWait};
   SFX.buy();
 }
 
@@ -322,7 +346,7 @@ function buyUpgrade(i){
   G.motas -= cost;
   G.up[item.id]++;
   UI.shopFlash[item.id] = performance.now();
-  SFX.buy(); vibrate(25);
+  shopCelebrate(); SFX.buy(); vibrate(25);
   if(item.id==='jardin') toast('¡EL PRADO CRECE!');
   if(item.id==='nido'){ spawnEgg(); }
   saveGame();
@@ -394,7 +418,9 @@ function claimQuest(i){
   gainMotas(q.m); gainXP(q.xp);
   toast('¡MISION LISTA! +'+q.m+'✦', 2600);
   SFX.buy(); vibrate(25);
-  for(let j=0;j<8;j++) UI.particles.push({x:60+Math.random()*40,y:100+Math.random()*20,vy:0.02,life:1000,ch:'.',col:'#ffd94a'});
+  const qy = 76 + i*28;
+  confetti(80, qy, 18); flyCoins(120, qy, 8); ringFx(80, qy, '#ffd94a', 30, 400);
+  UI.questAt = {i, t:performance.now()};
   saveGame();
 }
 
@@ -643,7 +669,11 @@ function towerAdvance(b){
 function ensureWeekly(){
   const key = Math.floor(Date.now()/(7*86400000));
   if(G.weekly && G.weekly.key===key) return;
-  G.weekly = {key, id: WEEKLY[key % WEEKLY.length].id, prog:0, claimed:false};
+  /* nada de encargos imposibles: como las diarias, cada uno pide su sistema */
+  const fighter = G.pets.some(q=>q.stage>=STAGES.CHILD);
+  const OK = {combates: fighter, elites: fighter && (G.battlesWon||0)>=8};
+  const pool = WEEKLY.filter(w=>OK[w.id]===undefined || OK[w.id]);
+  G.weekly = {key, id: pool[key % pool.length].id, prog:0, claimed:false};
 }
 function weeklyDef(){ ensureWeekly(); return WEEKLY.find(w=>w.id===G.weekly.id); }
 function weeklyProg(kind, n){
