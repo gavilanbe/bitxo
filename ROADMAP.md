@@ -25,6 +25,19 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 
+## 🎵 El tema de BITXO (sep 2026)
+
+- ✅ **Una melodía memorable** que suena en todas partes con arreglos
+  distintos: kalimba al alba, flauta y marimba de día, banda en el parque,
+  silbido y guitarra en la huerta, cajita de música de noche, nana si
+  duerme, versión menor en combate y chiptune en la sala de juegos.
+- ✅ **Diegética**: tu bitxo la tararea desde donde está (con notas ♪ y
+  panorama) y un amigo le hace la segunda voz; algunos pájaros la silban.
+- ✅ **Sin cansar**: canción → respiro de ambiente → tarareo → canción. Las
+  fanfarrias (nivel, nacer, evolucionar) citan el tema y la canción sigue
+  donde iba. Reverb de sala, filtro cálido y la música por debajo de los
+  efectos.
+
 ## 🎨 Menús, complementos y PWA (sep 2026)
 
 - ✅ **Kit de interfaz** (`render/uikit.js`): cabeceras por categoría, filas con

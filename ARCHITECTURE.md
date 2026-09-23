@@ -38,8 +38,12 @@ src/
 │  ├─ sfx.js               SFX por capas (transitorio+cuerpo+cola) y petVoice (cada
 │  │                       línea/etapa suena distinto)
 │  ├─ ambience.js          pájaros al alba, grillos, lechuza, lluvia y viento diegéticos
-│  └─ music.js             SONGS (día/noche/lluvia/combate) + secuenciador con bajo,
-│                          guide-tones, acompañamiento, batería y swing
+│  └─ music.js             el TEMA DE BITXO (A+B, 16 compases) y sus arreglos por
+│                          contexto (alba, día, parque, huerta, atardecer, noche,
+│                          nana, lluvia, combate en menor, sala de juegos),
+│                          instrumentos con reverb y panorama, el ciclo del prado
+│                          (canción → ambiente → el bitxo tararea → ...) y los
+│                          jingles que citan el tema
 │
 ├─ game/                   ─── reglas y estado ───
 │  ├─ state.js             G (estado global), makePet, spawnEgg/rollLine, freshGame,

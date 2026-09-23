@@ -33,7 +33,13 @@ function stopBed(id){
   }catch(e){}
   AMB[id] = null;
 }
+/* a veces un pájaro silba la cabeza del TEMA DE BITXO (el prado entero la sabe) */
+function ambBirdTheme(){
+  const base = 1046.5*(1+Math.random()*0.04), pan = Math.random()*1.6-0.8;
+  [[7,0],[4,0.11],[7,0.19],[12,0.3]].forEach(n=> mnote({f:NOTE(base, n[0]), at:sfxAt(n[1]), d:n[0]===12?0.22:0.09, vol:0.022, pan, rev:0.4, env:'breath', glide:0.93, parts:[{type:'sine'}]}));
+}
 function ambBird(){
+  if(Math.random()<0.18 && typeof mnote==='function'){ ambBirdTheme(); return; }
   const f0 = 2300 + Math.random()*900;
   const n = 2 + Math.floor(Math.random()*3);
   for(let i=0;i<n;i++){
