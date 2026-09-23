@@ -416,6 +416,7 @@ function hatchPet(i){
   p.hatchedAt = Date.now();
   p.hunger=80; p.happy=90; p.energy=100; p.hygiene=100;
   G.sel = i;
+  if(typeof hatchIntro==='function') hatchIntro(p);
   UI.mode='hatch'; UI.hatchT=0;
   diaryLog('NACIO '+LINES[p.line].names[p.form]+' (GEN '+p.gen+')');
    vibrate([40,40,40,40,80]);

@@ -80,6 +80,11 @@ function cineStep(list, dt){
       ctx.fillStyle = f.col; ctx.fillRect(x+wx, y, flip?2:1, flip?1:2);
     } else if(kind==='heart'){
       drawText('♥', x, y, f.col);
+    } else if(kind==='bubble'){
+      /* burbuja: aro de 4 píxeles con brillo */
+      ctx.fillStyle = f.col;
+      ctx.fillRect(x-1, y-2, 3, 1); ctx.fillRect(x-1, y+2, 3, 1); ctx.fillRect(x-2, y-1, 1, 3); ctx.fillRect(x+2, y-1, 1, 3);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(x-1, y-1, 1, 1);
     }
   }
   ctx.globalAlpha = 1;
@@ -358,175 +363,6 @@ function drawEvolve(dt){
   if(t > EVO_T.reveal+900 && Math.floor(now/400)%2===0){
     drawTextOC('TOCA PARA SEGUIR', 80, 234, '#ffffff', 1);
   }
-}
-
-/* ---- NACIMIENTO: el huevo tiembla, se agrieta, deja escapar luz y ¡POP! ----
-   toques: antes del POP salta al POP; después de HATCH_T.exit vuelve al prado */
-const HATCH_T = {crack1:450, crack2:850, crack3:1200, glow:1350, pop:1700, card:2150, trait:2450, exit:2900};
-const EGG_CRACKS = [
-  [[5,2],[6,3],[5,4],[6,5]],
-  [[7,5],[8,6],[9,5],[4,5],[3,6],[4,7],[2,7]],
-  [[9,7],[8,8],[9,9],[6,6],[5,7],[6,8],[5,9],[2,4],[3,3]]
-];
-let HX = null;
-function hatchTap(){
-  if(UI.hatchT < HATCH_T.pop-40){ UI.hatchT = HATCH_T.pop-40; return; }
-  if(UI.hatchT > HATCH_T.exit) UI.mode = 'main';
-}
-function drawHatch(dt){
-  if(!HX || UI.hatchT < HX.t) HX = {t:0, fx:[], cracks:0, popped:false};
-  UI.hatchT += dt;
-  const t = UI.hatchT;
-  HX.t = t;
-  const p = AP();
-  const now = performance.now();
-  const L = LINES[p.line];
-  const egg = (SPR['egg_'+p.line]||SPR.egg_mystery)[0];
-  const baby = SPR[p.line+'_'+(p.form||'babyA')];
-  const CX = 80, FEET = 172, CY = 152;
-  const popped = t>=HATCH_T.pop;
-
-  /* el prado de fondo, oscurecido: foco en el huevo */
-  drawScene(now);
-  px(0,196,160,76,'#23402e'); px(0,196,160,1,'#2e5c3a');
-  const dim = popped ? Math.max(0.25, 0.62 - (t-HATCH_T.pop)/900) : Math.min(0.62, t/400*0.62);
-  ctx.fillStyle = 'rgba(10,8,30,'+dim.toFixed(2)+')'; ctx.fillRect(0,0,160,272);
-  /* foco de luz */
-  const glowT = clamp01((t-HATCH_T.crack2)/(HATCH_T.pop-HATCH_T.crack2));
-  ctx.globalAlpha = 0.10 + glowT*0.12 + (popped ? 0.1 : 0); pxDisc(CX, CY, 46, '#fff3c0', 1);
-  ctx.globalAlpha = 0.12 + glowT*0.14; pxDisc(CX, CY, 30, '#fff8d0', 1);
-  ctx.globalAlpha = 1;
-
-  if(!popped){
-    /* grietas por fases con chasquido */
-    const want = t>=HATCH_T.crack3 ? 3 : t>=HATCH_T.crack2 ? 2 : t>=HATCH_T.crack1 ? 1 : 0;
-    while(HX.cracks < want){
-      HX.cracks++;
-      SFX.crack(HX.cracks); shake(0.12+HX.cracks*0.06); vibrate(20);
-      for(let i=0;i<3+HX.cracks;i++) cineP(HX.fx, {x:CX-4+hash01(i+HX.cracks*7)*8, y:CY-8, vx:(hash01(i+3)-0.5)*0.08, vy:-0.06-hash01(i)*0.05, g:0.0003, life:700, col:L.eggShell, kind:'px', size:2, floor:FEET});
-    }
-    /* luz que se escapa por las grietas */
-    if(t>HATCH_T.crack2){
-      const k = clamp01((t-HATCH_T.crack2)/(HATCH_T.pop-HATCH_T.crack2));
-      ctx.globalAlpha = 0.12+k*0.3;
-      pxBeams(CX, CY-4, 7, 12, 40+k*70, -1.57+Math.sin(t/300)*0.05, '#fff8d0', 3);
-      ctx.globalAlpha = 1;
-    }
-    /* temblor por pulsos, cada vez más fuerte y seguido */
-    const k = t/HATCH_T.pop;
-    const freq = 0.004 + k*0.02;
-    const pulse = Math.max(0, Math.sin(t*freq*Math.PI*0.5));
-    const amp = (k<0.2 ? 0.6 : 1 + k*3) * pulse;
-    const ox = Math.round(Math.sin(t/28)*amp);
-    const sq = 1 + pulse*k*0.08;
-    /* hinchado antes del POP */
-    const swell = t>HATCH_T.glow ? (t-HATCH_T.glow)/(HATCH_T.pop-HATCH_T.glow) : 0;
-    const white = t>HATCH_T.glow ? swell*0.9 : 0;
-    px(CX-16, FEET, 32, 3, 'rgba(0,0,0,0.4)');
-    ctx.save();
-    ctx.translate(CX+ox, FEET);
-    ctx.scale(3*(1/sq)*(1+swell*0.1), 3*sq*(1+swell*0.1));
-    ctx.drawImage(egg, -egg.width/2, -egg.height);
-    /* grietas: primero oscuras, luego brillan por dentro */
-    const lit = t>HATCH_T.crack2;
-    for(let c=0;c<HX.cracks;c++){
-      for(const pt of EGG_CRACKS[c]){
-        ctx.fillStyle = lit ? (Math.floor(t/90+pt[0])%3 ? '#fff8d0' : '#ffd94a') : K;
-        ctx.fillRect(pt[0]-egg.width/2, pt[1]-egg.height, 1, 1);
-      }
-    }
-    if(white>0){ ctx.globalAlpha = white; ctx.drawImage(silhouette(egg), -egg.width/2, -egg.height); ctx.globalAlpha = 1; }
-    ctx.restore();
-    cineStep(HX.fx, dt);
-    drawTextOC(t<HATCH_T.crack2 ? '¿...?' : '¡SE MUEVE!', 80, 60, '#ffffff', t<HATCH_T.crack2 ? 1 : 2);
-    if(t>HATCH_T.crack2) drawTextOC('¡VA A NACER!', 80, 76, '#ffd94a', 1);
-  } else {
-    const rt = t-HATCH_T.pop;
-    if(!HX.popped){
-      HX.popped = true;
-      SFX.hatchPop(); vibrate([40,30,80]);
-      shake(0.6); hitstop(70); flash('#ffffff', 1, 260);
-      /* trozos de cáscara con física */
-      for(let i=0;i<18;i++){
-        const a = -Math.PI/2 + (hash01(i)-0.5)*2.8, sp = 0.07+hash01(i+11)*0.1;
-        cineP(HX.fx, {x:CX+(hash01(i+5)-0.5)*16, y:CY-4+(hash01(i+8)-0.5)*14, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, g:0.00035, drag:0.0008,
-          life:1800+hash01(i+2)*900, col:L.eggShell, spot:i%3===0 ? L.eggSpot : null, kind:'shard', floor:FEET+2+Math.round(hash01(i+4)*6), seed:i});
-      }
-      for(let i=0;i<24;i++){
-        const a = i/24*Math.PI*2, sp = 0.05+hash01(i+40)*0.08;
-        cineP(HX.fx, {x:CX, y:CY-6, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, drag:0.002, life:600+hash01(i)*400, col:i%2?'#ffd94a':'#ffffff', kind:i%3?'spark':'star'});
-      }
-      HX.rings = [{r:6,a:1}];
-    }
-    /* rayos giratorios detrás */
-    ctx.globalAlpha = Math.max(0.08, 0.3 - rt/4000);
-    pxBeams(CX, CY-4, 10, 14, 110, now/2400, '#fff8d0', 5);
-    ctx.globalAlpha = 1;
-    /* anillo de onda */
-    if(HX.rings) for(let i=HX.rings.length-1;i>=0;i--){
-      const rg = HX.rings[i]; rg.r += dt*0.12; rg.a -= dt*0.0018;
-      if(rg.a<=0){ HX.rings.splice(i,1); continue; }
-      ctx.fillStyle = 'rgba(255,248,208,'+rg.a.toFixed(2)+')';
-      const n = Math.round(rg.r*1.8)+10;
-      for(let j=0;j<n;j++){ const a = j/n*Math.PI*2; ctx.fillRect(Math.round(CX+Math.cos(a)*rg.r), Math.round(CY-4+Math.sin(a)*rg.r*0.85), 2, 2); }
-    }
-    /* el bebé: sale disparado, cae y rebota */
-    let yOff = 0, sx = 1, sy = 1;
-    if(rt<520){
-      const k = rt/520;
-      yOff = -Math.sin(k*Math.PI)*26;
-      if(k<0.5){ sx = 0.85; sy = 1.2; }
-    } else {
-      if(!HX.landFx){ HX.landFx = true; shake(0.2); tone({f:392, slide:520, d:0.08, type:'p25', vol:0.04}); for(let i=0;i<6;i++) cineP(HX.fx, {x:CX+(i-2.5)*4, y:FEET-1, vx:(i-2.5)*0.02, vy:-0.02, g:0.0001, life:400, col:'rgba(255,255,255,0.8)', size:1}); }
-      const s2 = springSquash(1, 0.3, 1+(rt-520));
-      sx = s2[0]; sy = s2[1];
-      /* saltitos de alegría */
-      const hop = (rt-520) % 1300;
-      if(rt>1200 && hop<300) yOff = -Math.sin(hop/300*Math.PI)*6;
-    }
-    const blink = (now%2200)<140;
-    const spr = baby ? baby[blink?1:0] : currentSprite();
-    const shw = Math.round(32 - Math.min(14, -yOff/2));
-    px(CX-(shw>>1), FEET, shw, 3, 'rgba(0,0,0,0.4)');
-    drawSprAt(spr, CX, FEET+yOff, 3, sx, sy, rt<200 ? 1-rt/200 : 0);
-    /* corazones que suben */
-    if(rt>600){
-      for(let i=0;i<4;i++){
-        const ph = ((rt/1600) + i*0.25) % 1;
-        const hx = CX - 20 + i*13 + Math.round(Math.sin(rt/300+i)*2);
-        ctx.globalAlpha = ph<0.8 ? 1 : (1-ph)/0.2;
-        drawText('♥', hx, Math.round(CY-18-ph*40), '#f2a2b8');
-      }
-      ctx.globalAlpha = 1;
-    }
-    cineStep(HX.fx, dt);
-
-    /* títulos y tarjetas */
-    stampText('¡HA NACIDO!', 80, 42, '#ffd94a', rt-60);
-    const nm = LINES[p.line].names[p.form||'babyA'];
-    if(t>HATCH_T.card){
-      const k = ease.outBack(clamp01((t-HATCH_T.card)/320));
-      const x = Math.round(-150 + k*156);
-      px(x+1, 199, 148, 26, 'rgba(0,0,0,0.35)');
-      px(x, 196, 148, 26, '#20243c'); px(x, 196, 148, 1, '#ffd94a'); px(x, 221, 148, 1, K);
-      px(x, 196, 4, 26, L.eggSpot);
-      drawTextO(nm, x+10, 200, '#ffffff', 2);
-      drawText('LINEA '+L.name, x+10, 213, L.eggSpot);
-      drawText('GEN '+(p.gen||1), x+144-textW('GEN '+(p.gen||1)), 213, 'rgba(255,255,255,0.6)');
-    }
-    if(t>HATCH_T.trait && p.trait){
-      const k = ease.outBack(clamp01((t-HATCH_T.trait)/320));
-      const x = Math.round(166 - k*160);
-      px(x+1, 229, 148, 20, 'rgba(0,0,0,0.35)');
-      px(x, 226, 148, 20, '#f6efe0'); px(x, 226, 148, 1, K); px(x, 245, 148, 1, K);
-      px(x+144, 226, 4, 20, '#f2a2b8');
-      drawText('CARACTER', x+6, 230, 'rgba(26,20,40,0.55)');
-      drawText(p.trait, x+42, 230, K);
-      drawText(TRAITS[p.trait]||'', x+6, 238, '#8a6a10');
-    }
-    if(t>HATCH_T.exit && Math.floor(now/420)%2===0) drawTextOC('TOCA PARA CUIDARLO', 80, 254, '#ffffff', 1);
-  }
-  cineBars(t, 14);
 }
 
 /* ---- ASCENSO: sube entre luz, se vuelve estrella y se une a su constelación ---- */

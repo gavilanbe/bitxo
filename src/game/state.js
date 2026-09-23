@@ -61,7 +61,8 @@ function spawnEgg(slotIdx, silent){
   p.rx = Math.min(134, 30 + (slotIdx!==undefined? slotIdx: G.pets.length)*45 + Math.random()*20);
   if(slotIdx!==undefined && slotIdx < G.pets.length) G.pets[slotIdx] = p;
   else G.pets.push(p);
-  if(!silent){ toast('¡HUEVO '+LINES[ln].name+'!', 2600); SFX.coin(); }
+  /* un huevo que llega de verdad tiene su cinemática (render/egg.js) */
+  if(!silent){ if(typeof queueEggArrive==='function') queueEggArrive(p); else toast('¡HUEVO '+LINES[ln].name+'!', 2600); }
   return p;
 }
 

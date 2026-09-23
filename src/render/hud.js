@@ -347,7 +347,7 @@ function wrapToast(s){
 function drawToast(t){
   /* en una cinemática los avisos esperan (congelados) a que termine */
   const pdt = Math.min(100, t-(UI.toastT||t)); UI.toastT = t;
-  if(sceneFamily(UI.mode)==='cine'){ if(UI.msg){ UI.msgAt += pdt; UI.msgUntil += pdt; } return; }
+  if(sceneFamily(UI.mode)==='cine' || UI.mode==='eggArrive'){ if(UI.msg){ UI.msgAt += pdt; UI.msgUntil += pdt; } return; }
   toastTick();
   if(!UI.msg) return;
   const now = performance.now();

@@ -73,6 +73,8 @@ src/
 │  │                       despensa, jugar, expedición, reliquias, álbum, logros
 │  ├─ fx.js                partículas/flotantes y cinemáticas (evolución,
 │  │                       nacimiento, ascensión)
+│  ├─ egg.js               el arco del huevo: llegada (cinemática), incubación
+│  │                       (latido, calor al tocar/frotar) y eclosión
 │  ├─ camera.js            cámara del mundo ancho (WORLD_W): seguir, arrastrar,
 │  │                       parallax, flechas de lo que pasa fuera de cuadro
 │  ├─ juice.js             el NERVIO: temblor por trauma, hitstop, flashes, iris

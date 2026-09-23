@@ -734,8 +734,8 @@ function tapRename(x, y){
     toast(buf.length ? '¡SE LLAMA '+buf+'!' : 'NOMBRE DE ESPECIE');
     if(buf.length){ diaryLog('BAUTIZADO COMO '+buf); confetti(80, 70, 18); }
     SFX.yay(); saveGame();
-    UI.mode = 'stats'; return;
+    UI.mode = UI.renameFrom==='hatch' ? 'main' : 'stats'; UI.renameFrom = null; return;
   }
-  if(!uiHit(RENAME_L.panel, x, y)){ UI.mode='stats'; SFX.tap(); }
+  if(!uiHit(RENAME_L.panel, x, y)){ UI.mode = UI.renameFrom==='hatch' ? 'main' : 'stats'; UI.renameFrom = null; SFX.tap(); }
 }
 SCREEN_TAP.rename = tapRename;

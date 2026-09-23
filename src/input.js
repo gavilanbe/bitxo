@@ -43,7 +43,7 @@ cv.addEventListener('pointerdown', ev=>{
   armCarry(p.x, p.y);
   if(UI.mode==='battle') btSwipe = {x:p.x, y:p.y, done:false};
   /* en el prado, arrastrar desplaza la cámara por el mundo ancho */
-  if(UI.mode==='main' && !UI.decorEdit && p.y>24 && p.y<196) camDragStart(p.x);
+  if(UI.mode==='main' && !UI.decorEdit && !UI.eggRub && p.y>24 && p.y<196) camDragStart(p.x);
   if(UI.decorEdit && typeof decorEditDown==='function') decorEditDown(toWorldX(p.x), p.y);
 });
 let shopTouch = null, btSwipe = null;
@@ -57,6 +57,12 @@ cv.addEventListener('pointermove', ev=>{
     return;
   }
   if(UI.decorEdit && typeof decorEditMove==='function'){ const q3 = canvasPos(ev); decorEditMove(toWorldX(q3.x), q3.y); return; }
+  /* frotar el huevo con el dedo también le da calor */
+  if(UI.eggRub){
+    const q5 = canvasPos(ev), wx = toWorldX(q5.x);
+    if(Math.abs(wx - UI.eggRub.x) >= 5 && UI.eggRub.p.stage===STAGES.EGG){ UI.eggRub.x = wx; eggWarm(UI.eggRub.p, 0.25, true); }
+    return;
+  }
   if(CAM.drag){
     const q4 = canvasPos(ev);
     if(camDragMove(q4.x) && carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
@@ -101,6 +107,7 @@ for(const evn of ['pointerup','pointercancel','pointerleave']){
     if(carryTimer){ clearTimeout(carryTimer); carryTimer = null; }
     btSwipe = null;
     camDragEnd();
+    UI.eggRub = null;
     if(UI.decorEdit && typeof decorEditUp==='function') decorEditUp();
     if(shopTouch){
       const t = shopTouch; shopTouch = null;
@@ -138,7 +145,8 @@ function handleTap(x,y){
     if(offlineReport) offlineReport=null; else UI.expReport=null;
     SFX.tap(); return;
   }
-  if(UI.mode==='hatch'){ hatchTap(); return; }
+  if(UI.mode==='hatch'){ hatchTap(x, y); return; }
+  if(UI.mode==='eggArrive'){ eggArriveTap(); return; }
   if(UI.mode==='evolve'){
     if(UI.evoT > 4900){ UI.mode='main'; UI.evo=null; }
     else if(UI.evoT < 3900) UI.evoT = 3900; /* saltar al estallido */
@@ -340,11 +348,9 @@ function tapPet(best, now){
     const m = Math.ceil((p.exped.until-Date.now())/60000);
     toast('VUELVE EN '+(m>=60? Math.ceil(m/60)+'H' : m+'M'));
   } else if(p.stage===STAGES.EGG){
-    p.tapsOnEgg++; p.hop=now; p.squashAt=now; SFX.tap(); vibrate(10);
-    /* calor: cada toque suelta chispitas y el cascarón cruje más */
-    burst(p.rx, 150, {n:4+Math.floor(p.tapsOnEgg/3), cols:['#fff8d0','#ffd94a', LINES[p.line].eggSpot], speed:0.06, g:0.00025, life:420});
-    tone({f:300+p.tapsOnEgg*40, d:0.05, type:'p25', vol:0.03});
-    if(p.tapsOnEgg%5===0){ shake(0.18); ringFx(p.rx, 152, '#fff8d0', 14, 300); }
+    /* calor: cada toque late, suelta partículas de su línea y lo acerca a nacer */
+    eggWarm(p, 1, false);
+    UI.eggRub = {p, x:p.rx};
   } else if(!p.sleeping){
     p.happy = Math.min(100, p.happy+2);
     spawnHearts(1); petVoice(p); p.petT = now; p.squashAt = now;

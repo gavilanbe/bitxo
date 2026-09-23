@@ -14,6 +14,7 @@ function run(){
   const setup = `
     localStorage.removeItem('bitxo-save');
     const _p = G.pets[0];
+    EGG_ARRIVE.length = 0; for(const q of G.pets) q.arriving = false; if(UI.mode==='eggArrive') UI.mode='main';
     _p.stage = 3; _p.form = 'adultA'; _p.level = 9; _p.energy = 90; _p.hunger = 70; _p.sleeping = false; _p.rx = 80; _p.tx = 80;
     G.motas = 1000;`;
   const visuals = {

@@ -25,6 +25,18 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 
+## 🥚 El huevo, de cine (sep 2026)
+
+- ✅ **Llegada**: franjas de cine, un cometa de su color cruza el cielo, la
+  cámara va al sitio, baja una columna de luz y el huevo desciende girando en
+  una burbuja; al aterrizar: onda, hierba que salta, sacudida y rótulo.
+- ✅ **Incubación viva**: late cada vez más deprisa, brilla con su color,
+  suelta partículas de su línea (hojas, brasas, burbujas, esporas, guijarros,
+  chispas, estrellas) al tocarlo o FROTARLO, cruje por fases y asoma los ojos.
+- ✅ **Eclosión**: zoom al huevo, latidos y zumbido que suben, la energía de
+  la línea es absorbida, ¡POP! en su color, silueta que se colorea, primer
+  parpadeo, primera palabra y «¿le pones nombre?».
+
 ## 🏡 Un prado con espacio y cosas que valen (sep 2026)
 
 - ✅ **Mundo ancho**: cada zona mide el doble de la pantalla; la cámara sigue

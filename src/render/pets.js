@@ -82,34 +82,7 @@ function drawOnePet(p, i, t){
     if(sel && Math.floor(t/400)%2===0){ px(p.rx-1,131,2,2,'#ffd94a'); px(p.rx-2,129,4,2,'#ffd94a'); }
     return;
   }
-  if(p.stage===STAGES.EGG){
-    let ey = 160, dropping = now-p.dropT < 1100;
-    if(dropping){
-      const pr = Math.min(1, (now-p.dropT)/1100);
-      ey = -30 + 190*(pr*pr);
-      if(Math.floor(now/40)!==Math.floor((now-16)/40)) fx({x:p.rx-6+Math.random()*12, y:ey-8, vy:-0.01, life:450, col:'#ffd94a', kind:'star'});
-    }
-    /* cuanto más cerca de nacer, más se agita */
-    const near = Math.max(p.tapsOnEgg/15, (Date.now()-p.bornAt)/T_HATCH);
-    const jitter = near>0.75 && Math.floor(t/900)%3===0 ? Math.sin(t/25)*1.5 : 0;
-    const wob = (!dropping && now-p.hop < 300) ? Math.sin(t/30)*2 : (dropping?0:Math.sin(t/300)*1 + jitter);
-    if(!dropping) softShadow(p.rx, 161, 14);
-    if(!dropping && !p.landed){ p.landed = true; p.squashAt = now; dustFx(p.rx, 161, 8); shake(0.2); }
-    const esq = springSquash(p.squashAt, 0.28, now);
-    ctx.save();
-    ctx.translate(Math.round(p.rx+wob), Math.round(ey));
-    ctx.scale(esq[0], esq[1]);
-    ctx.drawImage(SPR['egg_'+p.line][0], -6, -13);
-    if(p.tapsOnEgg>6 || Date.now()-p.bornAt > T_HATCH*0.6) ctx.drawImage(SPR.eggCrack, -6, -13);
-    ctx.restore();
-    /* brillo interior al estar a punto */
-    if(near>0.6 && !dropping && every(160, now)) fx({x:p.rx-4+Math.random()*8, y:ey-6-Math.random()*6, vy:-0.02, life:500, col:'#fff8d0', kind:'star'});
-    if(sel && !dropping && Math.floor(t/400)%2===0){
-      px(p.rx-1, ey-22, 2, 2, '#ffd94a');
-      px(p.rx-2, ey-24, 4, 2, '#ffd94a');
-    }
-    return;
-  }
+  if(p.stage===STAGES.EGG){ drawEggWorld(p, i, t); return; }
   const content = p.eatT>0 || (now - (p.petT||0) < 900);
   const def = p.form==='grimo' ? {spr:'grimo'} : {spr:p.line+'_'+(p.form||'babyA')};
   const frames = SPR[def.spr];

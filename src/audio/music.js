@@ -239,7 +239,7 @@ function humTick(){
 setInterval(()=>{
   if(!AC || (G && G.muted) || !G){ MUS.song = null; return; }
   const now = performance.now();
-  if(['boot','evolve','hatch','ascendFX','mgDance','mgSimon'].includes(UI.mode)){
+  if(['boot','evolve','hatch','eggArrive','ascendFX','mgDance','mgSimon'].includes(UI.mode)){
     MUS.song = null; MUS.hum = null; return;
   }
   /* una fanfarria o una preescucha: la canción espera y luego SIGUE donde iba */

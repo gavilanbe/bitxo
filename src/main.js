@@ -91,6 +91,8 @@ function frame(now){
     drawTextC('CARGANDO...', 80, 144, 'rgba(255,255,255,0.5)');
   } else if(UI.mode==='evolve'){
     drawEvolve(dt);
+  } else if(UI.mode==='eggArrive'){
+    drawEggArrive(dt);
   } else if(UI.mode==='hatch'){
     drawHatch(dt);
   } else if(UI.mode==='ascendFX'){
@@ -157,6 +159,7 @@ function frame(now){
     drawHUD(now);
     drawModals(now);
     if(UI.mode==='main' && !offlineReport && !UI.expReport && EVO_QUEUE.length) playNextEvo();
+    else if(UI.mode==='main' && !offlineReport && !UI.expReport && EGG_ARRIVE.length) startEggArrive();
   }
   ctx.restore();
   /* los avisos van por encima de TODO: menús, combate y minijuegos */
@@ -225,7 +228,7 @@ function normalizeSave(g){
   g.deco2 = g.deco2||{inst:{},st:{}}; g.visit = g.visit||{day:'',gift:null};
   for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
-    p.decoUse=null; p.swingT=0; p.kickAt=0; p.drumT=0; p.kiteT=0; p.toyGo=null; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
+    p.decoUse=null; p.arriving=false; p.swingT=0; p.kickAt=0; p.drumT=0; p.kiteT=0; p.toyGo=null; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
     p.hat = p.hat||null;
     if(p.str===undefined) p.str = p.discipline||0;
     p.def = p.def||0; p.spd = p.spd||0;
