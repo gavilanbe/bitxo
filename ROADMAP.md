@@ -19,6 +19,9 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Sala de juegos v2**: cuenta atrás, salir con X, récords con sello,
   estrellas, fin que no se salta sin querer y mando de teclado.
 - ✅ **GYM v4** y **cinemáticas** de eclosión, evolución y ascenso nuevas.
+- ✅ **Pulido 2**: combate donde el timing manda (aporrear ya no gana a un
+  rival más fuerte), halos redondos de sol, luna y farolillos, salpicaduras
+  de lluvia y panel que suena al abrirse.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 

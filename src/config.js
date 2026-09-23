@@ -19,5 +19,5 @@ const RUNAWAY_AFTER = 14*60*60*1000;
 const COST_MEAL = 5, COST_SNACK = 8;
 
 /* versión desplegada: la estampa tools/stamp.sh en cada publicación */
-const GAME_VERSION = '20260923-1616';
+const GAME_VERSION = '20260923-1624';
 let UPDATE_READY = false;

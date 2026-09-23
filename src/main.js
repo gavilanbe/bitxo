@@ -41,7 +41,12 @@ function drawModals(now){
   const repFn = offlineReport ? drawOfflineReport : (UI.expReport ? drawExpReport : null);
   if(!menuFn && !repFn){ UI.menuKey = null; return; }
   const key = UI.mode + (repFn ? '+rep' : '');
-  if(UI.menuKey !== key){ UI.menuKey = key; UI.menuAt = now; }
+  if(UI.menuKey !== key){
+    /* cada panel entra con un "fuu" de papel */
+    if(!UI.menuKey) nz(sfxAt(0), 0.09, 0.018, 1800, 0.8, 4200);
+    else tone({f:700, slide:900, d:0.04, type:'p125', vol:0.015});
+    UI.menuKey = key; UI.menuAt = now;
+  }
   const pr = Math.min(1, (now - UI.menuAt)/150);
   const e = 1 - Math.pow(1-pr, 3);
   ctx.fillStyle = 'rgba(8,9,28,' + (0.5*e).toFixed(3) + ')';

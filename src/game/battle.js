@@ -132,8 +132,8 @@ function startBattle(){
     elem:E.elem, quirk:E.quirk,
     mult: elemMult(playerElem(p), E.elem),
     /* +20% de vida: el combo multiplica tu ritmo de daño */
-    ehp: Math.round((12 + nv*3.4) * 1.2 * (E.hpM||1) * (elite?1.45:1) * (G.wild.boss?2.3:1)),
-    eatk: (2.2 + nv*0.85) * (E.atkM||1) * (elite?1.2:1) * (G.wild.boss?1.35:1),
+    ehp: Math.round((12 + nv*4) * 1.2 * (E.hpM||1) * (elite?1.45:1) * (G.wild.boss?2.3:1)),
+    eatk: (2.6 + nv*1.25) * (E.atkM||1) * (elite?1.2:1) * (G.wild.boss?1.35:1),
     php: Math.round(24 + p.level*2.5 + p.weight*0.4),
     phase:'intro', t:0, mk:Math.random(), mdir:1,
     dmg:0, crit:false, resolved:false,
@@ -259,7 +259,7 @@ function resolveEnemyHit(b){
   }
   let raw = b.eatk * (0.7+Math.random()*0.6) * (b.bigAtk ? 1.9 : 1);
   if(b.blocked){
-    raw *= b.parry ? (b.bigAtk ? 0.28 : 0.1) : (b.quirk==='fly' ? 0.62 : 0.4);
+    raw *= b.parry ? (b.bigAtk ? 0.28 : 0.1) : (b.quirk==='fly' ? 0.7 : 0.5);
     b.blockFxT = performance.now(); b.blockAt = b.clock;
   }
   const dmg = Math.max(1, Math.round(raw - (p.def||0)*0.6));
@@ -349,16 +349,17 @@ function btAttack(b){
   b.lastGood = dist < 0.35;
   if(b.miss){
     /* golpe fallido: daño mínimo y el rival se enfurece */
-    b.dmg = Math.max(1, Math.round(atk*0.4*decay*b.mult));
+    b.dmg = Math.max(1, Math.round(atk*0.25*decay*b.mult));
     b.crit = false;
     b.rage = true;
     b.misses++;
     const c = btECenter(b);
     popText(c.x, c.y-30, '¡CASI!', '#e2574c');
   } else {
-    const mult = (0.6 + 1.7*(1-dist)) * decay;
-    b.dmg = Math.max(1, Math.round(atk*mult*b.mult));
+    /* el timing manda: aporrear rinde poco, clavar el aro rinde mucho */
     b.crit = dist<0.18;
+    const mult = (0.3 + 1.0*(1-dist)) * decay * (b.crit ? 1.6 : 1);
+    b.dmg = Math.max(1, Math.round(atk*mult*b.mult));
   }
   if(b.paraT){
     b.dmg = Math.max(1, Math.round(b.dmg*0.7)); b.paraT = 0;
@@ -381,7 +382,7 @@ function btSuper(b){
 function btGuard(b){
   const now = performance.now();
   if(b.blocked) return;
-  if(now - b.lockAt < 260) return;
+  if(now - b.lockAt < 560) return;
   const tti = btTTI(b);
   if(tti <= BTG.BLOCK && tti >= -40){
     b.blocked = true;

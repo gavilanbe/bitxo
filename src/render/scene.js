@@ -176,13 +176,23 @@ function celestialPos(){
   else { const hh = h<6.5 ? h+24 : h; k = (hh-21)/9.5; }
   return { x: Math.round(16 + k*128), y: Math.round(74 - Math.sin(k*Math.PI)*42) };
 }
+/* halo redondo: disco tramado que se desvanece hacia fuera */
+function glowDisc(cx, cy, R, col, a){
+  ctx.fillStyle = col;
+  ctx.globalAlpha = a;
+  for(let y=-R;y<=R;y++) for(let x=-R;x<=R;x++){
+    const d = Math.sqrt(x*x+y*y)/R;
+    if(d>1) continue;
+    const lv = (1-d)*(1-d);
+    if(BAYER4[((y+64)&3)*4+((x+64)&3)]/16 < lv*1.6) ctx.fillRect(cx+x, cy+y, 1, 1);
+  }
+  ctx.globalAlpha = 1;
+}
 function drawSunMoon(t, ph, S){
   const cp = celestialPos();
   if(ph==='night'){
     /* halo de luna tramado */
-    ctx.globalAlpha = 0.12; ctx.fillStyle = '#dfe8ff';
-    for(let r=13;r>7;r-=3){ ctx.fillRect(cp.x-r, cp.y-r+2, r*2, r*2-4); ctx.fillRect(cp.x-r+2, cp.y-r, r*2-4, r*2); }
-    ctx.globalAlpha = 1;
+    glowDisc(cp.x, cp.y, 16, '#dfe8ff', 0.22);
     const mc = '#f4f0d8';
     px(cp.x-4,cp.y-5,8,10,mc); px(cp.x-5,cp.y-4,10,8,mc);
     px(cp.x-3,cp.y-6,6,1,mc); px(cp.x-3,cp.y+5,6,1,mc);
@@ -194,9 +204,7 @@ function drawSunMoon(t, ph, S){
   const sc = ph==='day' ? '#ffe066' : '#ffab5a', core = ph==='day' ? '#fff6c0' : '#ffd08a';
   /* halo que respira */
   const br = 1 + Math.sin(t/900)*0.5;
-  ctx.globalAlpha = 0.14; ctx.fillStyle = sc;
-  for(const r of [15+br, 11+br]){ ctx.fillRect(cp.x-r+3, cp.y-r, (r-3)*2, r*2); ctx.fillRect(cp.x-r, cp.y-r+3, r*2, (r-3)*2); }
-  ctx.globalAlpha = 1;
+  glowDisc(cp.x, cp.y, 17+br, sc, 0.3);
   /* rayos girando lentos */
   for(let i=0;i<8;i++){
     const a = i*Math.PI/4 + t/5000;
@@ -399,8 +407,7 @@ function drawScene(t){
       px(lx-2,132,6,7,'#8a6a3a');
       px(lx-1,133,4,5, ph==='night' ? '#ffd94a' : '#f2b06b');
       if(ph==='night'){
-        ctx.fillStyle='rgba(255,217,74,0.13)';
-        ctx.fillRect(lx-7,128,16,16);
+        glowDisc(lx+1, 136, 11 + Math.round(Math.sin(t/400+lx)*0.8), '#ffd94a', 0.35);
       }
     }
     if(ph==='night' || ph==='dusk'){
@@ -632,6 +639,12 @@ function drawWeather(t){
       const rx2 = 22+((t*0.37)|0)%22, ry2 = 180+((t*0.13)|0)%8;
       px(rx2-1, ry2, 3, 1, 'rgba(190,232,248,0.7)');
       px(rx2, ry2-1, 1, 1, 'rgba(190,232,248,0.7)');
+    }
+    /* salpicaduras donde caen las gotas */
+    if(every(70, t)){
+      const sx = 4+Math.random()*152, sy = 130+Math.random()*62;
+      fx({x:sx-1, y:sy, vx:-0.02, vy:-0.03, g:0.0003, life:220, col:'rgba(190,220,255,0.8)'});
+      fx({x:sx+1, y:sy, vx:0.02, vy:-0.03, g:0.0003, life:220, col:'rgba(190,220,255,0.8)'});
     }
     for(const d of rainDrops){
       const y = (d.y + t*0.14*d.s)%200;
