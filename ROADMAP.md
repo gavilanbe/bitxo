@@ -25,6 +25,22 @@ que ya existen — esa es la regla de la casa: **coherencia antes que novedad**.
 - ✅ **Arreglos**: FUNGO ya no cuelga el combate, cría y huevos de expedición
   alcanzables, progreso al volver a la app, teclado de bautizo completo...
 
+## 🏡 Un prado con espacio y cosas que valen (sep 2026)
+
+- ✅ **Mundo ancho**: cada zona mide el doble de la pantalla; la cámara sigue
+  a tu bitxo, se arrastra con inercia, tiene parallax y avisa en los bordes
+  de lo que pasa fuera de cuadro (tócalo y te lleva).
+- ✅ **Modo EDITAR**: arrastra juguetes y adornos por el suelo; encajan, rebotan
+  y se guardan.
+- ✅ **Juguetes con nivel**: cada uso los mejora (NV2 a los 5, NV3 a los 20) y
+  suelta motas que vuelan al marcador.
+- ✅ **BELLEZA**: cada zona puntúa; los tramos dan +10…50% de motas,
+  mariposas que se tocan, una mariposa dorada y un juglar que toca el tema y
+  deja un regalo.
+- ✅ **11 adornos nuevos con mecánica y animación**: macetas, banderines,
+  campana de viento, banco, farola, corro de setas, molino, árbol frutal,
+  colmena, casita y la estatua de tu dinastía.
+
 ## 🎵 El tema de BITXO (sep 2026)
 
 - ✅ **Una melodía memorable** que suena en todas partes con arreglos

@@ -53,7 +53,7 @@ function drawOnePet(p, i, t){
     /* entra de un salto: cae desde arriba los primeros 260 ms */
     const drop = inT<260 ? Math.round((1-inT/260)*10) : 0;
     ctx.save();
-    ctx.beginPath(); ctx.rect(0, 0, LW, TY+3); ctx.clip();
+    ctx.beginPath(); ctx.rect(TX-40, 0, 80, TY+3); ctx.clip();
     ctx.translate(TX, TY + 11 + bob - drop);
     ctx.scale(p.dir||1, 1);
     ctx.drawImage(spr3, -Math.floor(spr3.width/2), -spr3.height);
@@ -167,6 +167,10 @@ function drawOnePet(p, i, t){
     }
   }
   if(p.sleeping){ sy*=0.94; sx*=1.03; lift=0; }
+  /* sentado en un banco: sobre el asiento, un pelín achatado y balanceándose */
+  if(p.decoUse && typeof decorSeatDY==='function' && decorSeatDY(p)){
+    lift = 6 + Math.max(0, Math.sin(t/700))*0.6; sy *= 0.95; sx *= 1.03;
+  }
   /* muelle de squash & stretch: caricias, aterrizajes, selección */
   const spq = springSquash(p.squashAt, 0.24, now);
   sx *= spq[0]; sy *= spq[1];
@@ -253,13 +257,15 @@ function drawOnePet(p, i, t){
   }
 }
 /* ---------------- JUGUETES: sitio de cada uno en su zona ---------------- */
-const SWING = {px:28, py:131, L:19, per:1880};
-const BANERA = {x:59, y:150};
-const TAMBOR = {x:127, beat:330};
-const FUENTE = {x:10};
-const HUERTO = {x:85, plants:[78,85,92]};
-const CAJA = {x:107};
-const COMETA = {stake:146};
+/* la x de cada uno la decide su sitio en la zona (game/decor.js placeX):
+   el jugador los recoloca en el modo EDITAR */
+const SWING = {get px(){ return placeX('columpio'); }, py:131, L:19, per:1880};
+const BANERA = {get x(){ return placeX('banera'); }, y:150};
+const TAMBOR = {get x(){ return placeX('tambor'); }, beat:330};
+const FUENTE = {get x(){ return placeX('fuente'); }};
+const HUERTO = {get x(){ return placeX('huerto'); }, get plants(){ const x = placeX('huerto'); return [x-7, x, x+7]; }};
+const CAJA = {get x(){ return placeX('caja'); }};
+const COMETA = {get stake(){ return placeX('cometa'); }};
 /* ángulo del columpio: coge vuelo al subirse y se frena al bajarse */
 function swingAngle(t){
   const rider = G.pets.find(q=>(q.swingT||0)>0 && (q.zone||'prado')===G.zone);
@@ -324,21 +330,41 @@ function toyShadow(cx, w){ softShadow(cx, 160, w); }
 function drawToys(t){
   if(!G.toys) return;
   const pn = performance.now();
-  if(G.toys.columpio && toyZone('columpio')===G.zone) drawSwingToy(t);
-  if(G.toys.fuente && toyZone('fuente')===G.zone) drawFountainToy(t);
-  if(G.toys.banera && toyZone('banera')===G.zone){
+  /* cada juguete en su sitio; decorWrap lo levanta al arrastrarlo en
+     el modo EDITAR y lo hace rebotar al soltarlo o subir de nivel */
+  const W = (id, fn)=>{ if(G.toys[id] && toyZone(id)===G.zone) decorWrap(id, placeX(id), fn); };
+  W('columpio', ()=>drawSwingToy(t));
+  W('fuente', ()=>drawFountainToy(t));
+  W('banera', ()=>{
     toyShadow(BANERA.x, 22);
     ctx.drawImage(SPR.banera_w, BANERA.x-11, BANERA.y);
     /* reflejo que se mueve en el agua */
     const gx = BANERA.x-8 + Math.floor(t/260)%16;
     if(!G.pets.some(q=>q.batheT>0)) px(gx, BANERA.y+2, 2, 1, '#e8faff');
-  }
-  if(G.toys.huerto && toyZone('huerto')===G.zone) drawHuertoToy(t, pn);
-  if(G.toys.tambor && toyZone('tambor')===G.zone) drawDrumToy(t, pn);
-  if(G.toys.caja && toyZone('caja')===G.zone) drawCajaToy(t, pn);
-  if(G.toys.cometa && toyZone('cometa')===G.zone) drawKiteToy(t);
+  });
+  W('huerto', ()=>drawHuertoToy(t, pn));
+  W('tambor', ()=>drawDrumToy(t, pn));
+  W('caja', ()=>drawCajaToy(t, pn));
+  W('cometa', ()=>drawKiteToy(t));
   if(G.toys.robot && toyZone('robot')===G.zone) drawRobotToy(t, pn);
   if(G.toys.pelota && G.ballX!==undefined && toyZone('pelota')===G.zone) drawBallToy(t, pn);
+  drawToyLevels(t);
+}
+/* estrellitas de nivel bajo cada juguete (NV2 ★, NV3 ★★) */
+function drawToyLevels(t){
+  if(typeof toyLevel!=='function') return;
+  for(const id in G.toys){
+    if(!G.toys[id] || toyZone(id)!==G.zone || ITEM_MOBILE[id]) continue;
+    const L = toyLevel(id); if(L<2) continue;
+    const x = placeX(id), y = 163;
+    for(let k=0;k<L-1;k++){
+      const sx = x - (L-2)*3 + k*6;
+      const tw = Math.floor(t/300 + k + x)%6===0;
+      px(sx, y-1, 1, 5, K); px(sx-2, y+1, 5, 1, K); px(sx-1, y, 3, 3, K);
+      px(sx, y, 1, 3, '#ffd94a'); px(sx-1, y+1, 3, 1, '#ffd94a');
+      px(sx, y+1, 1, 1, tw ? '#ffffff' : '#fff0a0');
+    }
+  }
 }
 function drawSwingToy(t){
   ctx.drawImage(SPR.columpio, SWING.px-17, 126);
@@ -492,7 +518,7 @@ function drawHuertoToy(t, pn){
 }
 /* la cometa: con viento vuela (y a veces la sujeta un bitxo); sin él, descansa */
 function kitePos(t){
-  return {x: 112 + Math.sin(t/1300)*14 + Math.sin(t/370)*2, y: 74 + Math.sin(t/800)*7 + Math.sin(t/290)*1.5};
+  return {x: COMETA.stake - 34 + Math.sin(t/1300)*14 + Math.sin(t/370)*2, y: 74 + Math.sin(t/800)*7 + Math.sin(t/290)*1.5};
 }
 function drawKiteToy(t){
   const S = COMETA.stake;
@@ -534,7 +560,7 @@ function drawKiteToy(t){
   ctx.drawImage(SPR.cometa, Math.round(k.x)-4, Math.round(k.y)-4);
 }
 function drawRobotToy(t, pn){
-  if(UI.robotX===undefined) UI.robotX = 60;
+  if(UI.robotX===undefined) UI.robotX = placeX('robot');
   const rx = Math.round(UI.robotX);
   const dir = UI.robotDir||1;
   const sw = UI.robotSweep && pn - UI.robotSweep.at < 900 ? UI.robotSweep : null;
@@ -820,8 +846,8 @@ function drawSign(t){
   const ready = questClaimable();
   /* con premio pendiente, el cartel se agita y brilla */
   const wig = ready ? Math.round(Math.sin(t/90)*(Math.floor(t/1400)%2===0?1:0)) : 0;
-  softShadow(150, 160, 10);
-  const sx = 141+wig;
+  softShadow(placeX('cartel'), 160, 10);
+  const sx = placeX('cartel') - 9 + wig;
   ctx.drawImage(SPR.cartel, sx, 136);
   /* papelitos clavados: el de la misión, y uno más viejo detrás */
   px(sx+11, 142, 4, 5, '#d8cdb0'); px(sx+11, 146, 4, 1, '#b8ac90');

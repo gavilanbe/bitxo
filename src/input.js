@@ -226,8 +226,13 @@ function handleTap(x,y){
   }
   /* cinta de objetivo: pista (es HUD: coordenadas de pantalla) */
   if(y>=21 && y<=33 && x>=4 && x<=156 && !UPDATE_READY){ goalTap(); return; }
+  /* flechitas del borde: a lo que pasa fuera de cuadro */
+  if(camIndicatorTap(x, y)) return;
   /* desde aquí todo es MUNDO: la x de pantalla pasa a x del mundo ancho */
   x = toWorldX(x);
+  /* modo EDITAR: los toques los gestiona decorEditDown; decoración viva y bichitos */
+  if(UI.decorEdit) return;
+  if(typeof decorTap==='function' && decorTap(x, y)) return;
   /* chispas */
   for(let i=UI.sparkles.length-1;i>=0;i--){
     const s = UI.sparkles[i];
@@ -250,8 +255,8 @@ function handleTap(x,y){
     SFX.ballKick(); vibrate(12);
     return;
   }
-  if(G.toys && G.toys.caja && toyZone('caja')===G.zone && x>96 && x<116 && y>134 && y<166){
-    if(Date.now() >= (G.cajaReadyAt||0)){ openCaja(); }
+  if(G.toys && G.toys.caja && toyZone('caja')===G.zone && Math.abs(x-placeX('caja'))<10 && y>134 && y<166){
+    if(Date.now() >= (G.cajaReadyAt||0)){ openCaja(); if(typeof toyUsed==='function') toyUsed('caja', AP()); }
     else {
       const mns = Math.ceil((G.cajaReadyAt-Date.now())/60000);
       toast('CAJA LISTA EN '+mns+'M');
@@ -259,7 +264,7 @@ function handleTap(x,y){
     return;
   }
   /* huerto: cosechar la fruta */
-  if(G.toys && G.toys.huerto && toyZone('huerto')===G.zone && x>72 && x<98 && y>134 && y<166 &&
+  if(G.toys && G.toys.huerto && toyZone('huerto')===G.zone && Math.abs(x-placeX('huerto'))<13 && y>134 && y<166 &&
      !G.pets.some(q=>q.stage>STAGES.EGG && Math.abs(x-q.rx)<9)){
     if(Date.now() >= (G.huertoReadyAt||0)){
       const p2 = AP();
@@ -273,6 +278,9 @@ function handleTap(x,y){
       G.harvests = (G.harvests||0)+1;
       questProg('cosecha', 1);
       G.huertoReadyAt = Date.now() + huertoCycleMs();
+      /* HUERTO NV3: una fruta de propina */
+      if(typeof toyPow==='function' && toyPow('huerto','extra')){ p2.hunger = Math.min(100, p2.hunger+10); gainXP(3); }
+      if(typeof toyUsed==='function') toyUsed('huerto', p2);
       toast('¡FRUTA DEL HUERTO!');
       SFX.eatFood('fruta'); vibrate(15); saveGame();
     } else {
@@ -282,7 +290,7 @@ function handleTap(x,y){
     return;
   }
   /* cartel de misiones */
-  if(G.zone==='prado' && x>141 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
+  if(G.zone==='prado' && Math.abs(x-placeX('cartel'))<10 && y>135 && y<165){ UI.mode='quests'; SFX.tap(); vibrate(10); return; }
   /* senderos y flechas: moverse entre zonas */
   if(zoneArrowTap(x, y)) return;
   /* el muñeco de entreno del parque: GYM sin menús (y el ¡VS! del duelo) */

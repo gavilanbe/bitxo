@@ -192,7 +192,7 @@ function openHuerta(){
 /* si alguien vive en la huerta, riega: la fruta madura antes */
 function huertoCycleMs(){
   const riego = G.pets.some(p=>(p.zone||'prado')==='huerta' && p.stage>STAGES.EGG);
-  return (riego ? 90 : 120) * 60 * 1000 * (1 - 0.2*perk('huerto'));
+  return (riego ? 90 : 120) * 60 * 1000 * (1 - 0.2*perk('huerto')) * (typeof toyPow==='function' ? toyPow('huerto','cycle') : 1);
 }
 
 /* --- tienda con scroll: alto del contenido por pestaña --- */
@@ -201,7 +201,7 @@ function shopContentH(){
   if(tab===0) return SHOP.length*19;
   if(tab===1) return TOYS.length*20;
   if(tab===2) return Math.ceil(HATS.length/2)*25;
-  return DECOR.length*22;
+  return typeof shopPradoH==='function' ? shopPradoH() : DECOR.length*22;
 }
 function shopMaxScroll(){ return Math.max(0, shopContentH() - 144); }
 
@@ -288,7 +288,7 @@ function openCaja(){
   ringFx(106, 152, '#ffd94a', 18, 360);
   if(r<0.55) flyCoins(106, 146, 8);
   UI.cajaOpenAt = performance.now();
-  G.cajaReadyAt = Date.now() + 45*60*1000;
+  G.cajaReadyAt = Date.now() + (typeof toyPow==='function' ? toyPow('caja','every') : 45)*60*1000;
   SFX.boing(); vibrate([20,20,40]);
   saveGame();
 }

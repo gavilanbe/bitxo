@@ -48,6 +48,7 @@ function camStep(dt){
       else if(sx > LW-48) tx = focus - (LW-48);
     }
   }
+  if(CAM.target!==undefined && now < CAM.manualUntil) tx = CAM.target;
   if(tx!==null){
     tx = Math.max(0, Math.min(camMax(), tx));
     CAM.x += (tx - CAM.x)*(1 - Math.exp(-dt/260));
@@ -90,6 +91,7 @@ function camOffscreen(t){
   const sp = UI.sparkles.filter(s=>(s.zone||'prado')===G.zone);
   for(const s of sp) items.push({x:s.x, col:'#ffd94a', ch:'✦', small:true});
   let lefts = 0, rights = 0;
+  UI.camInd = [];
   for(const it of items){
     const sx = it.x - CAM.x;
     if(sx >= -2 && sx <= LW+2) continue;
@@ -99,6 +101,7 @@ function camOffscreen(t){
     const y = 140 - k*12 + Math.round(Math.sin(t/200+k)*1.5);
     const bx = left ? 1 : LW-9;
     const nud = Math.round(Math.abs(Math.sin(t/260))*2)*(left?-1:1);
+    UI.camInd.push({x:bx, y, wx:it.x});
     ctx.globalAlpha = it.small ? 0.75 : 0.95;
     px(bx+nud, y, 8, 9, '#20243c'); px(bx+nud, y, 8, 1, 'rgba(255,255,255,0.2)');
     drawText(it.ch, bx+nud+2, y+2, it.col);
@@ -116,4 +119,15 @@ function camMinimap(t){
   px(x0, y0, w, 2, 'rgba(10,8,30,0.5)');
   px(x0 + Math.round((w-vw)*f), y0, vw, 2, '#f6efe0');
   ctx.globalAlpha = 1;
+}
+
+/* tocar una flechita del borde: la cámara viaja hasta lo que señala */
+function camIndicatorTap(sx, sy){
+  if(!UI.camInd) return false;
+  for(const c of UI.camInd){
+    if(sx>=c.x-3 && sx<=c.x+11 && sy>=c.y-3 && sy<=c.y+12){
+      camLookAt(c.wx); CAM.manualUntil = performance.now() + 6000; SFX.tap(); return true;
+    }
+  }
+  return false;
 }

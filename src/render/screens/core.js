@@ -216,6 +216,37 @@ function toyIcon(id){
     else if(id==='robot'){ px(ox+15,y+5,8,7,'#8a8a94'); px(ox+17,y+7,2,2,'#5ec8d8'); px(ox+20,y+7,1,2,'#5ec8d8'); px(ox+14,y+12,10,2,'#3a3448'); }
   };
 }
+/* ---- PRADO: cabecera de BELLEZA + EDITAR, luego decoración ---- */
+const SHOP_PRADO_HEAD = 30;
+function shopPradoH(){ return SHOP_PRADO_HEAD + (DECOR2.length + DECOR.length)*22; }
+function shopPradoRect(i){ const V = SHOP_L.view; return {x:V.x+1, y:V.y+SHOP_PRADO_HEAD+i*22, w:140, h:21}; }
+function shopEditRect(){ const V = SHOP_L.view; return {x:V.x+99, y:V.y+3, w:40, h:22}; }
+function shopPradoHint(){
+  const z = G.zone, t = bellezaTier(z), nx = bellezaNext(z);
+  return nx ? ('A '+nx+'♥: '+['+10% MOTAS','+20% Y DORADA','+30% Y VISITA','+50% MOTAS'][t]) : '¡BELLEZA MAXIMA!';
+}
+function drawShopPradoHead(V, sc){
+  const z = G.zone, b = belleza(z), t = bellezaTier(z), nx = bellezaNext(z);
+  const y = V.y, x = V.x+1, w = 140, pn = performance.now();
+  uiStag(0, ()=>{
+    px(x, y, w, 27, '#2a2046'); px(x, y, w, 1, 'rgba(255,255,255,0.14)'); px(x, y+26, w, 1, 'rgba(0,0,0,0.3)');
+    drawText(ZONES[z].name, x+4, y+3, '#f6efe0');
+    /* corazón que late con la belleza */
+    const beat = Math.floor(pn/600)%2 ? 1 : 0;
+    drawText(b+'♥', x+4, y+10, beat ? '#ffd0dc' : '#f2a2b8');
+    drawText(BEL_TIER_FX[t].name, x+4+textW(b+'♥')+4, y+10, t ? '#ffd94a' : UIC.muted);
+    /* barra hacia el siguiente escalón */
+    const bw = 90, pr = bellezaProg(z);
+    px(x+4, y+18, bw, 4, '#120e24'); px(x+4, y+18, Math.round(bw*pr), 4, '#f2a2b8'); px(x+4, y+18, Math.round(bw*pr), 1, '#ffd0dc');
+    for(let i=0;i<4;i++){ const tx = x+4+Math.round(bw*(i+1)/4)-1; px(tx, y+17, 1, 6, i<t ? '#ffd94a' : '#4a4070'); }
+    /* botón EDITAR con martillito */
+    const R = shopEditRect(), d = uiPressed('shopEdit');
+    px(R.x, R.y+d, R.w, R.h, '#e0ac2c'); px(R.x, R.y+d, R.w, 1, '#ffe08a'); px(R.x, R.y+R.h-1+d, R.w, 1, '#8a5a14');
+    const hx = R.x+R.w/2-3, hy = R.y+3+d + (Math.floor(pn/900)%4===0 ? -1 : 0);
+    px(hx+1, hy+3, 2, 6, '#6e4a2a'); px(hx-1, hy, 7, 3, '#46445a'); px(hx-1, hy, 7, 1, '#9494ac');
+    drawTextC('EDITAR', R.x+R.w/2, R.y+13+d, '#3a2208');
+  });
+}
 function drawShop(){
   const L = SHOP_L;
   uiPanel(Object.assign({title:'TIENDA', icon:'shop', color:'shop', currency:true}, L.panel));
@@ -270,19 +301,37 @@ function drawShop(){
     });
   } else {
     G.decor = G.decor || {owned:{}, flores:'clasico'};
+    drawShopPradoHead(V, sc);
+    DECOR2.forEach((D, i)=>{
+      const r = shopPradoRect(i); if(!vis(r)) return;
+      const n = decoCount(D.id), maxed = n>=D.max;
+      const locked = D.need && !D.need();
+      const afford = !maxed && !locked && G.motas>=D.cost;
+      const bel = D.id==='estatua' ? decoBel('estatua') : D.bel;
+      uiRow({key:'d2'+i, i, x:r.x, y:r.y, w:r.w, h:r.h, icon:SPR['ico_d_'+D.id], iconO:{sil:locked, lock:locked},
+        title: D.name + (D.max>1 ? ' '+n+'/'+D.max : ''), sub: locked ? D.needTxt : D.desc,
+        state: maxed ? 'owned' : (locked ? 'locked' : (afford ? 'normal' : 'poor')),
+        stripe: maxed ? '#7ac74f' : (n>0 ? '#f2a2b8' : null),
+        right:(xr)=>{
+          const xl = maxed ? badge(xr, r.y+2, D.max>1 ? 'MAX' : 'TUYO') : (locked ? badge(xr, r.y+2, 'LOCK') : pricePill(xr, r.y+2, D.cost, afford));
+          const bs = '+'+bel+'♥';
+          drawText(bs, xr-textW(bs), r.y+12, '#f2a2b8');
+          return Math.min(xl, xr-textW(bs));
+        }});
+    });
     DECOR.forEach((D, i)=>{
-      const r = shopRowRect(3, i); if(!vis(r)) return;
+      const r = shopPradoRect(DECOR2.length + i); if(!vis(r)) return;
       const owned = !!G.decor.owned[D.id];
       const active = D.kind==='flores' ? G.decor.flores===D.val : !!G.decor[D.id];
       const afford = !owned && G.motas>=D.cost;
-      uiRow(Object.assign({key:'dec'+i, i, icon:UIIC[D.id], title:D.name, sub:D.desc,
+      uiRow(Object.assign({key:'dec'+i, i:DECOR2.length+i, icon:UIIC[D.id], title:D.name, sub:D.desc,
         state: owned ? (active ? 'on' : 'owned') : (afford ? 'normal' : 'poor'),
         stripe: owned ? (active ? '#ffd94a' : '#7ac74f') : null},
         owned ? {badge: active ? 'PUESTO' : 'TUYO'} : {price:D.cost, afford}, r));
     });
   }
-  uiScrollEnd(V, sc, shopContentH());
-  uiHint(SHOP_HINT[tab], 80, 210);
+  uiScrollEnd(V, sc, tab===3 ? shopPradoH() : shopContentH());
+  uiHint(tab===3 ? shopPradoHint() : SHOP_HINT[tab], 80, 210);
 }
 
 /* ==================== DESPENSA ==================== */
@@ -585,6 +634,32 @@ function tapShop(x, y){
     tapHat(i);
     if(!had && G.hats[H.id]) sparkle(key);
   } else {
+    const ly3 = ly - V.y;
+    if(ly3 < SHOP_PRADO_HEAD){
+      const R = shopEditRect();
+      if(uiHit({x:R.x, y:R.y - (UI.shopScroll||0), w:R.w, h:R.h}, x, y)){
+        uiPress('shopEdit'); SFX.tap();
+        UI.mode = 'main'; decorEditStart();
+      }
+      return;
+    }
+    const k = Math.floor((ly3 - SHOP_PRADO_HEAD)/22);
+    if(k < DECOR2.length){
+      if(k<0) return;
+      const D = DECOR2[k], key2 = 'd2'+k;
+      uiPress(key2);
+      const c = decorCanBuy(D.id);
+      if(!c.ok){ uiDeny(key2, c.max ? (D.max>1 ? 'NO CABEN MAS' : 'YA ES TUYO') : c.why); SFX.nope(); return; }
+      const got = decorBuy(D.id);
+      if(got){
+        uiFlash(key2);
+        /* a verlo caer en el prado */
+        UI.mode = 'main';
+        if(typeof camLookAt==='function') camLookAt(placeX(got), false);
+      }
+      return;
+    }
+    i = k - DECOR2.length;
     if(i<0 || i>=DECOR.length) return;
     const D = DECOR[i], key = 'dec'+i;
     G.decor = G.decor || {owned:{}, flores:'clasico'};
@@ -592,7 +667,7 @@ function tapShop(x, y){
     uiPress(key);
     if(!had && G.motas<D.cost) uiDeny(key, 'FALTAN '+fmt(D.cost-G.motas)+'✦');
     tapDecor(i);
-    if(!had && G.decor.owned[D.id]) sparkle(key);
+    if(!had && G.decor.owned[D.id]){ uiFlash(key); if(typeof bellezaDirty==='function') bellezaDirty(); }
   }
 }
 SCREEN_TAP.shop = tapShop;

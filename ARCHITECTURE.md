@@ -58,6 +58,8 @@ src/
 │  │                       juguetes, clima, chispas, salvajes, autoguardado
 │  ├─ actions.js           comer, limpiar, luz, tienda, juguetes,
 │  │                       expediciones, ascensión
+│  ├─ decor.js             colocación (G.place + modo EDITAR), niveles de juguete,
+│  │                       BELLEZA por zona y los adornos nuevos (DECOR2)
 │  ├─ gym.js               reglas del GYM: cuota, efecto, reps y sus toques (gymTap)
 │  ├─ minigames.js         lógica de los 8 minijuegos y sus toques (mgTap/mgDrag/mgKey)
 │  └─ battle.js            combate con aro de timing, paradas, súper, jefes, botín
@@ -71,6 +73,8 @@ src/
 │  │                       despensa, jugar, expedición, reliquias, álbum, logros
 │  ├─ fx.js                partículas/flotantes y cinemáticas (evolución,
 │  │                       nacimiento, ascensión)
+│  ├─ camera.js            cámara del mundo ancho (WORLD_W): seguir, arrastrar,
+│  │                       parallax, flechas de lo que pasa fuera de cuadro
 │  ├─ juice.js             el NERVIO: temblor por trauma, hitstop, flashes, iris
 │  │                       entre escenas, partículas con física, popText,
 │  │                       monedas al marcador, muelles de squash & stretch

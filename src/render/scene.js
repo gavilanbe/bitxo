@@ -433,7 +433,7 @@ function drawScene(t){
   }
   if(G.zone==='prado' && G.up.jardin>=4){
     /* farolillos */
-    for(const lx of [22, 126]){
+    for(const lx of PRADO_LANTERNS){
       const on = ph==='night' || ph==='dusk';
       if(on) glowDisc(lx+1, 135, 12 + Math.round(Math.sin(t/400+lx)*0.8), '#ffd94a', ph==='night' ? 0.35 : 0.18);
       ctx.drawImage(SPR.farol, lx-3, 130);

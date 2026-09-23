@@ -151,7 +151,7 @@ function liveUpdate(dtMs){
         if(p.trait==='TIMIDO'){
           p.scaredT = now + 600;
           if(Math.random() < dtMs*0.0006){
-            p.tx = G.wild.x < 80 ? 130 : 26; /* huye al lado contrario */
+            p.tx = G.wild.x < WORLD_W/2 ? WORLD_W-30 : 30; /* huye al lado contrario */
           }
         }
       }
@@ -400,6 +400,7 @@ function liveUpdate(dtMs){
   /* el arco de primer día ahora lo guían los OBJETIVOS (game/goals.js) */
   goalsTick();
 
+  if(typeof decorUpdate==='function') decorUpdate(dtMs);
   achTimer += dtMs;
   if(achTimer > 3000){ achTimer=0; checkAchievements(); ensureDaily(); if(UI.mode==='main') checkDailyGift(); }
 
@@ -427,7 +428,7 @@ function hatchPet(i){
    drumT, kiteT (en uso) y toyGo {id,x,until} (de camino).
    ========================================================= */
 function petHalfW(p){ const f = SPR[p.form==='grimo' ? 'grimo' : p.line+'_'+(p.form||'babyA')]; return f ? Math.floor(f[0].width/2) : 6; }
-function toyBusy(p){ return (p.swingT>0)||(p.batheT>0)||(p.drinkT>0)||(p.drumT>0)||(p.kiteT>0); }
+function toyBusy(p){ return (p.swingT>0)||(p.batheT>0)||(p.drinkT>0)||(p.drumT>0)||(p.kiteT>0)||!!p.decoUse; }
 function toyFree(p){
   return p.stage>STAGES.EGG && petHere(p) && !p.sleeping && !p.exped && !p.eatT && !p.trainT && !toyBusy(p);
 }
@@ -437,14 +438,15 @@ function toySpot(id, p){
   const hw = petHalfW(p);
   switch(id){
     case 'columpio': return SWING.px;
-    case 'banera':   return 59;
-    case 'fuente':   return 21 + hw;
+    case 'banera':   return BANERA.x;
+    case 'fuente':   return FUENTE.x + 11 + hw;
     case 'tambor':   return TAMBOR.x + 6 + hw;
-    case 'cometa':   return 158 - hw;
-    case 'huerto':   return 85;
-    case 'caja':     return 107 - 7 - hw;
+    case 'cometa':   return COMETA.stake + 12 - hw;
+    case 'huerto':   return HUERTO.x;
+    case 'caja':     return CAJA.x - 7 - hw;
     case 'pelota':   return G.ballX + (p.rx < G.ballX ? -(hw+3) : (hw+3));
   }
+  if(id && id[0]==='@' && typeof decorSpot==='function') return decorSpot(id.slice(1), p);
   return p.rx;
 }
 function toyLeave(p, now, happy){
@@ -473,6 +475,8 @@ function toyPick(p, now){
   add('cometa', WEATHER.kind==='wind' && !G.pets.some(q=>q.kiteT>0) && !busyBy('cometa') ? 2.5 : 0);
   add('caja', Date.now()>=(G.cajaReadyAt||0) ? 0.8 : 0);
   add('huerto', Date.now()>=(G.huertoReadyAt||0) ? 0.8 : 0);
+  /* decoración que se usa (el banco) */
+  if(typeof decorPickOpts==='function') decorPickOpts(p, now, (id, w)=>{ if(w>0) opts.push([id, w]); });
   if(!opts.length) return;
   let r = Math.random()*opts.reduce((a,o)=>a+o[1],0), id = opts[0][0];
   for(const o of opts){ r -= o[1]; if(r<=0){ id = o[0]; break; } }
@@ -481,7 +485,7 @@ function toyPick(p, now){
 function toyGo(p, id, now){
   const x = toySpot(id, p);
   p.toyGo = {id, x, until: now + 9000};
-  p.tx = Math.max(10, Math.min(146, x)); p.nextWalk = now + 9000;
+  p.tx = Math.max(10, Math.min(WORLD_W-14, x)); p.nextWalk = now + 9000;
 }
 /* patada: con destino (pase a un amigo) o al azar */
 function ballKick(p, target){
@@ -495,7 +499,8 @@ function ballKick(p, target){
   G.ballVX = vx;
   UI.ballVZ = 0.08 + Math.random()*0.05; UI.ballZ = Math.max(UI.ballZ||0, 0.5);
   p.dir = dir; p.squashAt = pn; p.kickAnimAt = pn;
-  p.happy = Math.min(100, p.happy+3);
+  p.happy = Math.min(100, p.happy + (typeof toyPow==='function' ? toyPow('pelota','kick') : 3));
+  if(typeof toyUsed==='function') toyUsed('pelota', p);
   SFX.ballKick();
   dustFx(G.ballX - dir*3, 161, 4); ringFx(G.ballX, 156, '#ffffff', 6, 200);
 }
@@ -522,7 +527,7 @@ function toyLife(dtMs, now){
       G.ballVX *= Math.exp(-dtMs*0.0004);
     } else G.ballVX *= Math.exp(-dtMs*0.0018);
     if(G.ballX<16){ G.ballX=16; G.ballVX=Math.abs(G.ballVX)*0.8; if(G.ballVX>0.03){ SFX.bounce(); UI.ballSquashAt = pn; } }
-    if(G.ballX>144){ G.ballX=144; G.ballVX=-Math.abs(G.ballVX)*0.8; if(-G.ballVX>0.03){ SFX.bounce(); UI.ballSquashAt = pn; } }
+    if(G.ballX>WORLD_W-16){ G.ballX=WORLD_W-16; G.ballVX=-Math.abs(G.ballVX)*0.8; if(-G.ballVX>0.03){ SFX.bounce(); UI.ballSquashAt = pn; } }
     if(Math.abs(G.ballVX)<0.005) G.ballVX=0;
     const slow = Math.abs(G.ballVX)<0.03 && UI.ballZ<3;
     for(const p of G.pets){
@@ -530,7 +535,7 @@ function toyLife(dtMs, now){
       const hw = petHalfW(p);
       const chasing = p.toyGo && p.toyGo.id==='pelota';
       /* quien va a por la pelota ajusta el rumbo mientras rueda */
-      if(chasing){ p.toyGo.x = toySpot('pelota', p); p.tx = Math.max(10, Math.min(146, p.toyGo.x)); p.nextWalk = now + 3000; }
+      if(chasing){ p.toyGo.x = toySpot('pelota', p); p.tx = Math.max(10, Math.min(WORLD_W-14, p.toyGo.x)); p.nextWalk = now + 3000; }
       const near = Math.abs(p.rx-G.ballX) < hw+5;
       if(near && slow && (chasing || now>(p.kickAt||0))){
         /* ¿hay un amigo libre para pasársela? */
@@ -566,6 +571,7 @@ function toyLife(dtMs, now){
     if(!here || p.sleeping || p.exped){
       if(p.drumT>0) p.drumT = 0;
       if(p.kiteT>0) p.kiteT = 0;
+      if(p.decoUse) p.decoUse = null;
       if(p.toyGo) p.toyGo = null;
       continue;
     }
@@ -574,30 +580,35 @@ function toyLife(dtMs, now){
       if(p.swingT>0){
         p.swingT -= dtMs;
         if(!p.creakAt || now > p.creakAt){ SFX.creak(); p.creakAt = now + 940; }
-        p.happy = Math.min(100, p.happy + dtMs*0.0012);
-        p.energy = Math.min(100, p.energy + dtMs*0.0008);
+        const lvR = typeof toyPow==='function' ? toyPow('columpio','rate') : 1;
+        p.happy = Math.min(100, p.happy + dtMs*0.0012*lvR);
+        p.energy = Math.min(100, p.energy + dtMs*0.0008*lvR);
         if(p.swingT<=0 || !toyHere('columpio')){
           p.swingT = 0;
           /* salta del asiento */
           p.rx = Math.round(swingSeat(pn).x); p.squashAt = pn; dustFx(p.rx, 161, 5);
           toyLeave(p, now, true);
+          if(typeof toyUsed==='function') toyUsed('columpio', p);
         }
       } else if(p.batheT>0){
         p.batheT -= dtMs;
-        p.hygiene = Math.min(100, p.hygiene + dtMs*0.012);
-        if(every(700, pn)) toyFx({kind:'drop', x:59-8+Math.random()*16, y:150, vx:(Math.random()-0.5)*0.05, vy:-0.07, g:0.0003, life:600, floor:160});
+        p.hygiene = Math.min(100, p.hygiene + dtMs*0.012*(typeof toyPow==='function' ? toyPow('banera','hyg') : 1));
+        if(every(700, pn)) toyFx({kind:'drop', x:BANERA.x-8+Math.random()*16, y:150, vx:(Math.random()-0.5)*0.05, vy:-0.07, g:0.0003, life:600, floor:160});
         if(p.batheT<=0 || !toyHere('banera')){
           p.batheT = 0;
           /* sale y se sacude el agua */
-          p.rx = 59 + (Math.random()<0.5?-16:16); p.dir = p.rx<59 ? -1 : 1; p.squashAt = pn;
+          const bx = BANERA.x;
+          p.rx = bx + (Math.random()<0.5?-16:16); p.dir = p.rx<bx ? -1 : 1; p.squashAt = pn;
           burst(p.rx, 150, {n:12, cols:['#9adcf0','#e8faff','#5e9be0'], speed:0.09, g:0.0004, life:520, up:0.04, floor:160});
           toyLeave(p, now, true);
+          if(typeof toyPow==='function') p.happy = Math.min(100, p.happy + toyPow('banera','happy'));
+          if(typeof toyUsed==='function') toyUsed('banera', p);
         }
       } else if(p.drinkT>0){
         p.drinkT -= dtMs;
         p.dir = -1;
-        if(every(380, pn)) toyFx({kind:'drop', x:19, y:155, vx:0.02, vy:-0.05, g:0.0003, life:420});
-        if(p.drinkT<=0 || !toyHere('fuente')){ p.drinkT = 0; toyLeave(p, now, true); }
+        if(every(380, pn)) toyFx({kind:'drop', x:FUENTE.x+9, y:155, vx:0.02, vy:-0.05, g:0.0003, life:420});
+        if(p.drinkT<=0 || !toyHere('fuente')){ const done = p.drinkT<=0; p.drinkT = 0; toyLeave(p, now, true); if(done && typeof toyUsed==='function') toyUsed('fuente', p); }
       } else if(p.drumT>0){
         p.drumT -= dtMs;
         p.dir = -1;
@@ -618,7 +629,9 @@ function toyLife(dtMs, now){
           /* acorde final */
           [0,4,7,12].forEach((sv,j)=> tone({f:NOTE(p.drumBase||262, sv), at:sfxAt(j*0.02), d:0.35, type:'p25', vol:0.03, send:0.4}));
           for(let j=0;j<4;j++) toyFx({kind:'note', x:TAMBOR.x-9+Math.random()*16, y:144, vx:(Math.random()-0.5)*0.04, vy:-0.035, life:1200, col:'#ffd94a', wob:j*2});
-          for(const q of G.pets) if(q!==p && q.stage>STAGES.EGG && petHere(q)) q.happy = Math.min(100, q.happy+3);
+          const oth = typeof toyPow==='function' ? toyPow('tambor','others') : 3;
+          for(const q of G.pets) if(q!==p && q.stage>STAGES.EGG && petHere(q)) q.happy = Math.min(100, q.happy+oth);
+          if(typeof toyUsed==='function') toyUsed('tambor', p);
           p.happy = Math.min(100, p.happy+4);
           toyLeave(p, now, true);
           p.thought = {icon:'note', until: pn+1800};
@@ -626,8 +639,10 @@ function toyLife(dtMs, now){
       } else if(p.kiteT>0){
         p.kiteT -= dtMs;
         p.dir = -1;
-        p.happy = Math.min(100, p.happy + dtMs*0.0008);
-        if(p.kiteT<=0 || WEATHER.kind!=='wind' || !toyHere('cometa')){ p.kiteT = 0; toyLeave(p, now, true); }
+        p.happy = Math.min(100, p.happy + dtMs*0.0008*(typeof toyPow==='function' ? toyPow('cometa','rate') : 1));
+        if(p.kiteT<=0 || WEATHER.kind!=='wind' || !toyHere('cometa')){ const done = p.kiteT<=0; p.kiteT = 0; toyLeave(p, now, true); if(done && typeof toyUsed==='function') toyUsed('cometa', p); }
+      } else if(p.decoUse){
+        if(typeof decorUseTick==='function') decorUseTick(p, dtMs, now); else p.decoUse = null;
       }
       continue;
     }
@@ -635,23 +650,25 @@ function toyLife(dtMs, now){
     /* de camino a un juguete */
     if(p.toyGo){
       const g = p.toyGo;
-      if(now > g.until || !toyHere(g.id)){ p.toyGo = null; continue; }
+      const isDeco = g.id[0]==='@';
+      if(now > g.until || (isDeco ? !(G.deco2 && G.deco2.inst[g.id.slice(1)]===G.zone) : !toyHere(g.id)) || UI.decorEdit){ p.toyGo = null; continue; }
       if(g.id==='pelota') continue;   /* la pelota se resuelve arriba */
-      p.tx = Math.max(10, Math.min(146, g.x)); p.nextWalk = Math.max(p.nextWalk||0, now + 1000);
+      p.tx = Math.max(10, Math.min(WORLD_W-14, g.x)); p.nextWalk = Math.max(p.nextWalk||0, now + 1000);
       if(Math.abs(p.rx - g.x) < 2.5){
         p.rx = g.x; p.tx = g.x;
         p.toyGo = null;
-        toyStart(p, g.id, now, pn);
+        if(isDeco){ if(typeof decorUseStart==='function') decorUseStart(p, g.id.slice(1), now); }
+        else toyStart(p, g.id, now, pn);
       }
       continue;
     }
     /* ¿le apetece jugar con algo? */
-    if(UI.mode==='main' && Math.random() < dtMs*0.00007) toyPick(p, now);
+    if(UI.mode==='main' && !UI.decorEdit && Math.random() < dtMs*0.00007) toyPick(p, now);
   }
 
   /* ---- el robot: patrulla y barre las cacas de su zona ---- */
   if(toyHere('robot')){
-    if(UI.robotX===undefined) UI.robotX = 60;
+    if(UI.robotX===undefined) UI.robotX = placeX('robot');
     if(!UI.robotAt) UI.robotAt = 0;
     const x0 = UI.robotX;
     const sweeping = UI.robotSweep && pn - UI.robotSweep.at < 900;
@@ -661,11 +678,12 @@ function toyLife(dtMs, now){
     else if(pi>=0 && now>UI.robotAt){
       const target = G.poops[pi].x;
       const d = target - UI.robotX;
-      if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*Math.min(Math.abs(d), dtMs*0.012); UI.robotDir = Math.sign(d); }
+      if(Math.abs(d)>2){ UI.robotX += Math.sign(d)*Math.min(Math.abs(d), dtMs*0.012*(typeof toyPow==='function' ? toyPow('robot','speed') : 1)); UI.robotDir = Math.sign(d); }
       else {
         UI.robotSweep = {x: G.poops[pi].x, at: pn};
         G.poops.splice(pi,1);
-        UI.robotAt = now + ROBOT_EVERY;
+        UI.robotAt = now + ROBOT_EVERY*(typeof toyPow==='function' ? toyPow('robot','every') : 1);
+        if(typeof toyUsed==='function') toyUsed('robot', null);
         SFX.clean();
         tone({f:880, slide:1320, d:0.08, type:'p125', vol:0.03, at:sfxAt(0.75)});
         for(const p of G.pets) p.hygiene = Math.min(100, p.hygiene+6);
@@ -674,7 +692,7 @@ function toyLife(dtMs, now){
       /* patrulla tranquila, con paradas */
       if(!UI.robotTx || Math.abs(UI.robotX-UI.robotTx)<2){
         if(!UI.robotWait) UI.robotWait = now + 1200 + Math.random()*2500;
-        if(now > UI.robotWait){ UI.robotTx = 35+Math.random()*95; UI.robotWait = 0; }
+        if(now > UI.robotWait){ const rh = placeX('robot'); UI.robotTx = Math.max(20, Math.min(WORLD_W-20, rh-60+Math.random()*120)); UI.robotWait = 0; }
       } else {
         UI.robotX += Math.sign(UI.robotTx-UI.robotX)*dtMs*0.006;
         UI.robotDir = Math.sign(UI.robotTx-UI.robotX)||1;
@@ -688,28 +706,28 @@ function toyStart(p, id, now, pn){
   switch(id){
     case 'columpio':
       if(G.pets.some(q=>q.swingT>0)) return toyLeave(p, now, false);
-      p.swingT = p.swingDur = 6000; p.petT = pn; SFX.yay(); break;
+      p.swingT = p.swingDur = (typeof toyPow==='function' ? toyPow('columpio','dur') : 6000); p.petT = pn; SFX.yay(); break;
     case 'banera':
       if(G.pets.some(q=>q.batheT>0)) return toyLeave(p, now, false);
       p.batheT = p.batheDur = 4200; p.batheCd = now + 60000;
       SFX.clean(); nz(sfxAt(0.05), 0.18, 0.05, 1400, 1, 500);
-      burst(59, 150, {n:14, cols:['#9adcf0','#e8faff','#5e9be0'], speed:0.1, g:0.0004, life:560, up:0.06, floor:160});
-      ringFx(59, 152, '#e8faff', 10, 280);
+      burst(BANERA.x, 150, {n:14, cols:['#9adcf0','#e8faff','#5e9be0'], speed:0.1, g:0.0004, life:560, up:0.06, floor:160});
+      ringFx(BANERA.x, 152, '#e8faff', 10, 280);
       break;
     case 'fuente':
       if(G.pets.some(q=>q.drinkT>0)) return toyLeave(p, now, false);
-      p.drinkT = 2400; p.drinkCd = now + 120000; p.dir = -1;
-      p.energy = Math.min(100, p.energy+10);
+      p.drinkT = 2400; p.drinkCd = now + (typeof toyPow==='function' ? toyPow('fuente','cd') : 120000); p.dir = -1;
+      p.energy = Math.min(100, p.energy + (typeof toyPow==='function' ? toyPow('fuente','energy') : 10));
       p.thought = {icon:'water', until: pn+900};
       break;
     case 'tambor':
       if(G.pets.some(q=>q.drumT>0)) return toyLeave(p, now, false);
-      p.drumT = 2640; p.drumBeatN = 0; p.drumNext = now + 120; p.dir = -1;
+      p.drumT = (typeof toyPow==='function' ? toyPow('tambor','dur') : 2640); p.drumBeatN = 0; p.drumNext = now + 120; p.dir = -1;
       p.drumBase = [262,294,330,392][Math.floor(Math.random()*4)];
       break;
     case 'cometa':
       if(WEATHER.kind!=='wind' || G.pets.some(q=>q.kiteT>0)) return toyLeave(p, now, false);
-      p.kiteT = 7000; p.dir = -1; SFX.yay(); break;
+      p.kiteT = (typeof toyPow==='function' ? toyPow('cometa','dur') : 7000); p.dir = -1; SFX.yay(); break;
     case 'caja':
       p.dir = 1; p.thought = {icon:'gift', until: pn+2600}; p.joyAt = pn;
       p.tx = p.rx; p.nextWalk = now + 2600;

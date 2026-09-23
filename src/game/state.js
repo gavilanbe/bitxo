@@ -83,6 +83,7 @@ function freshGame(){
     diary:[],
     zone:'prado', zonesOpen:{},
     combos3:0, parries:0, harvests:0, items:[], criaNextAt:0, slowRing:false,
+    place:{prado:{},parque:{},huerta:{}}, toyXP:{}, deco2:{inst:{},st:{}}, visit:{day:'',gift:null},
     poops:[], lastSeen:Date.now(),
     hints:{sparkle:false, shop:false}
   };

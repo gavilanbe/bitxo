@@ -221,9 +221,11 @@ function normalizeSave(g){
   g.constel.nodes = g.constel.nodes||{}; g.constel.pts = g.constel.pts||0;
   if(g.constel.guide===undefined) g.constel.guide = null;
   g.poops = g.poops||[];
+  g.place = g.place||{prado:{},parque:{},huerta:{}}; g.toyXP = g.toyXP||{};
+  g.deco2 = g.deco2||{inst:{},st:{}}; g.visit = g.visit||{day:'',gift:null};
   for(const pp of g.poops) pp.zone = pp.zone||'prado';
   for(const p of g.pets){
-    p.swingT=0; p.kickAt=0; p.drumT=0; p.kiteT=0; p.toyGo=null; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
+    p.decoUse=null; p.swingT=0; p.kickAt=0; p.drumT=0; p.kiteT=0; p.toyGo=null; p.wokeAt = p.wokeAt||0; p.sickAway = p.sickAway||0;
     p.hat = p.hat||null;
     if(p.str===undefined) p.str = p.discipline||0;
     p.def = p.def||0; p.spd = p.spd||0;
@@ -239,6 +241,7 @@ function normalizeSave(g){
   buildEnemySprites();
   /* arte que vive en su propio archivo (data/art/): pisa lo anterior */
   if(typeof buildToyArt==='function') buildToyArt();
+  if(typeof buildDecorArt==='function') buildDecorArt();
   if(typeof buildEnemyArt==='function') buildEnemyArt();
   const saved = await loadGame();
   if(saved && saved.v===5){

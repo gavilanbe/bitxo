@@ -283,10 +283,10 @@ function run(){
       R.hatToggledOff = _p.hat === null;
       UI.mode = 'shop'; handleTap(100, 55);
       R.tabGorros = UI.shopTab === 2;
-      UI.mode = 'main'; handleTap(150, 150);
+      UI.mode = 'main'; camLookAt(placeX('cartel'), true); handleTap(placeX('cartel') - CAM.x, 150);
       R.signOpensQuests = UI.mode === 'quests';
       UI.mode = 'main';
-      if(G.buho){ G.buho.x = 126; handleTap(126, 150); R.buhoTap = UI.mode === 'buho'; }
+      if(G.buho){ G.buho.x = 126; CAM.x = 0; handleTap(126, 150); R.buhoTap = UI.mode === 'buho'; }
       UI.mode = 'feed';
       const m2 = G.motas;
       handleTap(45, 60);
@@ -320,8 +320,8 @@ function run(){
       UI.mode = 'main';
       // cosechar el huerto
       G.huertoReadyAt = Date.now() - 1;
-      _p.rx = 30; _p.hunger = 50; // lejos del huerto
-      handleTap(84, 150);
+      _p.rx = placeX('huerto') + 60; _p.hunger = 50; // lejos del huerto
+      camLookAt(placeX('huerto'), true); handleTap(placeX('huerto') - CAM.x, 150);
       R.huertoHarvest = _p.hunger === 70 && G.huertoReadyAt > Date.now();
       // evolución por stats (estilo digimon)
       const evo = (stage, form, st, df, sp, games, care) => {
@@ -697,11 +697,13 @@ function run(){
       R.battleBiomes = !bgCrash;
       // DECOR: comprar flores y aplicarlas
       G.motas = 2000; UI.mode = 'shop'; UI.shopTab = 3;
+      /* las flores van tras la decoración nueva: se desplaza la lista hasta ellas */
+      UI.shopScroll = shopPradoRect(DECOR2.length).y - SHOP_L.view.y;
       handleTap(80, 70); // flores pastel
       R.decorBuy = !!G.decor.owned.flores_pastel && G.decor.flores === 'pastel';
       handleTap(80, 70); // toggle a clásico
       R.decorToggle = G.decor.flores === 'clasico';
-      handleTap(80, 64 + 2*22 + 8); // valla
+      handleTap(80, 64 + 2*22 + 8); UI.shopScroll = 0; // valla
       R.decorValla = !!G.decor.owned.valla && G.decor.valla === true;
       UI.mode = 'main';
       let decorCrash = false;
@@ -1258,6 +1260,64 @@ function run(){
       // actualizar: solo en un momento seguro
       UI.mode = 'shop'; R.updUnsafeInMenu = !safeToReload();
       UI.mode = 'main'; R.updSafeInMain = safeToReload() === (!offlineReport && !UI.expReport && !EVO_QUEUE.length && !UI.carry && !UI.zoneSlide);
+      // DECORACION: sitio, modo EDITAR, niveles de juguete y BELLEZA
+      { const t0 = JSON.stringify(G.toys), zo0 = JSON.stringify(G.zonesOpen), z0 = G.zone, m0 = G.motas;
+        const pl0 = G.place, d0 = G.deco2, x0 = G.toyXP, v0 = G.visit, dc0 = G.decor, j0 = G.up.jardin;
+        G.place = null; G.deco2 = null; G.toyXP = null; G.visit = null; ensureDecor();
+        G.toys = {columpio:true, fuente:true, banera:true}; G.zonesOpen = {}; G.zone = 'prado'; UI.mode = 'main';
+        G.decor = {owned:{}, flores:'clasico'}; G.up.jardin = 0;
+        // los juguetes por defecto no se pisan y están repartidos por el mundo ancho
+        const its = itemsInZone('prado');
+        R.decPlaceNoOverlap = its.every(k=>placeFits('prado', k, placeX(k)));
+        R.decPlaceSpread = Math.max(...Object.values(PLACE_DEF.prado)) > 200;
+        R.decSpriteLinked = SWING.px === placeX('columpio') && BANERA.x === placeX('banera');
+        // comprar: descuenta, se coloca sin pisar, sube la belleza
+        bellezaDirty(); const b0 = belleza('prado'); CAM.x = 0; G.motas = 10000;
+        const key = decorBuy('molino');
+        R.decBuy = key === 'molino' && G.motas === 10000-450 && G.deco2.inst.molino === 'prado' && placeFits('prado', 'molino', placeX('molino'));
+        bellezaDirty(); R.decBelUp = belleza('prado') === b0 + 8;
+        R.decMaxRefused = decorBuy('molino') === false;
+        R.decStatueLocked = (G.ascensions||0) >= 1 || decorCanBuy('estatua').lock === true;
+        // modo EDITAR: arrastrar con rejilla de 2px, no se solapa, se queda en el mundo
+        decorEditStart();
+        const cx = placeX('columpio');
+        R.decEditGrab = decorEditDown(cx, 150) === true && UI.decorEdit.drag.key === 'columpio';
+        decorEditMove(cx + 41, 150);
+        const want = UI.decorEdit.drag.want;
+        R.decEditSnap = want % 2 === 0;
+        decorEditMove(placeX('banera') + 3, 150); decorEditUp();
+        R.decEditNoOverlap = placeFits('prado', 'columpio', placeX('columpio')) && placeX('columpio') !== placeX('banera') + 3;
+        decorEditDown(placeX('columpio'), 150); decorEditMove(-500, 150); decorEditUp();
+        R.decEditClamp = placeX('columpio') + ITEM_FP.columpio[0] >= 8;
+        decorEditEnd();
+        R.decEditEnds = !UI.decorEdit;
+        // niveles de juguete: 5 usos NV2, 20 NV3; cada uso paga
+        G.toyXP = {}; UI.toyUseAt = {};
+        const mm = G.motas; toyUsed('columpio', _p);
+        R.toyUseReward = G.motas > mm && G.toyXP.columpio === 1;
+        toyUsed('columpio', _p); R.toyUseThrottle = G.toyXP.columpio === 1;
+        G.toyXP.columpio = 4; UI.toyUseAt = {}; toyUsed('columpio', _p);
+        R.toyLv2 = toyLevel('columpio') === 2 && toyPow('columpio','dur') === 7500;
+        G.toyXP.columpio = 20; R.toyLv3 = toyLevel('columpio') === 3 && toyPow('fuente','energy') === 10;
+        // belleza: escalones con premio en las motas de esa zona
+        G.deco2.inst = {}; G.deco2.st = {}; bellezaDirty();
+        const r1 = petRate(_p) / bellezaMotaMult('prado');
+        G.deco2.inst = {molino:'prado', casita:'prado', frutal:'prado', colmena:'prado', 'maceta':'prado', 'maceta#2':'prado', 'maceta#3':'prado'}; placeFix('prado'); bellezaDirty();
+        R.decFixSpreads = itemsInZone('prado').every(k=>placeFits('prado', k, placeX(k)));
+        R.decBelTier = bellezaTier('prado') >= 2 && bellezaMotaMult('prado') >= 1.2;
+        R.decBelRate = Math.abs(petRate(_p) - r1*bellezaMotaMult('prado')) < 1e-9;
+        R.decSleepHappy = decorSleepMult('prado') === 1.35 && decorHappyMult('parque') === 1;
+        // colmena: miel lista → +20% motas en la zona
+        G.deco2.st.colmena = {readyAt:0}; G.deco2.mielUntil = 0; bellezaDirty();
+        const mb = bellezaMotaMult('prado'); CAM.x = Math.max(0, Math.min(camMax(), placeX('colmena')-80));
+        const prx = G.pets.map(q=>q.rx); G.pets.forEach(q=>q.rx = placeX('colmena') + 80); UI.bugs = []; UI.visitor = null; G.visit.gift = null; R.decHoneyTap = decorTap(placeX('colmena'), 150); G.pets.forEach((q,i)=>q.rx = prx[i]);
+        R.decHoney = Math.abs(bellezaMotaMult('prado') - mb - 0.2) < 1e-9 && G.deco2.st.colmena.readyAt > Date.now();
+        // partida vieja sin estos campos
+        const old = JSON.parse(JSON.stringify(G)); delete old.place; delete old.deco2; delete old.toyXP; delete old.visit;
+        const ng = normalizeSave(old);
+        R.decOldSave = !!ng.place && !!ng.deco2 && !!ng.toyXP;
+        G.toys = JSON.parse(t0); G.zonesOpen = JSON.parse(zo0); G.zone = z0; G.motas = m0;
+        G.place = pl0; G.deco2 = d0; G.toyXP = x0; G.visit = v0; G.decor = dc0; G.up.jardin = j0; CAM.x = 0; bellezaDirty(); }
       // el bebé crece más rápido que el joven
       R.babyTrickle = trickleMult({stage:1}) > trickleMult({stage:2}) && trickleMult({stage:3}) === 1;
     }catch(e){ R.exception = String(e && e.stack || e); }
